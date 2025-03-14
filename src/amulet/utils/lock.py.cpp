@@ -115,8 +115,7 @@ void init_lock(py::module m_parent)
     std::string module_name = m.attr("__name__").cast<std::string>();
 
     auto Deadlock = py::register_exception<Amulet::Deadlock>(m, "Deadlock", PyExc_RuntimeError);
-    Deadlock.doc() = "This exception signals that a deadlock occurred when locking a lock.\n"
-                     "Not all deadlock cases raise an exception.";
+    Deadlock.doc() = "An exception raised in some deadlock cases.";
 
     auto LockNotAcquired = py::register_exception<Amulet::LockNotAcquired>(m, "LockNotAcquired", PyExc_RuntimeError);
     LockNotAcquired.doc() = "An exception raised if the lock was not acquired.";
@@ -141,15 +140,15 @@ void init_lock(py::module m_parent)
     ThreadShareMode.value(
         "Unique",
         Amulet::ThreadShareMode::Unique,
-        "Other threads can't do anything.");
+        "Other threads can't run in parallel.");
     ThreadShareMode.value(
         "SharedReadOnly",
         Amulet::ThreadShareMode::SharedReadOnly,
-        "Other threads can only read.");
+        "Other threads can only read in parallel.");
     ThreadShareMode.value(
         "SharedReadWrite",
         Amulet::ThreadShareMode::SharedReadWrite,
-        "Other threads can read and write.");
+        "Other threads can read and write in parallel.");
     ThreadShareMode.attr("__repr__") = py::cpp_function(
         [module_name, ThreadShareMode](const py::object& arg) -> py::str {
             return py::str("{}.{}").format(module_name, ThreadShareMode.attr("__str__")(arg));
@@ -173,14 +172,15 @@ void init_lock(py::module m_parent)
         py::call_guard<py::gil_scoped_release>(),
         py::doc(
             "Acquire the lock.\n"
-            "Stops all other threads acquiring the lock until released.\n"
+            "Thread safe.\n"
             "\n"
             "With improper use this can lead to a deadlock.\n"
             "Only use this if you know what you are doing. Consider using the context manager instead\n"
             "\n"
-            ":param blocking: Should this block until the lock can be acquired. Default is True.\n"
+            ":param blocking:\n"
+            "    If true (default) this will block until the lock is acquired, the timeout is reached or the task is cancelled.\n"
             "    If false and the lock cannot be acquired on the first try, this returns False.\n"
-            ":param timeout: The maximum number of seconds to block for. Has no effect is blocking is False. Default is forever.\n"
+            ":param timeout: The maximum number of seconds to block for. Has no effect if blocking is False. Default is forever.\n"
             ":param task_manager: A custom object through which acquiring can be cancelled.\n"
             "    This effectively manually triggers timeout.\n"
             "    This is useful for GUIs so that the user can cancel an operation that may otherwise block for a while.\n"
@@ -193,6 +193,7 @@ void init_lock(py::module m_parent)
         py::doc(
             "Release the lock.\n"
             "Must be called by the thread that locked it.\n"
+            "Thread safe.\n"
             "\n"
             "Only use this if you know what you are doing. Consider using the context manager instead\n"));
     OrderedLock.def(
@@ -224,25 +225,28 @@ void init_lock(py::module m_parent)
         py::keep_alive<0, 4>(),
         py::doc(
             "A context manager to acquire and release the lock.\n"
+            "Thread safe.\n"
             "\n"
             ">>> lock: OrderedLock\n"
             ">>> with lock():\n"
             ">>>     # code with lock acquired\n"
             ">>> # the lock will automatically be released here\n"
             "\n"
-            "Blocks until no thread holds the lock when entering the context manager.\n"
-            "Once acquired, stops all other threads acquiring the lock until released.\n"
+            "Entering the context manager acquires the lock.\n"
+            "If the lock could not be acquired :class:`LockNotAcquired` is raised.\n"
             "Exiting the context manager releases the lock.\n"
             "\n"
-            ":param blocking: Should this block until the lock can be acquired. Default is True.\n"
-            "    If false and the lock cannot be acquired on the first try, this raises :class:`LockNotAcquired`.\n"
-            ":param timeout: The maximum number of seconds to block for. Has no effect is blocking is False. Default is forever.\n"
+            ":param blocking:\n"
+            "    If true (default) entering the context manager will block until the lock is acquired, the timeout is reached or the task is cancelled.\n"
+            "    If false entering the context manager will immediately fail if the lock could not be acquired.\n"
+            ":param timeout:\n"
+            "    The maximum number of seconds to block for when entering the context manager.\n"
+            "    Has no effect if blocking is False. Default is forever.\n"
             ":param task_manager: A custom object through which acquiring can be cancelled.\n"
             "    This effectively manually triggers timeout.\n"
             "    This is useful for GUIs so that the user can cancel an operation that may otherwise block for a while.\n"
             ":param thread_mode: The permissions for the current and other parallel threads.\n"
-            ":return: contextlib.AbstractContextManager[None]\n"
-            ":raises: LockNotAcquired if the lock could not be acquired."));
+            ":return: contextlib.AbstractContextManager[None]"));
 
     py::class_<std::mutex> Lock(m, "Lock", py::module_local(),
         "A wrapper for std::mutex.");

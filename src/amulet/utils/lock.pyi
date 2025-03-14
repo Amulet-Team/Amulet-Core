@@ -18,8 +18,7 @@ __all__ = [
 
 class Deadlock(RuntimeError):
     """
-    This exception signals that a deadlock occurred when locking a lock.
-    Not all deadlock cases raise an exception.
+    An exception raised in some deadlock cases.
     """
 
 class Lock:
@@ -56,25 +55,28 @@ class OrderedLock:
     ) -> contextlib.AbstractContextManager[None, bool | None]:
         """
         A context manager to acquire and release the lock.
+        Thread safe.
 
         >>> lock: OrderedLock
         >>> with lock():
         >>>     # code with lock acquired
         >>> # the lock will automatically be released here
 
-        Blocks until no thread holds the lock when entering the context manager.
-        Once acquired, stops all other threads acquiring the lock until released.
+        Entering the context manager acquires the lock.
+        If the lock could not be acquired :class:`LockNotAcquired` is raised.
         Exiting the context manager releases the lock.
 
-        :param blocking: Should this block until the lock can be acquired. Default is True.
-            If false and the lock cannot be acquired on the first try, this raises :class:`LockNotAcquired`.
-        :param timeout: The maximum number of seconds to block for. Has no effect is blocking is False. Default is forever.
+        :param blocking:
+            If true (default) entering the context manager will block until the lock is acquired, the timeout is reached or the task is cancelled.
+            If false entering the context manager will immediately fail if the lock could not be acquired.
+        :param timeout:
+            The maximum number of seconds to block for when entering the context manager.
+            Has no effect if blocking is False. Default is forever.
         :param task_manager: A custom object through which acquiring can be cancelled.
             This effectively manually triggers timeout.
             This is useful for GUIs so that the user can cancel an operation that may otherwise block for a while.
         :param thread_mode: The permissions for the current and other parallel threads.
         :return: contextlib.AbstractContextManager[None]
-        :raises: LockNotAcquired if the lock could not be acquired.
         """
 
     def __init__(self) -> None: ...
@@ -87,14 +89,15 @@ class OrderedLock:
     ) -> bool:
         """
         Acquire the lock.
-        Stops all other threads acquiring the lock until released.
+        Thread safe.
 
         With improper use this can lead to a deadlock.
         Only use this if you know what you are doing. Consider using the context manager instead
 
-        :param blocking: Should this block until the lock can be acquired. Default is True.
+        :param blocking:
+            If true (default) this will block until the lock is acquired, the timeout is reached or the task is cancelled.
             If false and the lock cannot be acquired on the first try, this returns False.
-        :param timeout: The maximum number of seconds to block for. Has no effect is blocking is False. Default is forever.
+        :param timeout: The maximum number of seconds to block for. Has no effect if blocking is False. Default is forever.
         :param task_manager: A custom object through which acquiring can be cancelled.
             This effectively manually triggers timeout.
             This is useful for GUIs so that the user can cancel an operation that may otherwise block for a while.
@@ -106,6 +109,7 @@ class OrderedLock:
         """
         Release the lock.
         Must be called by the thread that locked it.
+        Thread safe.
 
         Only use this if you know what you are doing. Consider using the context manager instead
         """
@@ -171,11 +175,11 @@ class ThreadShareMode:
     """
     Members:
 
-      Unique : Other threads can't do anything.
+      Unique : Other threads can't run in parallel.
 
-      SharedReadOnly : Other threads can only read.
+      SharedReadOnly : Other threads can only read in parallel.
 
-      SharedReadWrite : Other threads can read and write.
+      SharedReadWrite : Other threads can read and write in parallel.
     """
 
     SharedReadOnly: typing.ClassVar[
