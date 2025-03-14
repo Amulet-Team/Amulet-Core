@@ -52,21 +52,23 @@ class CancelManagerTestCase(TestCase):
         manager.cancel()
         self.assertTrue(manager.is_cancel_requested())
 
-        manager.register_cancel_callback(callback)
+        token = manager.register_cancel_callback(callback)
         manager.cancel()
         self.assertEqual(0, cancelled_count)
+        manager.unregister_cancel_callback(token)
 
         manager = CancelManager()
-        manager.register_cancel_callback(callback)
+        token = manager.register_cancel_callback(callback)
         manager.cancel()
         self.assertEqual(1, cancelled_count)
         manager.cancel()
         self.assertEqual(1, cancelled_count)
+        manager.unregister_cancel_callback(token)
 
         cancelled_count = 0
         manager = CancelManager()
-        manager.register_cancel_callback(callback)
-        manager.unregister_cancel_callback(callback)
+        token = manager.register_cancel_callback(callback)
+        manager.unregister_cancel_callback(token)
         manager.cancel()
         self.assertEqual(0, cancelled_count)
 
@@ -83,21 +85,23 @@ class CancelManagerTestCase(TestCase):
         manager.cancel()
         self.assertFalse(manager.is_cancel_requested())
 
-        manager.register_cancel_callback(callback)
+        token = manager.register_cancel_callback(callback)
         manager.cancel()
         self.assertEqual(0, cancelled_count)
+        manager.unregister_cancel_callback(token)
 
         manager = VoidCancelManager()
-        manager.register_cancel_callback(callback)
+        token = manager.register_cancel_callback(callback)
         manager.cancel()
         self.assertEqual(0, cancelled_count)
         manager.cancel()
         self.assertEqual(0, cancelled_count)
+        manager.unregister_cancel_callback(token)
 
         cancelled_count = 0
         manager = VoidCancelManager()
-        manager.register_cancel_callback(callback)
-        manager.unregister_cancel_callback(callback)
+        token = manager.register_cancel_callback(callback)
+        manager.unregister_cancel_callback(token)
         manager.cancel()
         self.assertEqual(0, cancelled_count)
 
@@ -120,26 +124,28 @@ class ProgressManagerTestCase(TestCase):
             text = t
 
         manager = ProgressManager()
-        manager.register_progress_callback(progress_callback)
-        manager.register_progress_text_callback(text_callback)
+        progress_token = manager.register_progress_callback(progress_callback)
+        text_token = manager.register_progress_text_callback(text_callback)
         manager.update_progress(0.5)
         self.assertEqual(0.5, progress)
         manager.update_progress_text("Hello World")
         self.assertEqual("Hello World", text)
-        manager.unregister_progress_callback(progress_callback)
-        manager.unregister_progress_text_callback(text_callback)
+        manager.unregister_progress_callback(progress_token)
+        manager.unregister_progress_text_callback(text_token)
         manager.update_progress(0.6)
         self.assertEqual(0.5, progress)
         manager.update_progress_text("Hello World2")
         self.assertEqual("Hello World", text)
 
         sub_manager = manager.get_child(0.5, 1.0)
-        manager.register_progress_callback(progress_callback)
-        manager.register_progress_text_callback(text_callback)
+        progress_token = manager.register_progress_callback(progress_callback)
+        text_token = manager.register_progress_text_callback(text_callback)
         sub_manager.update_progress(0.5)
         self.assertEqual(0.75, progress)
         sub_manager.update_progress_text("Hello World2")
         self.assertEqual("Hello World2", text)
+        manager.unregister_progress_callback(progress_token)
+        manager.unregister_progress_text_callback(text_token)
 
     def test_void_progress_manager(self) -> None:
         progress = 0.0
@@ -154,26 +160,28 @@ class ProgressManagerTestCase(TestCase):
             text = t
 
         manager = VoidProgressManager()
-        manager.register_progress_callback(progress_callback)
-        manager.register_progress_text_callback(text_callback)
+        progress_token = manager.register_progress_callback(progress_callback)
+        text_token = manager.register_progress_text_callback(text_callback)
         manager.update_progress(0.5)
         self.assertEqual(0.0, progress)
         manager.update_progress_text("Hello World")
         self.assertEqual("", text)
-        manager.unregister_progress_callback(progress_callback)
-        manager.unregister_progress_text_callback(text_callback)
+        manager.unregister_progress_callback(progress_token)
+        manager.unregister_progress_text_callback(text_token)
         manager.update_progress(0.6)
         self.assertEqual(0.0, progress)
         manager.update_progress_text("Hello World2")
         self.assertEqual("", text)
 
         sub_manager = manager.get_child(0.5, 1.0)
-        manager.register_progress_callback(progress_callback)
-        manager.register_progress_text_callback(text_callback)
+        progress_token = manager.register_progress_callback(progress_callback)
+        text_token = manager.register_progress_text_callback(text_callback)
         sub_manager.update_progress(0.5)
         self.assertEqual(0.0, progress)
         sub_manager.update_progress_text("Hello World2")
         self.assertEqual("", text)
+        manager.unregister_progress_callback(progress_token)
+        manager.unregister_progress_text_callback(text_token)
 
     def test_del(self) -> None:
         """Ensure the data remains valid when the root manager is destroyed."""
@@ -192,8 +200,8 @@ class ProgressManagerTestCase(TestCase):
         manager_ref = ref(manager)
         sub_manager = manager.get_child(0.0, 0.5)
 
-        manager.register_progress_callback(progress_callback)
-        manager.register_progress_text_callback(text_callback)
+        progress_token = manager.register_progress_callback(progress_callback)
+        text_token = manager.register_progress_text_callback(text_callback)
 
         del manager
         self.assertIs(None, manager_ref())
@@ -202,3 +210,6 @@ class ProgressManagerTestCase(TestCase):
         self.assertEqual(0.25, progress)
         sub_manager.update_progress_text("Hello World")
         self.assertEqual("Hello World", text)
+
+        sub_manager.unregister_progress_callback(progress_token)
+        sub_manager.unregister_progress_text_callback(text_token)

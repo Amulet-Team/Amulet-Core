@@ -30,7 +30,7 @@ void CancelManager::cancel()
 {
     {
         std::lock_guard lock(mutex);
-        if (!cancelled) {
+        if (cancelled) {
             return;
         }
         cancelled = true;
