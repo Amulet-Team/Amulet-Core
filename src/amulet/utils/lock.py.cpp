@@ -172,6 +172,7 @@ void init_lock(py::module m_parent)
         py::call_guard<py::gil_scoped_release>(),
         py::doc(
             "Acquire the lock.\n"
+            "Thread safe.\n"
             "\n"
             "With improper use this can lead to a deadlock.\n"
             "Only use this if you know what you are doing. Consider using the context manager instead\n"
@@ -192,6 +193,7 @@ void init_lock(py::module m_parent)
         py::doc(
             "Release the lock.\n"
             "Must be called by the thread that locked it.\n"
+            "Thread safe.\n"
             "\n"
             "Only use this if you know what you are doing. Consider using the context manager instead\n"));
     OrderedLock.def(
@@ -223,6 +225,7 @@ void init_lock(py::module m_parent)
         py::keep_alive<0, 4>(),
         py::doc(
             "A context manager to acquire and release the lock.\n"
+            "Thread safe.\n"
             "\n"
             ">>> lock: OrderedLock\n"
             ">>> with lock():\n"
