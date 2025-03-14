@@ -185,13 +185,12 @@ protected:
                 condition.notify_all();
             };
 
-            auto on_cancel = [&]() -> void {
+            auto token = cancel_manager.register_cancel_callback([&]() -> void {
                 condition.notify_all();
-            };
-            cancel_manager.register_cancel_callback(on_cancel);
+            });
 
             auto unregister_cancel = [&]() -> void {
-                cancel_manager.unregister_cancel_callback(on_cancel);
+                cancel_manager.unregister_cancel_callback(token);
             };
 
             if constexpr (ReturnBool) {
@@ -328,7 +327,8 @@ public:
 
     // An alias to try_lock_until<ThreadAccessMode::Read, ThreadShareMode::SharedReadOnly>
     template <class Clock, class Duration>
-    bool try_lock_shared_until(const std::chrono::time_point<Clock, Duration>& timeout_time, AbstractCancelManager& cancel_manager = global_VoidCancelManager) {
+    bool try_lock_shared_until(const std::chrono::time_point<Clock, Duration>& timeout_time, AbstractCancelManager& cancel_manager = global_VoidCancelManager)
+    {
         return try_lock_until<ThreadAccessMode::Read, ThreadShareMode::SharedReadOnly, Clock, Duration>(timeout_time, cancel_manager);
     }
 };

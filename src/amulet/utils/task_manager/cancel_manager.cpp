@@ -15,47 +15,39 @@ VoidCancelManager::VoidCancelManager(const VoidCancelManager&) = default;
 VoidCancelManager::~VoidCancelManager() = default;
 void VoidCancelManager::cancel() { }
 bool VoidCancelManager::is_cancel_requested() { return false; }
-void VoidCancelManager::register_cancel_callback(CancelCallback callback) { }
-void VoidCancelManager::unregister_cancel_callback(CancelCallback callback) { }
+SignalToken<> VoidCancelManager::register_cancel_callback(CancelCallback callback) { 
+    // Construct an empty token to keep the API consistent.
+    return {};
+}
+void VoidCancelManager::unregister_cancel_callback(SignalToken<> token) { }
 
 VoidCancelManager global_VoidCancelManager;
 
 // CancelManager
-CancelManager::CancelManager() {}
+CancelManager::CancelManager() { }
 
 void CancelManager::cancel()
 {
-    std::lock_guard<std::mutex> guard(mutex);
-    if (cancelled) {
-        return;
-    }
-    cancelled = true;
-    for (const auto& callback : callbacks) {
-        try {
-            callback();
-        } catch (const std::exception& e){
-            Amulet::error(std::string("Error in CancelManager callback: ") + e.what());
-        } catch (...) {
-            Amulet::error(std::string("Error in CancelManager callback."));
+    {
+        std::lock_guard lock(mutex);
+        if (!cancelled) {
+            return;
         }
+        cancelled = true;
     }
+    signal.emit();
 }
 bool CancelManager::is_cancel_requested()
 {
     return cancelled;
 }
-void CancelManager::register_cancel_callback(CancelCallback callback)
+SignalToken<> CancelManager::register_cancel_callback(CancelCallback callback)
 {
-    std::lock_guard<std::mutex> guard(mutex);
-    // Add the callback to the end.
-    callbacks.push_back(callback);
+    return signal.connect(callback);
 }
-void CancelManager::unregister_cancel_callback(CancelCallback callback)
+void CancelManager::unregister_cancel_callback(SignalToken<> token)
 {
-    std::lock_guard<std::mutex> guard(mutex);
-    // Remove all callbacks matching the given callback.
-    callbacks.remove_if(
-        [&callback](CancelCallback callback_) { return callback_.target<void()>() == callback.target<void()>(); });
+    signal.disconnect(token);
 }
 
 } // namespace Amulet

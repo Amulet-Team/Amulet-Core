@@ -89,7 +89,7 @@ private:
 
 public:
     // Default constructor.
-    SignalToken() = delete;
+    SignalToken() = default;
 };
 
 template <typename... Args>
@@ -129,6 +129,9 @@ public:
     // Thread safe.
     void disconnect(const tokenT& token)
     {
+        if (!token.storage) {
+            return;
+        }
         std::lock_guard lock(_mutex);
         std::lock_guard storage_lock(token.storage->mutex);
         token.storage->disconnected = true;

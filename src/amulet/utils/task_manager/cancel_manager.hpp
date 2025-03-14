@@ -7,6 +7,7 @@
 #include <stdexcept>
 
 #include <amulet/dll.hpp>
+#include <amulet/utils/signal.hpp>
 
 namespace Amulet {
 
@@ -46,10 +47,10 @@ public:
 
     // Register a function to get called when cancel is called.
     // The callback will be called from the thread `cancel` is called in.
-    virtual void register_cancel_callback(CancelCallback callback) = 0;
+    virtual SignalToken<> register_cancel_callback(CancelCallback callback) = 0;
 
     // Unregister a registered function from being called when cancel is called.
-    virtual void unregister_cancel_callback(CancelCallback callback) = 0;
+    virtual void unregister_cancel_callback(SignalToken<> token) = 0;
 };
 
 class VoidCancelManager : public AbstractCancelManager {
@@ -59,8 +60,8 @@ public:
     AMULET_CORE_EXPORT ~VoidCancelManager() override;
     AMULET_CORE_EXPORT void cancel() override;
     AMULET_CORE_EXPORT bool is_cancel_requested() override;
-    AMULET_CORE_EXPORT void register_cancel_callback(CancelCallback callback) override;
-    AMULET_CORE_EXPORT void unregister_cancel_callback(CancelCallback callback) override;
+    AMULET_CORE_EXPORT SignalToken<> register_cancel_callback(CancelCallback callback) override;
+    AMULET_CORE_EXPORT void unregister_cancel_callback(SignalToken<> token) override;
 };
 
 AMULET_CORE_EXPORT extern VoidCancelManager global_VoidCancelManager;
@@ -69,7 +70,7 @@ class CancelManager : public AbstractCancelManager {
 private:
     std::mutex mutex;
     bool cancelled = false;
-    std::list<CancelCallback> callbacks;
+    Signal<> signal;
 
 public:
     AMULET_CORE_EXPORT CancelManager();
@@ -77,8 +78,8 @@ public:
 
     AMULET_CORE_EXPORT void cancel() override;
     AMULET_CORE_EXPORT bool is_cancel_requested() override;
-    AMULET_CORE_EXPORT void register_cancel_callback(CancelCallback callback) override;
-    AMULET_CORE_EXPORT void unregister_cancel_callback(CancelCallback callback) override;
+    AMULET_CORE_EXPORT SignalToken<> register_cancel_callback(CancelCallback callback) override;
+    AMULET_CORE_EXPORT void unregister_cancel_callback(SignalToken<> token) override;
 };
 
 } // namespace Amulet

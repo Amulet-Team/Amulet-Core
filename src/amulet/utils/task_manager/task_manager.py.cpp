@@ -17,10 +17,26 @@ static py::module init_cancel_manager(py::module m_parent)
     py::register_exception<Amulet::TaskCancelled>(m, "TaskCancelled");
 
     py::class_<Amulet::AbstractCancelManager> AbstractCancelManager(m, "AbstractCancelManager");
-    AbstractCancelManager.def("cancel", &Amulet::AbstractCancelManager::cancel);
-    AbstractCancelManager.def("is_cancel_requested", &Amulet::AbstractCancelManager::is_cancel_requested);
-    AbstractCancelManager.def("register_cancel_callback", &Amulet::AbstractCancelManager::register_cancel_callback, py::arg("callback"));
-    AbstractCancelManager.def("unregister_cancel_callback", &Amulet::AbstractCancelManager::unregister_cancel_callback, py::arg("callback"));
+    AbstractCancelManager.def(
+        "cancel",
+        &Amulet::AbstractCancelManager::cancel,
+        py::doc("Request the operation be cancelled.\n"
+                "It is down to the operation to implement support for this."));
+    AbstractCancelManager.def(
+        "is_cancel_requested",
+        &Amulet::AbstractCancelManager::is_cancel_requested,
+        py::doc("Has :meth:`cancel` been called to signal that the operation should be cancelled."));
+    AbstractCancelManager.def(
+        "register_cancel_callback",
+        &Amulet::AbstractCancelManager::register_cancel_callback,
+        py::arg("callback"),
+        py::doc("Register a function to get called when cancel is called.\n"
+                "The callback will be called from the thread `cancel` is called in."));
+    AbstractCancelManager.def(
+        "unregister_cancel_callback",
+        &Amulet::AbstractCancelManager::unregister_cancel_callback,
+        py::arg("token"),
+        py::doc("Unregister a registered function from being called when cancel is called."));
 
     py::class_<Amulet::VoidCancelManager, Amulet::AbstractCancelManager> VoidCancelManager(m, "VoidCancelManager");
     VoidCancelManager.def(py::init<>());
