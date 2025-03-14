@@ -8,6 +8,7 @@
 #include <thread>
 
 #include <amulet/dll.hpp>
+#include <amulet/utils/weak.hpp>
 
 namespace Amulet {
 
@@ -88,7 +89,7 @@ private:
 
 public:
     // Default constructor.
-    SignalToken() = default;
+    SignalToken() = delete;
 };
 
 template <typename... Args>
@@ -97,15 +98,15 @@ private:
     using storageT = detail::SignalCallbackStorage<Args...>;
 
     std::mutex _mutex;
-    std::list<std::weak_ptr<storageT>> _callbacks;
+    WeakSet<storageT> _callbacks;
 
 public:
     // The callback type for this signal.
     using callbackT = std::function<void(Args...)>;
-    
+
     // The token type for this signal.
     using tokenT = SignalToken<Args...>;
-    
+
     // Constructors.
     Signal() = default;
     Signal(const Signal&) = delete;
@@ -117,31 +118,21 @@ public:
     // Thread safe.
     tokenT connect(callbackT callback, ConnectionMode mode = ConnectionMode::Direct)
     {
-        std::unique_lock lock(_mutex);
+        std::lock_guard lock(_mutex);
         auto storage = std::make_shared<storageT>(std::move(callback), mode);
-        _callbacks.push_back(storage);
+        _callbacks.emplace(storage);
         return storage;
     }
 
     // Disconnect a callback.
     // Token is the value returned by connect.
     // Thread safe.
-    void disconnect(tokenT token)
+    void disconnect(const tokenT& token)
     {
-        std::unique_lock lock(_mutex);
-        _callbacks.remove_if(
-            [&token](std::weak_ptr<storageT> ptr) {
-                auto storage = ptr.lock();
-                if (storage == nullptr) {
-                    return true;
-                }
-                if (storage == token.storage) {
-                    std::unique_lock storage_lock(storage->mutex);
-                    storage->disconnected = true;
-                    return true;
-                }
-                return false;
-            });
+        std::lock_guard lock(_mutex);
+        std::lock_guard storage_lock(token.storage->mutex);
+        token.storage->disconnected = true;
+        _callbacks.erase(token.storage);
     }
 
     // Call all callbacks with the given arguments from this thread.
@@ -149,24 +140,30 @@ public:
     // Thread safe.
     void emit(Args... args)
     {
-        std::list<std::weak_ptr<storageT>> temp_callbacks;
+        WeakSet<storageT> temp_callbacks;
         {
             // Copy callbacks
-            std::unique_lock lock(_mutex);
+            std::lock_guard lock(_mutex);
             temp_callbacks = _callbacks;
         }
+
+        // Storage elements that were destroyed.
+        WeakList<storageT> null_storage;
 
         std::shared_ptr<std::tuple<Args...>> async_args;
 
         for (const auto& ptr : temp_callbacks) {
             auto storage = ptr.lock();
-            if (storage == nullptr) {
+            if (!storage) {
+                // The token was destroyed before calling disconnect.
+                null_storage.emplace_back(ptr);
                 continue;
             }
             switch (storage->mode) {
             case ConnectionMode::Direct: {
-                std::unique_lock storage_lock(storage->mutex);
+                std::lock_guard storage_lock(storage->mutex);
                 if (storage->disconnected) {
+                    // The callback was disconnected between getting the callback and processing it.
                     continue;
                 }
                 try {
@@ -178,16 +175,17 @@ public:
                 }
             } break;
             case ConnectionMode::Async: {
-                if (async_args == nullptr) {
+                if (!async_args) {
                     async_args = std::make_shared<std::tuple<Args...>>(std::forward<Args>(args)...);
                 }
                 detail::get_global_event_loop().submit([async_args, ptr]() {
                     auto storage = ptr.lock();
-                    if (storage == nullptr) {
+                    if (!storage) {
                         return;
                     }
-                    std::unique_lock storage_lock(storage->mutex);
+                    std::lock_guard storage_lock(storage->mutex);
                     if (storage->disconnected) {
+                        // The callback was disconnected between getting the callback and processing it.
                         return;
                     }
                     try {
@@ -201,19 +199,26 @@ public:
             } break;
             }
         }
+
+        if (!null_storage.empty()) {
+            // Remove null storage pointers.
+            std::lock_guard lock(_mutex);
+            for (const auto& ptr : null_storage) { 
+                _callbacks.erase(ptr);
+            }
+        }
     }
 
     // Destructor.
     ~Signal()
     {
-        std::unique_lock lock(_mutex);
+        std::lock_guard lock(_mutex);
         for (const auto& ptr : _callbacks) {
             auto storage = ptr.lock();
-            if (storage == nullptr) {
-                continue;
+            if (storage) {
+                std::lock_guard storage_lock(storage->mutex);
+                storage->disconnected = true;
             }
-            std::unique_lock storage_lock(storage->mutex);
-            storage->disconnected = true;
         }
     }
 };
