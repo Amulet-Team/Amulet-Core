@@ -27,6 +27,7 @@ struct is_specialization_of<Template, Template<Args...>> : std::true_type { };
 
 namespace Amulet {
 
+// An exception raised in some deadlock cases.
 class AMULET_CORE_EXPORT_EXCEPTION Deadlock : public std::runtime_error {
 public:
     using std::runtime_error::runtime_error;
@@ -256,10 +257,9 @@ public:
     // Destructor
     AMULET_CORE_EXPORT ~OrderedMutex();
 
-    // Locks the mutex in unique mode.
-    // Blocks until no thread holds the mutex.
-    // Stops all other threads acquiring the mutex until released.
-    // A cancel manager can be defined to support aborting the wait. TaskCancelled is thrown if task is cancelled.
+    // Locks the mutex in the requested mode (default is read write unique).
+    // Blocks until the mutex is acquired or the task is cancelled through the cancel manager.
+    // If the task is cancelled before the mutex is acquired, TaskCancelled is thrown.
     // Thread safe.
     template <ThreadAccessMode DesiredThreadAccessMode = ThreadAccessMode::ReadWrite, ThreadShareMode DesiredThreadShareMode = ThreadShareMode::Unique>
     void lock(AbstractCancelManager& cancel_manager = global_VoidCancelManager)
@@ -267,8 +267,8 @@ public:
         _lock<false, true, DesiredThreadAccessMode, DesiredThreadShareMode>(cancel_manager);
     }
 
-    // Tries to lock the mutex in unique mode, non-blocking.
-    // Returns true if the mutex was locked, false if it wasn't.
+    // Tries to lock the mutex in the requested mode (default is read write unique).
+    // Immediately returns true if the mutex was locked and false if it wasn't.
     // Thread safe
     template <ThreadAccessMode DesiredThreadAccessMode = ThreadAccessMode::ReadWrite, ThreadShareMode DesiredThreadShareMode = ThreadShareMode::Unique>
     bool try_lock()
@@ -277,8 +277,7 @@ public:
     }
 
     // Like try_lock but with a timeout duration.
-    // Returns true if the mutex was locked, false if it wasn't.
-    // A cancel manager can be defined to support aborting the wait. TaskCancelled is thrown if task is cancelled.
+    // Returns true if the mutex was locked and false if it was not locked within the duration or if the task was cancelled.
     // Thread safe.
     template <ThreadAccessMode DesiredThreadAccessMode = ThreadAccessMode::ReadWrite, ThreadShareMode DesiredThreadShareMode = ThreadShareMode::Unique, class Rep, class Period>
     bool try_lock_for(const std::chrono::duration<Rep, Period>& timeout_duration, AbstractCancelManager& cancel_manager = global_VoidCancelManager)
@@ -287,8 +286,7 @@ public:
     }
 
     // Like try_lock but with a timeout time.
-    // Returns true if the mutex was locked, false if it wasn't.
-    // A cancel manager can be defined to support aborting the wait. TaskCancelled is thrown if task is cancelled.
+    // Returns true if the mutex was locked and false if it was not locked before the timeout time or if the task was cancelled.
     // Thread safe.
     template <ThreadAccessMode DesiredThreadAccessMode = ThreadAccessMode::ReadWrite, ThreadShareMode DesiredThreadShareMode = ThreadShareMode::Unique, class Clock, class Duration>
     bool try_lock_until(const std::chrono::time_point<Clock, Duration>& timeout_time, AbstractCancelManager& cancel_manager = global_VoidCancelManager)
@@ -296,7 +294,7 @@ public:
         return _lock<true, true, DesiredThreadAccessMode, DesiredThreadShareMode, const std::chrono::time_point<Clock, Duration>&>(timeout_time, cancel_manager);
     }
 
-    // Unlock the mutex from unique mode.
+    // Unlock the mutex.
     // Must be called by the thread that locked it.
     // Thread safe.
     AMULET_CORE_EXPORT void unlock();

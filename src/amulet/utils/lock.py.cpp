@@ -115,8 +115,7 @@ void init_lock(py::module m_parent)
     std::string module_name = m.attr("__name__").cast<std::string>();
 
     auto Deadlock = py::register_exception<Amulet::Deadlock>(m, "Deadlock", PyExc_RuntimeError);
-    Deadlock.doc() = "This exception signals that a deadlock occurred when locking a lock.\n"
-                     "Not all deadlock cases raise an exception.";
+    Deadlock.doc() = "An exception raised in some deadlock cases.";
 
     auto LockNotAcquired = py::register_exception<Amulet::LockNotAcquired>(m, "LockNotAcquired", PyExc_RuntimeError);
     LockNotAcquired.doc() = "An exception raised if the lock was not acquired.";
@@ -141,15 +140,15 @@ void init_lock(py::module m_parent)
     ThreadShareMode.value(
         "Unique",
         Amulet::ThreadShareMode::Unique,
-        "Other threads can't do anything.");
+        "Other threads can't run in parallel.");
     ThreadShareMode.value(
         "SharedReadOnly",
         Amulet::ThreadShareMode::SharedReadOnly,
-        "Other threads can only read.");
+        "Other threads can only read in parallel.");
     ThreadShareMode.value(
         "SharedReadWrite",
         Amulet::ThreadShareMode::SharedReadWrite,
-        "Other threads can read and write.");
+        "Other threads can read and write in parallel.");
     ThreadShareMode.attr("__repr__") = py::cpp_function(
         [module_name, ThreadShareMode](const py::object& arg) -> py::str {
             return py::str("{}.{}").format(module_name, ThreadShareMode.attr("__str__")(arg));

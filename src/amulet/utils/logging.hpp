@@ -27,7 +27,7 @@ AMULET_CORE_EXPORT int get_default_log_level();
 AMULET_CORE_EXPORT void set_default_log_level(int);
 
 // The logger signal.
-// This is emitted with the level and message every time log is called.
+// This is emitted with the message and its level every time a message is logged.
 AMULET_CORE_EXPORT extern Signal<int, std::string> logger;
 
 // Log a message with a custom level.
