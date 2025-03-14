@@ -50,7 +50,7 @@ enum class ThreadShareMode {
 // This is a custom mutex implementation that prioritises acquisition order and allows parallelism where possible.
 // The acquirer can define the required permissions for this thread and permissions for other parallel threads.
 // It also supports cancelling waiting through a CancelManager instance.
-// The mutex is compatible with std::lock_guard
+// The mutex is compatible with std::lock_guard, std::unique_lock and std::shared_lock.
 class OrderedMutex {
 protected:
     using LockMode = std::pair<ThreadAccessMode, ThreadShareMode>;
@@ -298,6 +298,39 @@ public:
     // Must be called by the thread that locked it.
     // Thread safe.
     AMULET_CORE_EXPORT void unlock();
+
+    // SharedTimedLockable
+
+    // An alias to lock<ThreadAccessMode::Read, ThreadShareMode::SharedReadOnly>
+    void lock_shared()
+    {
+        lock<ThreadAccessMode::Read, ThreadShareMode::SharedReadOnly>();
+    }
+
+    // An alias to try_lock<ThreadAccessMode::Read, ThreadShareMode::SharedReadOnly>
+    bool try_lock_shared()
+    {
+        return try_lock<ThreadAccessMode::Read, ThreadShareMode::SharedReadOnly>();
+    }
+
+    // An alias to unlock
+    void unlock_shared()
+    {
+        unlock();
+    }
+
+    // An alias to try_lock_for<ThreadAccessMode::Read, ThreadShareMode::SharedReadOnly>
+    template <class Rep, class Period>
+    bool try_lock_shared_for(const std::chrono::duration<Rep, Period>& timeout_duration, AbstractCancelManager& cancel_manager = global_VoidCancelManager)
+    {
+        return try_lock_for<ThreadAccessMode::Read, ThreadShareMode::SharedReadOnly, Rep, Period>(timeout_duration, cancel_manager);
+    }
+
+    // An alias to try_lock_until<ThreadAccessMode::Read, ThreadShareMode::SharedReadOnly>
+    template <class Clock, class Duration>
+    bool try_lock_shared_until(const std::chrono::time_point<Clock, Duration>& timeout_time, AbstractCancelManager& cancel_manager = global_VoidCancelManager) {
+        return try_lock_until<ThreadAccessMode::Read, ThreadShareMode::SharedReadOnly, Clock, Duration>(timeout_time, cancel_manager);
+    }
 };
 
 } // namespace Amulet
