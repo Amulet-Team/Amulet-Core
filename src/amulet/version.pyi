@@ -23,6 +23,10 @@ class PlatformVersionContainer:
 class VersionNumber:
     """
     This class is designed to store semantic versions and data versions and allow comparisons between them.
+    It is a wrapper around std::vector<std::int64_t> with special comparison handling.
+    The version can contain zero to max(int64) values.
+    Undefined trailing values are implied zeros. 1.1 == 1.1.0
+    All methods are thread safe.
 
     >>> v1 = VersionNumber(1, 0, 0)
     >>> v2 = VersionNumber(1, 0)
@@ -53,7 +57,7 @@ class VersionNumber:
     def __reversed__(self) -> typing.Iterator[int]: ...
     def __str__(self) -> str: ...
     def count(self, value: int) -> int: ...
-    def cropped_version(self) -> tuple:
+    def cropped_version(self) -> list[int]:
         """
         The version number with trailing zeros cut off.
         """
@@ -61,9 +65,9 @@ class VersionNumber:
     def index(
         self, value: int, start: int = 0, stop: int = 18446744073709551615
     ) -> int: ...
-    def padded_version(self, len: int) -> tuple:
+    def padded_version(self, len: int) -> list[int]:
         """
-        Get the version number padded with zeros to the given length.
+        Get the version number cropped or padded with zeros to the given length.
         """
 
 class VersionRange:

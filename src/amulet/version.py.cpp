@@ -1,6 +1,7 @@
 #include <pybind11/operators.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+#include <pybind11/typing.h>
 
 #include <sstream>
 
@@ -17,6 +18,10 @@ void init_version(py::module m_parent)
 
     py::class_<Amulet::VersionNumber> VersionNumber(m, "VersionNumber",
         "This class is designed to store semantic versions and data versions and allow comparisons between them.\n"
+        "It is a wrapper around std::vector<std::int64_t> with special comparison handling.\n"
+        "The version can contain zero to max(int64) values.\n"
+        "Undefined trailing values are implied zeros. 1.1 == 1.1.0\n"
+        "All methods are thread safe.\n"
         "\n"
         ">>> v1 = VersionNumber(1, 0, 0)\n"
         ">>> v2 = VersionNumber(1, 0)\n"
@@ -146,13 +151,13 @@ void init_version(py::module m_parent)
 
     VersionNumber.def(
         "cropped_version",
-        [](const Amulet::VersionNumber& self) -> py::tuple { return py::cast(self.cropped_version()); },
+        [](const Amulet::VersionNumber& self) -> py::typing::List<std::int64_t> { return py::cast(self.cropped_version()); },
         py::doc("The version number with trailing zeros cut off."));
 
     VersionNumber.def(
         "padded_version",
-        [](const Amulet::VersionNumber& self, size_t len) -> py::tuple { return py::cast(self.padded_version(len)); },
-        py::doc("Get the version number padded with zeros to the given length."),
+        [](const Amulet::VersionNumber& self, size_t len) -> py::typing::List<std::int64_t> { return py::cast(self.padded_version(len)); },
+        py::doc("Get the version number cropped or padded with zeros to the given length."),
         py::arg("len"));
 
     VersionNumber.def(
