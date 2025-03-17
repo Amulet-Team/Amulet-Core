@@ -40,16 +40,20 @@ public:
 
     // Request the operation be cancelled.
     // It is down to the operation to implement support for this.
+    // Thread safe.
     virtual void cancel() = 0;
 
     // Has cancel been called to signal that the operation should be cancelled.
+    // Thread safe.
     virtual bool is_cancel_requested() = 0;
 
     // Register a function to get called when cancel is called.
     // The callback will be called from the thread `cancel` is called in.
+    // Thread safe.
     virtual SignalToken<> register_cancel_callback(CancelCallback callback) = 0;
 
     // Unregister a registered function from being called when cancel is called.
+    // Thread safe.
     virtual void unregister_cancel_callback(SignalToken<> token) = 0;
 };
 

@@ -16,11 +16,13 @@ class AbstractCancelManager:
         """
         Request the operation be cancelled.
         It is down to the operation to implement support for this.
+        Thread safe.
         """
 
     def is_cancel_requested(self) -> bool:
         """
         Has :meth:`cancel` been called to signal that the operation should be cancelled.
+        Thread safe.
         """
 
     def register_cancel_callback(
@@ -29,6 +31,7 @@ class AbstractCancelManager:
         """
         Register a function to get called when cancel is called.
         The callback will be called from the thread `cancel` is called in.
+        Thread safe.
         """
 
     def unregister_cancel_callback(
@@ -36,6 +39,7 @@ class AbstractCancelManager:
     ) -> None:
         """
         Unregister a registered function from being called when cancel is called.
+        Thread safe.
         """
 
 class CancelManager(AbstractCancelManager):
