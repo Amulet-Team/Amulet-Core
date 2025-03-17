@@ -102,17 +102,17 @@ class VersionNumberTestCase(unittest.TestCase):
         self.assertGreaterEqual(VersionNumber(1, 0), VersionNumber(1, -1))
 
     def test_crop(self) -> None:
-        self.assertEqual((1,), VersionNumber(1, 0, 0, 0, 0, 0, 0).cropped_version())
+        self.assertEqual([1], VersionNumber(1, 0, 0, 0, 0, 0, 0).cropped_version())
 
     def test_pad(self) -> None:
         with self.assertRaises(TypeError):
             VersionNumber(1, 2, 3).padded_version(-1)
-        self.assertEqual((), VersionNumber(1, 2, 3).padded_version(0))
-        self.assertEqual((1,), VersionNumber(1, 2, 3).padded_version(1))
-        self.assertEqual((1, 2), VersionNumber(1, 2, 3).padded_version(2))
-        self.assertEqual((1, 2, 3), VersionNumber(1, 2, 3).padded_version(3))
-        self.assertEqual((1, 2, 3, 0), VersionNumber(1, 2, 3).padded_version(4))
-        self.assertEqual((1, 2, 3, 0, 0), VersionNumber(1, 2, 3).padded_version(5))
+        self.assertEqual([], VersionNumber(1, 2, 3).padded_version(0))
+        self.assertEqual([1], VersionNumber(1, 2, 3).padded_version(1))
+        self.assertEqual([1, 2], VersionNumber(1, 2, 3).padded_version(2))
+        self.assertEqual([1, 2, 3], VersionNumber(1, 2, 3).padded_version(3))
+        self.assertEqual([1, 2, 3, 0], VersionNumber(1, 2, 3).padded_version(4))
+        self.assertEqual([1, 2, 3, 0, 0], VersionNumber(1, 2, 3).padded_version(5))
 
     def test_pickle(self) -> None:
         v = VersionNumber(-1, 0, 1)
