@@ -17,12 +17,12 @@ If no call policy is given it should be assumed the associated lock must be acqu
 
 The code can be executed from multiple threads without external locking.
 
-### [[Call:|Return:]](#Code-policy-scope) Lock required. [(Read|ReadWrite)](#ThreadAccessMode):[(Unique|SharedReadOnly|SharedReadWrite)](#ThreadShareMode)
+### [[Call:|Return:]](#Code-policy-scope) [(Read|ReadWrite)](#ThreadAccessMode):[(Unique|SharedReadOnly|SharedReadWrite)](#ThreadShareMode) lock required. 
 
 The caller must acquire the associated lock in a compatible mode for the defined scope. 
 This ensures that the state is not corrupted by another thread.
 
-### [[Call:|Return:]](#Code-policy-scope) Lock optional. [(Read|ReadWrite)](#ThreadAccessMode):[(Unique|SharedReadOnly|SharedReadWrite)](#ThreadShareMode)
+### [[Call:|Return:]](#Code-policy-scope) [(Read|ReadWrite)](#ThreadAccessMode):[(Unique|SharedReadOnly|SharedReadWrite)](#ThreadShareMode) lock optional. 
 
 This indicates that a more restrictive lock mode may be used.
 The caller may acquire the associated lock in a compatible mode to ensure the state is not mutated in another thread.
