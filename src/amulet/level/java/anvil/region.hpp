@@ -107,6 +107,9 @@ private:
     // The public mutex.
     Amulet::OrderedMutex _public_mutex;
 
+    // Mutex for getting the file closer.
+    std::mutex _file_closer_mutex;
+
     // The directory the region file is in.
     std::filesystem::path _dir;
     std::filesystem::path _path;
@@ -155,13 +158,6 @@ private:
     void validate_coord(std::int64_t cx, std::int64_t cz) const;
     template <typename T>
     void _set_data(std::int64_t cx, std::int64_t cz, T data);
-
-    // Get the object responsible for closing the region file.
-    // When this object is deleted it will close the region file
-    // This means that holding a reference to this will delay when the region file is closed.
-    // The region file may still be closed manually before this object is deleted.
-    // Call: Internal lock required.
-    AMULET_CORE_EXPORT std::shared_ptr<FileCloser> _get_file_closer();
 
     // Close the file object.
     // This is automatically called when the instance is destroyed but may be called earlier.

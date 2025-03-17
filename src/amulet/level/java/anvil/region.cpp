@@ -277,7 +277,7 @@ void AnvilRegion::destroy()
 std::vector<std::pair<std::int64_t, std::int64_t>> AnvilRegion::get_coords()
 {
     std::lock_guard lock(_shared->mutex);
-    auto closer = _get_file_closer();
+    auto closer = get_file_closer();
     read_file_header();
     std::vector<std::pair<std::int64_t, std::int64_t>> coords;
     coords.reserve(_chunk_locations.size());
@@ -312,7 +312,7 @@ bool AnvilRegion::has_value(std::int64_t cx, std::int64_t cz)
 {
     validate_coord(cx, cz);
     std::lock_guard lock(_shared->mutex);
-    auto closer = _get_file_closer();
+    auto closer = get_file_closer();
     read_file_header();
     return _chunk_locations.contains(std::make_pair(cx, cz));
 }
@@ -400,7 +400,7 @@ NamedTag AnvilRegion::get_value(std::int64_t cx, std::int64_t cz)
 {
     validate_coord(cx, cz);
     std::lock_guard lock(_shared->mutex);
-    auto closer = _get_file_closer();
+    auto closer = get_file_closer();
     read_file_header();
     auto it = _chunk_locations.find(std::make_pair(cx, cz));
     if (it == _chunk_locations.end()) {
@@ -561,7 +561,7 @@ void AnvilRegion::set_value(std::int64_t cx, std::int64_t cz, const NamedTag& ta
     }
 
     std::lock_guard lock(_shared->mutex);
-    auto closer = _get_file_closer();
+    auto closer = get_file_closer();
     read_file_header();
     create_open_region_file_if_closed();
     _set_data<std::string_view>(cx, cz, data);
@@ -578,7 +578,7 @@ void AnvilRegion::delete_value(std::int64_t cx, std::int64_t cz)
         // Do nothing if there is no file.
         return;
     }
-    auto closer = _get_file_closer();
+    auto closer = get_file_closer();
     read_file_header();
     create_open_region_file_if_closed();
     _set_data<std::nullopt_t>(cx, cz, std::nullopt);
@@ -594,7 +594,7 @@ void AnvilRegion::delete_batch(std::vector<std::pair<std::int64_t, std::int64_t>
         // Do nothing if there is no file.
         return;
     }
-    auto closer = _get_file_closer();
+    auto closer = get_file_closer();
     read_file_header();
     create_open_region_file_if_closed();
 
@@ -617,7 +617,7 @@ void AnvilRegion::compact()
         return;
     }
 
-    auto closer = _get_file_closer();
+    auto closer = get_file_closer();
     read_file_header();
     if (_chunk_locations.empty()) {
         // No chunks in the region file. Delete it.
@@ -706,22 +706,17 @@ void AnvilRegion::compact()
     std::filesystem::resize_file(_path, file_position);
 }
 
-std::shared_ptr<AnvilRegion::FileCloser> AnvilRegion::_get_file_closer()
+std::shared_ptr<AnvilRegion::FileCloser> AnvilRegion::get_file_closer()
 {
+    std::lock_guard closer_lock(_file_closer_mutex);
     std::shared_ptr<AnvilRegion::FileCloser> closer = _closer.lock();
     if (!closer) {
         closer = std::make_shared<AnvilRegion::FileCloser>(_shared);
         _closer = closer;
     }
-    std::lock_guard lock(region_file_cache.mutex);
+    std::lock_guard cache_lock(region_file_cache.mutex);
     region_file_cache.add(reinterpret_cast<size_t>(this), closer);
     return closer;
-}
-
-std::shared_ptr<AnvilRegion::FileCloser> AnvilRegion::get_file_closer()
-{
-    std::lock_guard lock(_shared->mutex);
-    return _get_file_closer();
 }
 
 AnvilRegion::FileCloser::FileCloser(std::shared_ptr<Shared> shared)
