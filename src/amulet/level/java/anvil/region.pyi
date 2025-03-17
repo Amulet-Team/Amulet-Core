@@ -65,7 +65,7 @@ class AnvilRegion:
         Is the coordinate in the region.
         This returns true even if there is no value for the coordinate.
         Coordinates are in world space.
-        External Read:SharedRead lock optional.
+        External Read:SharedReadOnly lock optional.
         """
 
     def delete_batch(self, coords: list[tuple[int, int]]) -> None:
@@ -95,7 +95,7 @@ class AnvilRegion:
         Get the coordinates of all values in the region file.
         Coordinates are in world space.
         External Read:SharedReadWrite lock required.
-        External Read:SharedRead lock optional.
+        External Read:SharedReadOnly lock optional.
         """
 
     def get_file_closer(self) -> AnvilRegion.FileCloser:
@@ -119,7 +119,7 @@ class AnvilRegion:
         Is there a value stored for this coordinate.
         Coordinates are in world space.
         External Read:SharedReadWrite lock required.
-        External Read:SharedRead lock optional.
+        External Read:SharedReadOnly lock optional.
         """
 
     def set_value(self, cx: int, cz: int, tag: amulet_nbt.NamedTag) -> None:

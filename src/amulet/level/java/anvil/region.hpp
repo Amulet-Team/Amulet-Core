@@ -214,19 +214,19 @@ public:
     // Get the coordinates of all values in the region file.
     // Coordinates are in world space.
     // External Read:SharedReadWrite lock required.
-    // External Read:SharedRead lock optional.
+    // External Read:SharedReadOnly lock optional.
     AMULET_CORE_EXPORT std::vector<std::pair<std::int64_t, std::int64_t>> get_coords();
 
     // Is the coordinate in the region.
     // This returns true even if there is no value for the coordinate.
     // Coordinates are in world space.
-    // External Read:SharedRead lock optional.
+    // External Read:SharedReadOnly lock optional.
     AMULET_CORE_EXPORT bool contains(std::int64_t cx, std::int64_t cz) const;
 
     // Is there a value stored for this coordinate.
     // Coordinates are in world space.
     // External Read:SharedReadWrite lock required.
-    // External Read:SharedRead lock optional.
+    // External Read:SharedReadOnly lock optional.
     AMULET_CORE_EXPORT bool has_value(std::int64_t cx, std::int64_t cz);
 
     // Get the value for this coordinate.

@@ -82,7 +82,7 @@ py::module init_anvil_region(py::module m_parent)
         py::doc("Get the coordinates of all values in the region file.\n"
                 "Coordinates are in world space.\n"
                 "External Read:SharedReadWrite lock required.\n"
-                "External Read:SharedRead lock optional."));
+                "External Read:SharedReadOnly lock optional."));
     AnvilRegion.def(
         "contains",
         &Amulet::AnvilRegion::contains,
@@ -92,7 +92,7 @@ py::module init_anvil_region(py::module m_parent)
         py::doc("Is the coordinate in the region.\n"
                 "This returns true even if there is no value for the coordinate.\n"
                 "Coordinates are in world space.\n"
-                "External Read:SharedRead lock optional."));
+                "External Read:SharedReadOnly lock optional."));
     AnvilRegion.def(
         "has_value",
         &Amulet::AnvilRegion::has_value,
@@ -102,7 +102,7 @@ py::module init_anvil_region(py::module m_parent)
         py::doc("Is there a value stored for this coordinate.\n"
                 "Coordinates are in world space.\n"
                 "External Read:SharedReadWrite lock required.\n"
-                "External Read:SharedRead lock optional."));
+                "External Read:SharedReadOnly lock optional."));
     AnvilRegion.def(
         "get_value",
         &Amulet::AnvilRegion::get_value,
