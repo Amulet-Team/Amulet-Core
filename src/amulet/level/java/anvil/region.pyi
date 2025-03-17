@@ -65,7 +65,7 @@ class AnvilRegion:
         Is the coordinate in the region.
         This returns true even if there is no value for the coordinate.
         Coordinates are in world space.
-        External Read:SharedReadOnly lock optional.
+        Thread safe.
         """
 
     def delete_batch(self, coords: list[tuple[int, int]]) -> None:

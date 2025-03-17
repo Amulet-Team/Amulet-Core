@@ -92,7 +92,7 @@ py::module init_anvil_region(py::module m_parent)
         py::doc("Is the coordinate in the region.\n"
                 "This returns true even if there is no value for the coordinate.\n"
                 "Coordinates are in world space.\n"
-                "External Read:SharedReadOnly lock optional."));
+                "Thread safe."));
     AnvilRegion.def(
         "has_value",
         &Amulet::AnvilRegion::has_value,

@@ -222,7 +222,7 @@ public:
     // Is the coordinate in the region.
     // This returns true even if there is no value for the coordinate.
     // Coordinates are in world space.
-    // External Read:SharedReadOnly lock optional.
+    // Thread safe.
     AMULET_CORE_EXPORT bool contains(std::int64_t cx, std::int64_t cz) const;
 
     // Is there a value stored for this coordinate.
