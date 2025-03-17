@@ -169,15 +169,24 @@ void init_version(py::module m_parent)
 
     py::module::import("collections.abc").attr("Sequence").attr("register")(VersionNumber);
 
-    py::class_<Amulet::PlatformVersionContainer, std::shared_ptr<Amulet::PlatformVersionContainer>> PlatformVersionContainer(m, "PlatformVersionContainer");
+    py::class_<Amulet::PlatformVersionContainer, std::shared_ptr<Amulet::PlatformVersionContainer>>
+        PlatformVersionContainer(m, "PlatformVersionContainer",
+            "A class storing platform identifier and version number.\n"
+            "Thread safe.");
     PlatformVersionContainer.def(
         py::init<
             const Amulet::PlatformType&,
             const Amulet::VersionNumber&>(),
         py::arg("platform"),
         py::arg("version"));
-    PlatformVersionContainer.def_property_readonly("platform", &Amulet::PlatformVersionContainer::get_platform);
-    PlatformVersionContainer.def_property_readonly("version", &Amulet::PlatformVersionContainer::get_version);
+    PlatformVersionContainer.def_property_readonly(
+        "platform",
+        &Amulet::PlatformVersionContainer::get_platform,
+        py::doc("Get the platform identifier."));
+    PlatformVersionContainer.def_property_readonly(
+        "version",
+        &Amulet::PlatformVersionContainer::get_version,
+        py::doc("Get the version number."));
     PlatformVersionContainer.def(
         "__repr__",
         [](const Amulet::PlatformVersionContainer& self) {
@@ -194,7 +203,9 @@ void init_version(py::module m_parent)
                 return Amulet::deserialise<Amulet::PlatformVersionContainer>(state.cast<std::string>());
             }));
 
-    py::class_<Amulet::VersionRange> VersionRange(m, "VersionRange");
+    py::class_<Amulet::VersionRange> VersionRange(m, "VersionRange",
+        "A class storing platform identifier and minimum and maximum version numbers.\n"
+        "Thread safe.");
     VersionRange.def(
         py::init<
             const Amulet::PlatformType&,
@@ -203,12 +214,22 @@ void init_version(py::module m_parent)
         py::arg("platform"),
         py::arg("min_version"),
         py::arg("max_version"));
-    VersionRange.def_property_readonly("platform", &Amulet::VersionRange::get_platform);
-    VersionRange.def_property_readonly("min_version", &Amulet::VersionRange::get_min_version);
-    VersionRange.def_property_readonly("max_version", &Amulet::VersionRange::get_max_version);
+    VersionRange.def_property_readonly(
+        "platform",
+        &Amulet::VersionRange::get_platform,
+        py::doc("The platform identifier."));
+    VersionRange.def_property_readonly(
+        "min_version",
+        &Amulet::VersionRange::get_min_version,
+        py::doc("The minimum version number"));
+    VersionRange.def_property_readonly(
+        "max_version",
+        &Amulet::VersionRange::get_max_version,
+        py::doc("The maximum version number"));
     VersionRange.def(
         "contains",
-        &Amulet::VersionRange::contains);
+        &Amulet::VersionRange::contains,
+        py::doc("Check if the platform is equal and the version number is within the range."));
     VersionRange.def(pybind11::self == pybind11::self);
     VersionRange.def(
         "__repr__",
@@ -224,12 +245,17 @@ void init_version(py::module m_parent)
                 return Amulet::deserialise<Amulet::VersionRange>(state.cast<std::string>());
             }));
 
-    py::class_<Amulet::VersionRangeContainer, std::shared_ptr<Amulet::VersionRangeContainer>> VersionRangeContainer(m, "VersionRangeContainer");
+    py::class_<Amulet::VersionRangeContainer, std::shared_ptr<Amulet::VersionRangeContainer>>
+        VersionRangeContainer(m, "VersionRangeContainer",
+            "A class that contains a version range.");
     VersionRangeContainer.def(
         py::init<
             const Amulet::VersionRange&>(),
         py::arg("version_range"));
-    VersionRangeContainer.def_property_readonly("version_range", &Amulet::VersionRangeContainer::get_version_range);
+    VersionRangeContainer.def_property_readonly(
+        "version_range", 
+        &Amulet::VersionRangeContainer::get_version_range,
+        py::doc("The version range."));
     VersionRangeContainer.def(
         "__repr__",
         [](const Amulet::VersionRangeContainer& self) {

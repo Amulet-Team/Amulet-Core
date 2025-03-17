@@ -13,12 +13,24 @@ __all__ = [
 ]
 
 class PlatformVersionContainer:
+    """
+    A class storing platform identifier and version number.
+    Thread safe.
+    """
+
     def __init__(self, platform: str, version: VersionNumber) -> None: ...
     def __repr__(self) -> str: ...
     @property
-    def platform(self) -> str: ...
+    def platform(self) -> str:
+        """
+        Get the platform identifier.
+        """
+
     @property
-    def version(self) -> VersionNumber: ...
+    def version(self) -> VersionNumber:
+        """
+        Get the version number.
+        """
 
 class VersionNumber:
     """
@@ -71,6 +83,11 @@ class VersionNumber:
         """
 
 class VersionRange:
+    """
+    A class storing platform identifier and minimum and maximum version numbers.
+    Thread safe.
+    """
+
     __hash__: typing.ClassVar[None] = None  # type: ignore
     @typing.overload
     def __eq__(self, arg0: VersionRange) -> bool: ...
@@ -80,16 +97,38 @@ class VersionRange:
         self, platform: str, min_version: VersionNumber, max_version: VersionNumber
     ) -> None: ...
     def __repr__(self) -> str: ...
-    def contains(self, arg0: str, arg1: VersionNumber) -> bool: ...
+    def contains(self, arg0: str, arg1: VersionNumber) -> bool:
+        """
+        Check if the platform is equal and the version number is within the range.
+        """
+
     @property
-    def max_version(self) -> VersionNumber: ...
+    def max_version(self) -> VersionNumber:
+        """
+        The maximum version number
+        """
+
     @property
-    def min_version(self) -> VersionNumber: ...
+    def min_version(self) -> VersionNumber:
+        """
+        The minimum version number
+        """
+
     @property
-    def platform(self) -> str: ...
+    def platform(self) -> str:
+        """
+        The platform identifier.
+        """
 
 class VersionRangeContainer:
+    """
+    A class that contains a version range.
+    """
+
     def __init__(self, version_range: VersionRange) -> None: ...
     def __repr__(self) -> str: ...
     @property
-    def version_range(self) -> VersionRange: ...
+    def version_range(self) -> VersionRange:
+        """
+        The version range.
+        """

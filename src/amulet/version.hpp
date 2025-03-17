@@ -93,13 +93,18 @@ public:
     AMULET_CORE_EXPORT std::vector<std::int64_t> padded_version(size_t len) const;
 };
 
+// A class storing platform identifier and version number.
+// Thread safe.
 class PlatformVersionContainer {
 private:
     PlatformType platform;
     VersionNumber version;
 
 public:
+    // Get the platform identifier.
     const PlatformType& get_platform() const { return platform; }
+
+    // Get the version number.
     const VersionNumber& get_version() const { return version; }
 
     PlatformVersionContainer(
@@ -113,6 +118,7 @@ public:
     AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
     AMULET_CORE_EXPORT static PlatformVersionContainer deserialise(BinaryReader&);
 
+    // Comparison operators
     auto operator<=>(const PlatformVersionContainer& other) const
     {
         auto cmp = platform <=> other.platform;
@@ -127,6 +133,8 @@ public:
     }
 };
 
+// A class storing platform identifier and minimum and maximum version numbers.
+// Thread safe.
 class VersionRange {
 private:
     PlatformType platform;
@@ -134,8 +142,13 @@ private:
     VersionNumber max_version;
 
 public:
+    // Get the platform identifier.
     const PlatformType& get_platform() const { return platform; }
+
+    // Get the minimum version number
     const VersionNumber& get_min_version() const { return min_version; }
+
+    // Get the maximum version number
     const VersionNumber& get_max_version() const { return max_version; }
 
     VersionRange(
@@ -154,15 +167,20 @@ public:
     AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
     AMULET_CORE_EXPORT static VersionRange deserialise(BinaryReader&);
 
+    // Check if the platform is equal and the version number is within the range.
     AMULET_CORE_EXPORT bool contains(const PlatformType& platform_, const VersionNumber& version) const;
+    
+    // Equality operator
     AMULET_CORE_EXPORT bool operator==(const VersionRange&) const;
 };
 
+// A class that contains a version range.
 class VersionRangeContainer {
 private:
     VersionRange version_range;
 
 public:
+    // Get the version range.
     const VersionRange& get_version_range() const { return version_range; }
 
     VersionRangeContainer(
