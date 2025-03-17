@@ -85,7 +85,6 @@ private:
         std::fstream regionf;
         // This mutex must be acquired to access the container data or the file.
         std::recursive_mutex mutex;
-        Amulet::OrderedMutex public_mutex;
     };
 
 public:
@@ -105,6 +104,9 @@ public:
     friend FileCloser;
 
 private:
+    // The public mutex.
+    Amulet::OrderedMutex _public_mutex;
+
     // The directory the region file is in.
     std::filesystem::path _dir;
     std::filesystem::path _path;
@@ -197,7 +199,7 @@ public:
 
     // A mutex which can be used to synchronise calls.
     // Thread safe.
-    AMULET_CORE_EXPORT Amulet::OrderedMutex& get_mutex() const;
+    AMULET_CORE_EXPORT Amulet::OrderedMutex& get_mutex();
 
     // The path of the region file.
     // Thread safe.
