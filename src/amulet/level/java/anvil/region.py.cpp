@@ -163,6 +163,12 @@ py::module init_anvil_region(py::module m_parent)
                 "This may only be called by the owner of the instance.\n"
                 "External ReadWrite:UniqueLock required."));
     AnvilRegion.def(
+        "is_destroyed",
+        &Amulet::AnvilRegion::is_destroyed,
+        py::doc("Has the instance been destroyed.\n"
+                "If this is false, other calls will fail.\n"
+                "External Read:SharedReadWrite lock required."));
+    AnvilRegion.def(
         "get_file_closer",
         &Amulet::AnvilRegion::get_file_closer,
         py::call_guard<py::gil_scoped_release>(),
