@@ -175,7 +175,7 @@ void AnvilRegion::read_file_header()
     }
 
     if (destroyed) {
-        throw std::runtime_error("This region instance has been destroyed.");
+        throw std::runtime_error("This AnvilRegion instance has been destroyed.");
     }
 
     // Load the region data
@@ -236,10 +236,10 @@ void AnvilRegion::close()
 void AnvilRegion::destroy()
 {
     std::lock_guard lock(_shared->mutex);
+    destroyed = true;
     _close_if_open();
     _sector_manager = std::nullopt;
     _chunk_locations.clear();
-    destroyed = true;
 }
 
 bool AnvilRegion::is_destroyed()
