@@ -273,6 +273,11 @@ public:
     // External ReadWrite:Unique lock required.
     AMULET_CORE_EXPORT void destroy();
 
+    // Has the instance been destroyed.
+    // If this is false, other calls will fail.
+    // External Read:SharedReadWrite lock required.
+    AMULET_CORE_EXPORT bool is_destroyed();
+
     // Get the object responsible for closing the region file.
     // When this object is deleted it will close the region file
     // This means that holding a reference to this will delay when the region file is closed.

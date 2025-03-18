@@ -242,6 +242,11 @@ void AnvilRegion::destroy()
     destroyed = true;
 }
 
+bool AnvilRegion::is_destroyed()
+{
+    return destroyed;
+}
+
 std::vector<std::pair<std::int64_t, std::int64_t>> AnvilRegion::get_coords()
 {
     std::lock_guard lock(_shared->mutex);
