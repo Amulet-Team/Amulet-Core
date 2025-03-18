@@ -107,9 +107,6 @@ private:
     // The public mutex.
     Amulet::OrderedMutex _public_mutex;
 
-    // Mutex for getting the file closer.
-    std::mutex _file_closer_mutex;
-
     // The directory the region file is in.
     std::filesystem::path _dir;
     std::filesystem::path _path;
@@ -127,6 +124,9 @@ private:
 
     // A map from the chunk coordinate to the location on disk
     std::map<std::pair<std::int64_t, std::int64_t>, Sector> _chunk_locations;
+
+    // Mutex for getting the file closer.
+    std::mutex _file_closer_mutex;
 
     // Region file closer
     std::weak_ptr<FileCloser> _closer;
