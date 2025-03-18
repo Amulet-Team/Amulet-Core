@@ -156,6 +156,10 @@ private:
     void create_open_region_file_if_closed();
 
     void validate_coord(std::int64_t cx, std::int64_t cz) const;
+
+    // Set chunk data.
+    // Internal lock required.
+    // Caller must ensure the file is open.
     template <typename T>
     void _set_data(std::int64_t cx, std::int64_t cz, T data);
 
@@ -163,6 +167,7 @@ private:
     // This is automatically called when the instance is destroyed but may be called earlier.
     // Internal lock required.
     void _close();
+    
     // Close the file object if open.
     // This is automatically called when the instance is destroyed but may be called earlier.
     // Internal lock required.
@@ -231,12 +236,14 @@ public:
     // Coordinates are in world space.
     // External Read:SharedReadWrite lock required.
     AMULET_CORE_EXPORT AmuletNBT::NamedTag get_value(std::int64_t cx, std::int64_t cz);
+    
     // AMULET_CORE_EXPORT std::vector<std::optional<AmuletNBT::NamedTag>> get_batch(std::vector<std::pair<std::int64_t, std::int64_t>>& coords);
 
     // Set the value for this coordinate.
     // Coordinates are in world space.
     // External ReadWrite:SharedReadWrite lock required.
     AMULET_CORE_EXPORT void set_value(std::int64_t cx, std::int64_t cz, const AmuletNBT::NamedTag& tag);
+    
     // AMULET_CORE_EXPORT void set_batch(std::vector<std::tuple<std::int64_t, std::int64_t, AmuletNBT::NamedTag>>& batch);
 
     // Delete the chunk data.
