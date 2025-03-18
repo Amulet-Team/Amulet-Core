@@ -33,25 +33,30 @@ void AnvilRegionCoordIterator::seek_to_next_valid()
 }
 
 AnvilRegionCoordIterator::AnvilRegionCoordIterator() { }
+
 AnvilRegionCoordIterator::AnvilRegionCoordIterator(const std::filesystem::path& path)
     : it(path)
 {
     // Seek to first valid region
     seek_to_valid();
 }
+
 const std::pair<std::int64_t, std::int64_t>& AnvilRegionCoordIterator::operator*() const
 {
     return coord;
 }
+
 AnvilRegionCoordIterator& AnvilRegionCoordIterator::operator++()
 {
     seek_to_next_valid();
     return *this;
 }
+
 void AnvilRegionCoordIterator::operator++(int)
 {
     seek_to_next_valid();
 }
+
 bool operator==(const AnvilRegionCoordIterator& lhs, const AnvilRegionCoordIterator& rhs)
 {
     return lhs.it == rhs.it;
@@ -86,6 +91,7 @@ void AnvilChunkCoordIterator::seek_to_valid()
         }
     }
 }
+
 void AnvilChunkCoordIterator::seek_to_next_valid()
 {
     if (_coord_it != _coords.end()) {
@@ -99,7 +105,9 @@ void AnvilChunkCoordIterator::seek_to_next_valid()
         seek_to_valid();
     }
 }
+
 AnvilChunkCoordIterator::AnvilChunkCoordIterator() { }
+
 AnvilChunkCoordIterator::AnvilChunkCoordIterator(std::shared_ptr<class AnvilDimensionLayer> layer)
     : _layer(std::move(layer))
     , _region_it(layer->all_region_coords())
@@ -107,25 +115,30 @@ AnvilChunkCoordIterator::AnvilChunkCoordIterator(std::shared_ptr<class AnvilDime
 {
     seek_to_valid();
 }
+
 std::pair<std::int64_t, std::int64_t> AnvilChunkCoordIterator::operator*() const
 {
     return *_coord_it;
 }
+
 AnvilChunkCoordIterator& AnvilChunkCoordIterator::operator++()
 {
     seek_to_next_valid();
     return *this;
 }
+
 void AnvilChunkCoordIterator::operator++(int)
 {
     seek_to_next_valid();
 }
+
 bool operator==(const AnvilChunkCoordIterator& lhs, const AnvilChunkCoordIterator& rhs)
 {
     return lhs._region_it == AnvilRegionCoordIterator() && rhs._region_it == AnvilRegionCoordIterator();
 }
 
 // AnvilDimensionLayer
+
 AnvilDimensionLayer::AnvilDimensionLayer(
     std::filesystem::path directory, bool mcc)
     : _directory(directory)
@@ -137,6 +150,7 @@ AnvilDimensionLayer::AnvilDimensionLayer(
 }
 
 // Accessors
+
 Amulet::OrderedMutex& AnvilDimensionLayer::get_mutex() { return _public_mutex; }
 const std::filesystem::path& AnvilDimensionLayer::directory() const { return _directory; }
 bool AnvilDimensionLayer::mcc() const { return _mcc; }
@@ -205,6 +219,7 @@ bool AnvilDimensionLayer::has_chunk(std::int64_t cx, std::int64_t cz)
     std::lock_guard region_lock(region_mutex, std::adopt_lock);
     return region->has_value(cx, cz);
 }
+
 AmuletNBT::NamedTag AnvilDimensionLayer::get_chunk_data(std::int64_t cx, std::int64_t cz)
 {
     std::shared_ptr<AnvilRegion> region;
@@ -218,6 +233,7 @@ AmuletNBT::NamedTag AnvilDimensionLayer::get_chunk_data(std::int64_t cx, std::in
     std::lock_guard region_lock(region_mutex, std::adopt_lock);
     return region->get_value(cx, cz);
 }
+
 void AnvilDimensionLayer::set_chunk_data(std::int64_t cx, std::int64_t cz, const AmuletNBT::NamedTag& tag)
 {
     auto region = get_region(cx >> 5, cz >> 5, true);
@@ -226,6 +242,7 @@ void AnvilDimensionLayer::set_chunk_data(std::int64_t cx, std::int64_t cz, const
     std::lock_guard region_lock(region_mutex, std::adopt_lock);
     return region->set_value(cx, cz, tag);
 }
+
 void AnvilDimensionLayer::delete_chunk(std::int64_t cx, std::int64_t cz)
 {
     std::shared_ptr<AnvilRegion> region;
@@ -239,6 +256,7 @@ void AnvilDimensionLayer::delete_chunk(std::int64_t cx, std::int64_t cz)
     std::lock_guard region_lock(region_mutex, std::adopt_lock);
     region->delete_value(cx, cz);
 }
+
 void AnvilDimensionLayer::compact()
 {
     // TODO: Threads
@@ -254,7 +272,9 @@ void AnvilDimensionLayer::compact()
 }
 
 Amulet::OrderedMutex& AnvilDimension::get_mutex() { return _public_mutex; }
+
 const std::filesystem::path& AnvilDimension::directory() const { return _directory; }
+
 bool AnvilDimension::mcc() const { return _mcc; }
 
 std::vector<std::string> AnvilDimension::layer_names()
@@ -267,11 +287,13 @@ std::vector<std::string> AnvilDimension::layer_names()
     }
     return layers;
 }
+
 bool AnvilDimension::has_layer(const std::string& layer_name)
 {
     std::shared_lock lock(_layers_mutex);
     return _layers.contains(layer_name);
 }
+
 std::shared_ptr<AnvilDimensionLayer> AnvilDimension::get_layer(const std::string& layer_name)
 {
     std::shared_lock lock(_layers_mutex);
@@ -286,6 +308,7 @@ AnvilChunkCoordIterator AnvilDimension::all_chunk_coords() const
 {
     return AnvilChunkCoordIterator(_default_layer);
 }
+
 bool AnvilDimension::has_chunk(std::int64_t cx, std::int64_t cz) const
 {
     auto& layer_mutex = _default_layer->get_mutex();
@@ -293,6 +316,7 @@ bool AnvilDimension::has_chunk(std::int64_t cx, std::int64_t cz) const
     std::lock_guard region_lock(layer_mutex, std::adopt_lock);
     return _default_layer->has_chunk(cx, cz);
 }
+
 JavaRawChunk AnvilDimension::get_chunk_data(std::int64_t cx, std::int64_t cz)
 {
     std::shared_lock lock(_layers_mutex);
@@ -311,6 +335,7 @@ JavaRawChunk AnvilDimension::get_chunk_data(std::int64_t cx, std::int64_t cz)
     }
     return chunk_data;
 }
+
 void AnvilDimension::delete_chunk(std::int64_t cx, std::int64_t cz)
 {
     std::shared_lock lock(_layers_mutex);
@@ -321,6 +346,7 @@ void AnvilDimension::delete_chunk(std::int64_t cx, std::int64_t cz)
         layer->delete_chunk(cx, cz);
     }
 }
+
 void AnvilDimension::compact()
 {
     std::shared_lock lock(_layers_mutex);
