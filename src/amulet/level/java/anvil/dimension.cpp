@@ -58,6 +58,7 @@ bool operator==(const AnvilRegionCoordIterator& lhs, const AnvilRegionCoordItera
 }
 
 // AnvilChunkCoordIterator
+
 void AnvilChunkCoordIterator::seek_to_valid()
 {
     std::shared_ptr<AnvilDimensionLayer> layer;
