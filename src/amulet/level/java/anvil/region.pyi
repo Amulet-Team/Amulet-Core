@@ -57,7 +57,7 @@ class AnvilRegion:
         Compact the region file.
         Defragments the file and deletes unused space.
         If there are no chunks remaining in the region file it will be deleted.
-        Thread safe.
+        External ReadWrite:SharedReadWrite lock required.
         """
 
     def contains(self, cx: int, cz: int) -> bool:
@@ -87,7 +87,7 @@ class AnvilRegion:
         Destroy the instance.
         Calls made after this will fail.
         This may only be called by the owner of the instance.
-        External ReadWrite:UniqueLock required.
+        External ReadWrite:Unique lock required.
         """
 
     def get_coords(self) -> list[tuple[int, int]]:
@@ -120,6 +120,13 @@ class AnvilRegion:
         Coordinates are in world space.
         External Read:SharedReadWrite lock required.
         External Read:SharedReadOnly lock optional.
+        """
+
+    def is_destroyed(self) -> bool:
+        """
+        Has the instance been destroyed.
+        If this is false, other calls will fail.
+        External Read:SharedReadWrite lock required.
         """
 
     def set_value(self, cx: int, cz: int, tag: amulet_nbt.NamedTag) -> None:
