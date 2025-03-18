@@ -183,7 +183,10 @@ std::shared_ptr<AnvilRegion> AnvilDimensionLayer::get_region(
 {
     // Lock parallel modifications
     // TODO: Some of this could be done in parallel.
-    std::lock_guard<std::mutex> guard(_regions_mutex);
+    std::lock_guard lock(_regions_mutex);
+    if (destroyed) {
+        throw std::runtime_error("This AnvilDimensionLayer instance has been destroyed.");
+    }
     // Get the region key
     auto key = std::make_pair(rx, rz);
     // Find the region
@@ -271,6 +274,26 @@ void AnvilDimensionLayer::compact()
     }
 }
 
+void AnvilDimensionLayer::destroy()
+{
+    std::lock_guard lock(_regions_mutex);
+    destroyed = true;
+
+    // Destroy all region instances.
+    for (auto& it : _regions) {
+        auto& region = *it.second;
+        auto& mutex = region.get_mutex();
+        std::lock_guard(mutex);
+        region.destroy();
+    }
+    _regions.clear();
+}
+
+bool AnvilDimensionLayer::is_destroyed()
+{
+    return destroyed;
+}
+
 Amulet::OrderedMutex& AnvilDimension::get_mutex() { return _public_mutex; }
 
 const std::filesystem::path& AnvilDimension::directory() const { return _directory; }
@@ -299,6 +322,9 @@ std::shared_ptr<AnvilDimensionLayer> AnvilDimension::get_layer(const std::string
     std::shared_lock lock(_layers_mutex);
     auto it = _layers.find(layer_name);
     if (it == _layers.end()) {
+        if (destroyed) {
+            throw std::runtime_error("This AnvilDimensionLayer instance has been destroyed.");
+        }
         throw std::invalid_argument("No layer exists with name " + layer_name);
     }
     return it->second;
@@ -332,6 +358,9 @@ JavaRawChunk AnvilDimension::get_chunk_data(std::int64_t cx, std::int64_t cz)
         }
     }
     if (chunk_data.empty()) {
+        if (destroyed) {
+            throw std::runtime_error("This AnvilDimensionLayer instance has been destroyed.");
+        }
         throw ChunkDoesNotExist();
     }
     return chunk_data;
@@ -359,6 +388,26 @@ void AnvilDimension::compact()
         std::unique_lock layer_lock(layer_mutex, std::adopt_lock);
         layer.compact();
     }
+}
+
+void AnvilDimension::destroy()
+{
+    std::lock_guard lock(_layers_mutex);
+    destroyed = true;
+
+    // Destroy all region instances.
+    for (auto& it : _layers) {
+        auto& layer = *it.second;
+        auto& mutex = layer.get_mutex();
+        std::lock_guard(mutex);
+        layer.destroy();
+    }
+    _layers.clear();
+}
+
+bool AnvilDimension::is_destroyed()
+{
+    return destroyed;
 }
 
 } // namespace Amulet

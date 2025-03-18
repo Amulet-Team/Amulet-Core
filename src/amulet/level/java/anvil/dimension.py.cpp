@@ -133,6 +133,20 @@ py::module init_anvil_dimension(py::module m_parent)
         &Amulet::AnvilDimensionLayer::compact,
         py::doc("Defragment the region files and remove unused region files.\n"
                 "External ReadWrite::SharedReadOnly lock required."));
+    AnvilDimensionLayer.def(
+        "destroy",
+        &Amulet::AnvilDimensionLayer::destroy,
+        py::call_guard<py::gil_scoped_release>(),
+        py::doc("Destroy the instance.\n"
+                "Calls made after this will fail.\n"
+                "This may only be called by the owner of the instance.\n"
+                "External ReadWrite:Unique lock required."));
+    AnvilDimensionLayer.def(
+        "is_destroyed",
+        &Amulet::AnvilDimensionLayer::is_destroyed,
+        py::doc("Has the instance been destroyed.\n"
+                "If this is false, other calls will fail.\n"
+                "External Read:SharedReadWrite lock required."));
 
     py::class_<Amulet::AnvilDimension, std::shared_ptr<Amulet::AnvilDimension>> AnvilDimension(m, "AnvilDimension",
         "A class to manage the data for a dimension.\n"
@@ -180,7 +194,8 @@ py::module init_anvil_dimension(py::module m_parent)
         &Amulet::AnvilDimension::get_layer,
         py::arg("layer_name"),
         py::doc("Get the AnvilDimensionLayer for a specific layer. The returned value must not be stored long-term.\n"
-                "Thread safe."));
+                "External Read::SharedReadWrite lock required if only calling Read methods on AnvilDimensionLayer.\n"
+                "// External ReadWrite::SharedReadWrite lock required if calling ReadWrite methods on AnvilDimensionLayer."));
     AnvilDimension.def(
         "all_chunk_coords",
         [](Amulet::AnvilDimension& self) {
@@ -226,6 +241,20 @@ py::module init_anvil_dimension(py::module m_parent)
         &Amulet::AnvilDimension::compact,
         py::doc("Defragment the region files and remove unused region files.\n"
                 "External ReadWrite::SharedReadOnly lock required."));
+    AnvilDimension.def(
+        "destroy",
+        &Amulet::AnvilDimension::destroy,
+        py::call_guard<py::gil_scoped_release>(),
+        py::doc("Destroy the instance.\n"
+                "Calls made after this will fail.\n"
+                "This may only be called by the owner of the instance.\n"
+                "External ReadWrite:Unique lock required."));
+    AnvilDimension.def(
+        "is_destroyed",
+        &Amulet::AnvilDimension::is_destroyed,
+        py::doc("Has the instance been destroyed.\n"
+                "If this is false, other calls will fail.\n"
+                "External Read:SharedReadWrite lock required."));
 
     auto dict = py::module::import("builtins").attr("dict");
     auto str = py::module::import("builtins").attr("str");

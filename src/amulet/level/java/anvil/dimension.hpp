@@ -95,6 +95,7 @@ private:
     bool _mcc;
     std::mutex _regions_mutex;
     std::map<std::pair<std::int64_t, std::int64_t>, std::shared_ptr<Amulet::AnvilRegion>> _regions;
+    bool destroyed = false;
 
 public:
     // Constructors
@@ -173,6 +174,17 @@ public:
     // Defragment the region files and remove unused region files.
     // External ReadWrite::SharedReadOnly lock required.
     AMULET_CORE_EXPORT void compact();
+
+    // Destroy the instance.
+    // Calls made after this will fail.
+    // This may only be called by the owner of the instance.
+    // External ReadWrite:Unique lock required.
+    AMULET_CORE_EXPORT void destroy();
+
+    // Has the instance been destroyed.
+    // If this is false, other calls will fail.
+    // External Read:SharedReadWrite lock required.
+    AMULET_CORE_EXPORT bool is_destroyed();
 };
 
 template <typename Range, typename T>
@@ -188,6 +200,7 @@ private:
     std::shared_mutex _layers_mutex;
     std::map<std::string, std::shared_ptr<AnvilDimensionLayer>> _layers;
     std::shared_ptr<AnvilDimensionLayer> _default_layer;
+    bool destroyed = false;
 
 public:
     template <TypedInputRange<std::string> layersT>
@@ -227,7 +240,8 @@ public:
     AMULET_CORE_EXPORT bool has_layer(const std::string& layer_name);
     
     // Get the AnvilDimensionLayer for a specific layer. The returned value must not be stored long-term.
-    // Thread safe.
+    // External Read::SharedReadWrite lock required if only calling Read methods on AnvilDimensionLayer.
+    // External ReadWrite::SharedReadWrite lock required if calling ReadWrite methods on AnvilDimensionLayer.
     AMULET_CORE_EXPORT std::shared_ptr<AnvilDimensionLayer> get_layer(const std::string& layer_name);
 
     // Get an iterator for all the chunks that exist in this dimension.
@@ -304,6 +318,17 @@ public:
     // Defragment the region files and remove unused region files.
     // External ReadWrite::SharedReadOnly lock required.
     AMULET_CORE_EXPORT void compact();
+
+    // Destroy the instance.
+    // Calls made after this will fail.
+    // This may only be called by the owner of the instance.
+    // External ReadWrite:Unique lock required.
+    AMULET_CORE_EXPORT void destroy();
+
+    // Has the instance been destroyed.
+    // If this is false, other calls will fail.
+    // External Read:SharedReadWrite lock required.
+    AMULET_CORE_EXPORT bool is_destroyed();
 };
 
 } // namespace Amulet
