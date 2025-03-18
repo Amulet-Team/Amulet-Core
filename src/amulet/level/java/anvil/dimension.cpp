@@ -276,14 +276,14 @@ void AnvilDimensionLayer::compact()
 
 void AnvilDimensionLayer::destroy()
 {
-    std::lock_guard lock(_regions_mutex);
+    std::lock_guard regions_lock(_regions_mutex);
     destroyed = true;
 
     // Destroy all region instances.
     for (auto& it : _regions) {
         auto& region = *it.second;
         auto& mutex = region.get_mutex();
-        std::lock_guard(mutex);
+        std::lock_guard region_lock(mutex);
         region.destroy();
     }
     _regions.clear();
@@ -392,14 +392,14 @@ void AnvilDimension::compact()
 
 void AnvilDimension::destroy()
 {
-    std::lock_guard lock(_layers_mutex);
+    std::lock_guard layers_lock(_layers_mutex);
     destroyed = true;
 
     // Destroy all region instances.
     for (auto& it : _layers) {
         auto& layer = *it.second;
         auto& mutex = layer.get_mutex();
-        std::lock_guard(mutex);
+        std::lock_guard layer_lock(mutex);
         layer.destroy();
     }
     _layers.clear();
