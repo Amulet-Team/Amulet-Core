@@ -285,6 +285,9 @@ public:
                         continue;
                     }
                 } else if (std::all_of(layer_name.begin(), layer_name.end(), [](char c) { return 0x61 <= c && c <= 0x7A; })) {
+                    if (destroyed) {
+                        throw std::runtime_error("This AnvilDimension instance has been destroyed.");
+                    }
                     // Switch to a unique lock to mutate _layers
                     slock.unlock();
                     std::unique_lock ulock(_layers_mutex);
