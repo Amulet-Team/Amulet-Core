@@ -54,6 +54,8 @@ AMULET_CORE_EXPORT bool operator==(const AnvilRegionCoordIterator&, const AnvilR
 static_assert(std::input_iterator<AnvilRegionCoordIterator>);
 
 // An input iterator over chunk coordinates in a dimension layer.
+// Layer's Read::SharedReadWrite lock required.
+// Layer's Read::SharedReadOnly lock optional.
 class AnvilChunkCoordIterator {
     // Not thread safe.
 private:
