@@ -142,11 +142,18 @@ std::filesystem::path AnvilDimensionLayer::region_path(
 {
     return _directory / ("r." + std::to_string(rx) + "." + std::to_string(rz) + ".mca");
 }
+
+AnvilRegionCoordIterator AnvilDimensionLayer::all_region_coords()
+{
+    return AnvilRegionCoordIterator(_directory);
+}
+
 bool AnvilDimensionLayer::has_region(
     std::int64_t rx, std::int64_t rz) const
 {
     return std::filesystem::is_regular_file(region_path(rx, rz));
 }
+
 std::shared_ptr<AnvilRegion> AnvilDimensionLayer::get_region(
     std::int64_t rx, std::int64_t rz, bool create)
 {
@@ -169,10 +176,7 @@ std::shared_ptr<AnvilRegion> AnvilDimensionLayer::get_region(
     }
 }
 
-AnvilRegionCoordIterator AnvilDimensionLayer::all_region_coords()
-{
-    return AnvilRegionCoordIterator(_directory);
-}
+
 bool AnvilDimensionLayer::has_chunk(std::int64_t cx, std::int64_t cz)
 {
     std::shared_ptr<AnvilRegion> region;
