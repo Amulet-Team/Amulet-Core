@@ -259,7 +259,7 @@ public:
     // Compact the region file.
     // Defragments the file and deletes unused space.
     // If there are no chunks remaining in the region file it will be deleted.
-    // Thread safe.
+    // External ReadWrite:SharedReadWrite lock required.
     AMULET_CORE_EXPORT void compact();
 
     // Close the file object if open.

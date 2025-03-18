@@ -243,6 +243,9 @@ void AnvilDimensionLayer::compact()
     for (auto it = all_region_coords(); it != AnvilRegionCoordIterator(); it++) {
         auto [cx, cz] = *it;
         auto region = get_region(cx, cz);
+        auto& region_mutex = region->get_mutex();
+        region_mutex.lock<ThreadAccessMode::ReadWrite, ThreadShareMode::SharedReadWrite>();
+        std::lock_guard region_lock(region_mutex, std::adopt_lock);
         region->compact();
     }
 }

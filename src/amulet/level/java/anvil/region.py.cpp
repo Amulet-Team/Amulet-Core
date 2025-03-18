@@ -146,7 +146,7 @@ py::module init_anvil_region(py::module m_parent)
         py::doc("Compact the region file.\n"
                 "Defragments the file and deletes unused space.\n"
                 "If there are no chunks remaining in the region file it will be deleted.\n"
-                "Thread safe."));
+                "External ReadWrite:SharedReadWrite lock required."));
     AnvilRegion.def(
         "close",
         &Amulet::AnvilRegion::close,
