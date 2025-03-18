@@ -75,6 +75,9 @@ void AnvilChunkCoordIterator::seek_to_valid()
         } catch (RegionDoesNotExist) {
             continue;
         }
+        auto& region_mutex = region->get_mutex();
+        region_mutex.lock<ThreadAccessMode::Read, ThreadShareMode::SharedReadWrite>();
+        std::lock_guard region_lock(region_mutex, std::adopt_lock);
         _coords = region->get_coords();
         _coord_it = _coords.begin();
         if (!_coords.empty()) {
@@ -187,7 +190,6 @@ std::shared_ptr<AnvilRegion> AnvilDimensionLayer::get_region_at_chunk(
 {
     return get_region(cx >> 5, cx >> 5, create);
 }
-
 
 bool AnvilDimensionLayer::has_chunk(std::int64_t cx, std::int64_t cz)
 {
