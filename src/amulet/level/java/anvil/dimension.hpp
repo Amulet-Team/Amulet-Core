@@ -126,16 +126,27 @@ public:
     // External Read::SharedReadOnly optional.
     AMULET_CORE_EXPORT AnvilRegionCoordIterator all_region_coords();
     
-    // Check if a region file exists in this layer.
+    // Check if a region file exists in this layer at given the coordinates.
     // External Read::SharedReadWrite required.
     // External Read::SharedReadOnly optional.
     AMULET_CORE_EXPORT bool has_region(std::int64_t rx, std::int64_t rz) const;
+
+    // Check if a region file exists in this layer that contains the given chunk.
+    // External Read::SharedReadWrite required.
+    // External Read::SharedReadOnly optional.
+    AMULET_CORE_EXPORT bool has_region_at_chunk(std::int64_t cx, std::int64_t cz) const;
     
-    // Get an AnvilRegion instance. This must not be stored long-term.
+    // Get an AnvilRegion instance from its coordinates. This must not be stored long-term.
     // Will throw RegionDoesNotExist if create is false and the region does not exist.
     // External Read::SharedReadWrite required.
     // External ReadWrite::SharedReadWrite required if create=true or calling AnvilRegion::compact().
     AMULET_CORE_EXPORT std::shared_ptr<AnvilRegion> get_region(std::int64_t rx, std::int64_t rz, bool create = false);
+    
+    // Get an AnvilRegion instance from chunk coordinates it contains. This must not be stored long-term.
+    // Will throw RegionDoesNotExist if create is false and the region does not exist.
+    // External Read::SharedReadWrite required.
+    // External ReadWrite::SharedReadWrite required if create=true or calling AnvilRegion::compact().
+    AMULET_CORE_EXPORT std::shared_ptr<AnvilRegion> get_region_at_chunk(std::int64_t cx, std::int64_t cz, bool create = false);
 
     // Chunk
     

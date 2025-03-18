@@ -54,7 +54,16 @@ py::module init_anvil_dimension(py::module m_parent)
         py::arg("rx"),
         py::arg("rz"),
         py::doc(
-            "Check if a region file exists in this layer.\n"
+            "Check if a region file exists in this layer at given the coordinates.\n"
+            "External Read::SharedReadWrite required.\n"
+            "External Read::SharedReadOnly optional."));
+    AnvilDimensionLayer.def(
+        "has_region_at_chunk",
+        &Amulet::AnvilDimensionLayer::has_region_at_chunk,
+        py::arg("cx"),
+        py::arg("cz"),
+        py::doc(
+            "Check if a region file exists in this layer that contains the given chunk.\n"
             "External Read::SharedReadWrite required.\n"
             "External Read::SharedReadOnly optional."));
     AnvilDimensionLayer.def(
@@ -63,7 +72,17 @@ py::module init_anvil_dimension(py::module m_parent)
         py::arg("rx"),
         py::arg("rz"),
         py::arg("create") = false,
-        py::doc("Get an AnvilRegion instance. This must not be stored long-term.\n"
+        py::doc("Get an AnvilRegion instance from chunk coordinates it contains. This must not be stored long-term.\n"
+                "Will throw RegionDoesNotExist if create is false and the region does not exist.\n"
+                "External Read::SharedReadWrite required.\n"
+                "External ReadWrite::SharedReadWrite required if create=true or calling AnvilRegion::compact()."));
+    AnvilDimensionLayer.def(
+        "get_region_at_chunk",
+        &Amulet::AnvilDimensionLayer::get_region_at_chunk,
+        py::arg("cx"),
+        py::arg("cz"),
+        py::arg("create") = false,
+        py::doc("Get an AnvilRegion instance from chunk coordinates it contains. This must not be stored long-term.\n"
                 "Will throw RegionDoesNotExist if create is false and the region does not exist.\n"
                 "External Read::SharedReadWrite required.\n"
                 "External ReadWrite::SharedReadWrite required if create=true or calling AnvilRegion::compact()."));

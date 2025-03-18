@@ -154,6 +154,12 @@ bool AnvilDimensionLayer::has_region(
     return std::filesystem::is_regular_file(region_path(rx, rz));
 }
 
+bool AnvilDimensionLayer::has_region_at_chunk(
+    std::int64_t cx, std::int64_t cz) const
+{
+    return has_region(cx >> 5, cz >> 5);
+}
+
 std::shared_ptr<AnvilRegion> AnvilDimensionLayer::get_region(
     std::int64_t rx, std::int64_t rz, bool create)
 {
@@ -174,6 +180,12 @@ std::shared_ptr<AnvilRegion> AnvilDimensionLayer::get_region(
     } else {
         throw RegionDoesNotExist();
     }
+}
+
+std::shared_ptr<AnvilRegion> AnvilDimensionLayer::get_region_at_chunk(
+    std::int64_t cx, std::int64_t cz, bool create)
+{
+    return get_region(cx >> 5, cx >> 5, create);
 }
 
 
