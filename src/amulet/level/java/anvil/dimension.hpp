@@ -18,6 +18,7 @@
 #include "region.hpp"
 #include <amulet/dll.hpp>
 #include <amulet/utils/mutex.hpp>
+#include <amulet/utils/logging.hpp>
 
 namespace Amulet {
 
@@ -283,8 +284,7 @@ public:
                         // If it was going to be deleted then do nothing.
                         continue;
                     }
-                }
-                if (std::all_of(layer_name.begin(), layer_name.end(), [](char c) { return 0x61 <= c && c <= 0x7A; })) {
+                } else if (std::all_of(layer_name.begin(), layer_name.end(), [](char c) { return 0x61 <= c && c <= 0x7A; })) {
                     // Switch to a unique lock to mutate _layers
                     slock.unlock();
                     std::unique_lock ulock(_layers_mutex);
@@ -293,6 +293,9 @@ public:
                     // Switch back to a shared lock
                     ulock.unlock();
                     slock.lock();
+                } else {
+                    error("Anvil layer contains characters not in the range a-z");
+                    continue;
                 }
             }
             auto& layer = it->second;
