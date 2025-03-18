@@ -169,7 +169,7 @@ public:
     AMULET_CORE_EXPORT void delete_chunk(std::int64_t cx, std::int64_t cz);
     
     // Defragment the region files and remove unused region files.
-    // External ReadWrite::Unique lock required.
+    // External ReadWrite::SharedReadOnly lock required.
     AMULET_CORE_EXPORT void compact();
 };
 
@@ -300,7 +300,7 @@ public:
     AMULET_CORE_EXPORT void delete_chunk(std::int64_t cx, std::int64_t cz);
     
     // Defragment the region files and remove unused region files.
-    // External Read::SharedReadWrite lock required.
+    // External ReadWrite::SharedReadOnly lock required.
     AMULET_CORE_EXPORT void compact();
 };
 

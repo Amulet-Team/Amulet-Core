@@ -132,7 +132,7 @@ py::module init_anvil_dimension(py::module m_parent)
         "compact",
         &Amulet::AnvilDimensionLayer::compact,
         py::doc("Defragment the region files and remove unused region files.\n"
-                "External ReadWrite::Unique lock required."));
+                "External ReadWrite::SharedReadOnly lock required."));
 
     py::class_<Amulet::AnvilDimension, std::shared_ptr<Amulet::AnvilDimension>> AnvilDimension(m, "AnvilDimension",
         "A class to manage the data for a dimension.\n"
@@ -225,7 +225,7 @@ py::module init_anvil_dimension(py::module m_parent)
         "compact",
         &Amulet::AnvilDimension::compact,
         py::doc("Defragment the region files and remove unused region files.\n"
-                "External Read::SharedReadWrite lock required."));
+                "External Read::SharedReadOnly lock required."));
 
     auto dict = py::module::import("builtins").attr("dict");
     auto str = py::module::import("builtins").attr("str");

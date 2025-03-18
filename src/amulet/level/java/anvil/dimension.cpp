@@ -323,7 +323,7 @@ void AnvilDimension::compact()
     std::shared_lock lock(_layers_mutex);
     for (const auto& [_, layer] : _layers) {
         auto& layer_mutex = layer->get_mutex();
-        layer_mutex.lock();
+        layer_mutex.lock<ThreadAccessMode::ReadWrite, ThreadShareMode::SharedReadOnly>();
         std::unique_lock layer_lock(layer_mutex, std::adopt_lock);
         layer->compact();
     }
