@@ -138,14 +138,14 @@ public:
     
     // Get an AnvilRegion instance from its coordinates. This must not be stored long-term.
     // Will throw RegionDoesNotExist if create is false and the region does not exist.
-    // External Read::SharedReadWrite lock required.
-    // External ReadWrite::SharedReadWrite lock required if create=true or calling AnvilRegion::compact().
+    // External Read::SharedReadWrite lock required if only calling Read methods on AnvilRegion.
+    // External ReadWrite::SharedReadWrite lock required if calling ReadWrite methods on AnvilRegion.
     AMULET_CORE_EXPORT std::shared_ptr<AnvilRegion> get_region(std::int64_t rx, std::int64_t rz, bool create = false);
     
     // Get an AnvilRegion instance from chunk coordinates it contains. This must not be stored long-term.
     // Will throw RegionDoesNotExist if create is false and the region does not exist.
-    // External Read::SharedReadWrite lock required.
-    // External ReadWrite::SharedReadWrite lock required if create=true or calling AnvilRegion::compact().
+    // External Read::SharedReadWrite lock required if only calling Read methods on AnvilRegion.
+    // External ReadWrite::SharedReadWrite lock required if calling ReadWrite methods on AnvilRegion.
     AMULET_CORE_EXPORT std::shared_ptr<AnvilRegion> get_region_at_chunk(std::int64_t cx, std::int64_t cz, bool create = false);
 
     // Chunk

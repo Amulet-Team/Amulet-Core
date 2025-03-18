@@ -74,8 +74,8 @@ py::module init_anvil_dimension(py::module m_parent)
         py::arg("create") = false,
         py::doc("Get an AnvilRegion instance from chunk coordinates it contains. This must not be stored long-term.\n"
                 "Will throw RegionDoesNotExist if create is false and the region does not exist.\n"
-                "External Read::SharedReadWrite lock required.\n"
-                "External ReadWrite::SharedReadWrite lock required if create=true or calling AnvilRegion::compact()."));
+                "External Read::SharedReadWrite lock required if only calling Read methods on AnvilRegion.\n"
+                "External ReadWrite::SharedReadWrite lock required if calling ReadWrite methods on AnvilRegion."));
     AnvilDimensionLayer.def(
         "get_region_at_chunk",
         &Amulet::AnvilDimensionLayer::get_region_at_chunk,
@@ -84,8 +84,8 @@ py::module init_anvil_dimension(py::module m_parent)
         py::arg("create") = false,
         py::doc("Get an AnvilRegion instance from chunk coordinates it contains. This must not be stored long-term.\n"
                 "Will throw RegionDoesNotExist if create is false and the region does not exist.\n"
-                "External Read::SharedReadWrite lock required.\n"
-                "External ReadWrite::SharedReadWrite lock required if create=true or calling AnvilRegion::compact()."));
+                "External Read::SharedReadWrite lock required if only calling Read methods on AnvilRegion.\n"
+                "External ReadWrite::SharedReadWrite lock required if calling ReadWrite methods on AnvilRegion."));
     AnvilDimensionLayer.def(
         "all_chunk_coords",
         [](std::shared_ptr<Amulet::AnvilDimensionLayer> self) {
