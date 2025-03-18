@@ -317,17 +317,20 @@ bool AnvilDimension::has_layer(const std::string& layer_name)
     return _layers.contains(layer_name);
 }
 
-std::shared_ptr<AnvilDimensionLayer> AnvilDimension::get_layer(const std::string& layer_name)
+std::shared_ptr<AnvilDimensionLayer> AnvilDimension::get_layer(const std::string& layer_name, bool create)
 {
     std::shared_lock lock(_layers_mutex);
     auto it = _layers.find(layer_name);
-    if (it == _layers.end()) {
-        if (destroyed) {
-            throw std::runtime_error("This AnvilDimensionLayer instance has been destroyed.");
-        }
-        throw std::invalid_argument("No layer exists with name " + layer_name);
+    if (it != _layers.end()) {
+        return it->second;
     }
-    return it->second;
+    if (create) {
+        if (destroyed) {
+            throw std::runtime_error("This AnvilDimension instance has been destroyed.");
+        }
+        return _layers.emplace(layer_name, std::make_shared<AnvilDimensionLayer>(_directory / layer_name, _mcc)).first->second;
+    }
+    throw std::invalid_argument("No layer exists with name " + layer_name);
 }
 
 AnvilChunkCoordIterator AnvilDimension::all_chunk_coords() const

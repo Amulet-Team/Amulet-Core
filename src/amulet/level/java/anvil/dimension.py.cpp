@@ -193,7 +193,9 @@ py::module init_anvil_dimension(py::module m_parent)
         "get_layer",
         &Amulet::AnvilDimension::get_layer,
         py::arg("layer_name"),
+        py::arg("create") = false,
         py::doc("Get the AnvilDimensionLayer for a specific layer. The returned value must not be stored long-term.\n"
+                "If create=true the layer will be created if it doesn't exist.\n"
                 "External Read::SharedReadWrite lock required if only calling Read methods on AnvilDimensionLayer.\n"
                 "// External ReadWrite::SharedReadWrite lock required if calling ReadWrite methods on AnvilDimensionLayer."));
     AnvilDimension.def(

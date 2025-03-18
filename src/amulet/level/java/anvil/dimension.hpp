@@ -241,9 +241,10 @@ public:
     AMULET_CORE_EXPORT bool has_layer(const std::string& layer_name);
 
     // Get the AnvilDimensionLayer for a specific layer. The returned value must not be stored long-term.
+    // If create=true the layer will be created if it doesn't exist.
     // External Read::SharedReadWrite lock required if only calling Read methods on AnvilDimensionLayer.
-    // External ReadWrite::SharedReadWrite lock required if calling ReadWrite methods on AnvilDimensionLayer.
-    AMULET_CORE_EXPORT std::shared_ptr<AnvilDimensionLayer> get_layer(const std::string& layer_name);
+    // External ReadWrite::SharedReadWrite lock required if create=true or calling ReadWrite methods on AnvilDimensionLayer.
+    AMULET_CORE_EXPORT std::shared_ptr<AnvilDimensionLayer> get_layer(const std::string& layer_name, bool create = false);
 
     // Get an iterator for all the chunks that exist in this dimension.
     // External Read::SharedReadWrite lock required.
