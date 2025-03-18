@@ -161,7 +161,7 @@ py::module init_anvil_region(py::module m_parent)
         py::doc("Destroy the instance.\n"
                 "Calls made after this will fail.\n"
                 "This may only be called by the owner of the instance.\n"
-                "External ReadWrite:UniqueLock required."));
+                "External ReadWrite:Unique lock required."));
     AnvilRegion.def(
         "is_destroyed",
         &Amulet::AnvilRegion::is_destroyed,
