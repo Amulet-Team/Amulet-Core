@@ -31,7 +31,7 @@ class JavaRawLevelTestCase(TestCase):
                     False,
                     os.path.join(temp_dir, "amulet_level"),
                     VersionNumber(1631),
-                    "AmuletLevel"
+                    "AmuletLevel",
                 )
             )
             self.assertIsInstance(raw_level, JavaRawLevel)
@@ -43,7 +43,9 @@ class JavaRawLevelTestCase(TestCase):
             raw_level = JavaRawLevel.load(world_data.temp_path)
             self.assertIsInstance(raw_level.lock, OrderedLock)
             self.assertTrue(raw_level.is_supported())
-            self.assertEqual(datetime(2018, 5, 30, 3, 36, 15, 463000), raw_level.modified_time)
+            self.assertEqual(
+                datetime(2018, 5, 30, 3, 36, 15, 463000), raw_level.modified_time
+            )
             self.assertEqual("java", raw_level.platform)
             self.assertEqual(VersionNumber(1497), raw_level.data_version)
             self.assertEqual(world_data.temp_path, raw_level.path)
@@ -134,7 +136,9 @@ class JavaRawLevelTestCase(TestCase):
             del raw_level
 
             raw_level_2 = JavaRawLevel.load(world_data.temp_path)
-            self.assertEqual(StringTag("HelloWorld"), raw_level_2.level_dat.compound["HelloWorld"])
+            self.assertEqual(
+                StringTag("HelloWorld"), raw_level_2.level_dat.compound["HelloWorld"]
+            )
 
     def test_dimensions(self) -> None:
         with WorldTemp(java_vanilla_1_13) as world_data:
@@ -143,7 +147,14 @@ class JavaRawLevelTestCase(TestCase):
             try:
                 dimension_ids = raw_level.dimension_ids
                 self.assertIsInstance(dimension_ids, list)
-                self.assertEqual({"minecraft:overworld", "minecraft:the_end", "minecraft:the_nether"}, set(dimension_ids))
+                self.assertEqual(
+                    {
+                        "minecraft:overworld",
+                        "minecraft:the_end",
+                        "minecraft:the_nether",
+                    },
+                    set(dimension_ids),
+                )
                 for dimension_id in dimension_ids:
                     dimension = raw_level.get_dimension(dimension_id)
                     self.assertIsInstance(dimension, JavaRawDimension)
@@ -152,6 +163,7 @@ class JavaRawLevelTestCase(TestCase):
 
     def test_compact(self) -> None:
         with WorldTemp(java_vanilla_1_13) as world_data:
+
             def get_region_size() -> int:
                 return sum(
                     entry.stat().st_size
@@ -160,6 +172,7 @@ class JavaRawLevelTestCase(TestCase):
                     )
                     if entry.is_file()
                 )
+
             start_size = get_region_size()
             raw_level = JavaRawLevel.load(world_data.temp_path)
             with self.assertRaises(RuntimeError):
