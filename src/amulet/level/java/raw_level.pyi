@@ -65,6 +65,18 @@ class JavaRawLevel:
         External shared read lock required.
         """
 
+    def is_open(self) -> bool:
+        """
+        Is the level open.
+        External shared read lock required.
+        """
+
+    def is_supported(self) -> bool:
+        """
+        Is this level a supported version.
+        This is true for all versions we support and false for snapshots and unsupported newer versions.
+        """
+
     def open(self) -> None:
         """
         Open the level.
@@ -122,20 +134,6 @@ class JavaRawLevel:
         The identifiers for all dimensions in this level.
         External shared read lock required.
         External shared read-only lock optional.
-        """
-
-    @property
-    def is_open(self) -> bool:
-        """
-        Is the level open.
-        External shared read lock required.
-        """
-
-    @property
-    def is_supported(self) -> bool:
-        """
-        Is this level a supported version.
-        This is true for all versions we support and false for snapshots and unsupported newer versions.
         """
 
     @property

@@ -42,7 +42,7 @@ class JavaRawLevelTestCase(TestCase):
         with WorldTemp(java_vanilla_1_13) as world_data:
             raw_level = JavaRawLevel.load(world_data.temp_path)
             self.assertIsInstance(raw_level.lock, OrderedLock)
-            self.assertTrue(raw_level.is_supported)
+            self.assertTrue(raw_level.is_supported())
             self.assertEqual(datetime(2018, 5, 30, 3, 36, 15, 463000), raw_level.modified_time)
             self.assertEqual("java", raw_level.platform)
             self.assertEqual(VersionNumber(1497), raw_level.data_version)
@@ -95,17 +95,17 @@ class JavaRawLevelTestCase(TestCase):
             closed_token = raw_level.closed.connect(on_close)
             reloaded_token = raw_level.reloaded.connect(on_reload)
 
-            self.assertFalse(raw_level.is_open)
+            self.assertFalse(raw_level.is_open())
 
             raw_level.open()
-            self.assertTrue(raw_level.is_open)
+            self.assertTrue(raw_level.is_open())
             self.assertEqual(1, opened_count)
             self.assertEqual(0, closed_count)
             self.assertEqual(0, reloaded_count)
 
             opened_count = 0
             raw_level.reload()
-            self.assertTrue(raw_level.is_open)
+            self.assertTrue(raw_level.is_open())
             self.assertEqual(0, opened_count)
             self.assertEqual(0, closed_count)
             self.assertEqual(1, reloaded_count)
@@ -115,7 +115,7 @@ class JavaRawLevelTestCase(TestCase):
 
             reloaded_count = 0
             raw_level.close()
-            self.assertFalse(raw_level.is_open)
+            self.assertFalse(raw_level.is_open())
             self.assertEqual(0, opened_count)
             self.assertEqual(1, closed_count)
             self.assertEqual(0, reloaded_count)

@@ -67,7 +67,7 @@ py::module init_java_raw_level(py::module m_parent)
         &Amulet::JavaRawLevel::get_mutex,
         py::doc("The public lock\n"
                 "Thread safe."));
-    JavaRawLevel.def_property_readonly(
+    JavaRawLevel.def(
         "is_open",
         &Amulet::JavaRawLevel::is_open,
         py::call_guard<py::gil_scoped_release>(),
@@ -153,7 +153,7 @@ py::module init_java_raw_level(py::module m_parent)
                 "Set the maximum game version.\n"
                 "If the game version is different this will close and re-open the level.\n"
                 "External unique lock required."));
-    JavaRawLevel.def_property_readonly(
+    JavaRawLevel.def(
         "is_supported",
         &Amulet::JavaRawLevel::is_supported,
         py::doc(
