@@ -162,7 +162,7 @@ py::module init_java_raw_level(py::module m_parent)
             "snapshots and unsupported newer versions."
         ));
     JavaRawLevel.def_property_readonly(
-        "get_thumbnail",
+        "thumbnail",
         &Amulet::JavaRawLevel::get_thumbnail,
         py::doc("Get the thumbnail for the level."));
     JavaRawLevel.def_property_readonly(

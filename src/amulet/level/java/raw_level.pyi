@@ -125,12 +125,6 @@ class JavaRawLevel:
         """
 
     @property
-    def get_thumbnail(self) -> PIL.Image.Image:
-        """
-        Get the thumbnail for the level.
-        """
-
-    @property
     def is_open(self) -> bool:
         """
         Is the level open.
@@ -204,3 +198,8 @@ class JavaRawLevel:
 
     @property
     def reloaded(self) -> amulet.utils.signal.Signal[()]: ...
+    @property
+    def thumbnail(self) -> PIL.Image.Image:
+        """
+        Get the thumbnail for the level.
+        """
