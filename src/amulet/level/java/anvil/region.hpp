@@ -12,8 +12,8 @@
 #include <vector>
 
 #include <amulet/dll.hpp>
-#include <amulet_nbt/tag/named_tag.hpp>
 #include <amulet/utils/mutex.hpp>
+#include <amulet_nbt/tag/named_tag.hpp>
 
 #include "sector_manager.hpp"
 
@@ -85,7 +85,6 @@ private:
         std::fstream regionf;
         // This mutex must be acquired to access the container data or the file.
         std::recursive_mutex mutex;
-        Amulet::OrderedMutex public_mutex;
     };
 
 public:
@@ -105,6 +104,9 @@ public:
     friend FileCloser;
 
 private:
+    // The public mutex.
+    Amulet::OrderedMutex _public_mutex;
+
     // The directory the region file is in.
     std::filesystem::path _dir;
     std::filesystem::path _path;
@@ -122,6 +124,9 @@ private:
 
     // A map from the chunk coordinate to the location on disk
     std::map<std::pair<std::int64_t, std::int64_t>, Sector> _chunk_locations;
+
+    // Mutex for getting the file closer.
+    std::mutex _file_closer_mutex;
 
     // Region file closer
     std::weak_ptr<FileCloser> _closer;
@@ -151,20 +156,18 @@ private:
     void create_open_region_file_if_closed();
 
     void validate_coord(std::int64_t cx, std::int64_t cz) const;
+
+    // Set chunk data.
+    // Internal lock required.
+    // Caller must ensure the file is open.
     template <typename T>
     void _set_data(std::int64_t cx, std::int64_t cz, T data);
-
-    // Get the object responsible for closing the region file.
-    // When this object is deleted it will close the region file
-    // This means that holding a reference to this will delay when the region file is closed.
-    // The region file may still be closed manually before this object is deleted.
-    // Call: Internal lock required.
-    AMULET_CORE_EXPORT std::shared_ptr<FileCloser> _get_file_closer();
 
     // Close the file object.
     // This is automatically called when the instance is destroyed but may be called earlier.
     // Internal lock required.
     void _close();
+    
     // Close the file object if open.
     // This is automatically called when the instance is destroyed but may be called earlier.
     // Internal lock required.
@@ -175,8 +178,17 @@ public:
     AnvilRegion() = delete;
     AnvilRegion(const AnvilRegion&) = delete;
     AnvilRegion(AnvilRegion&&) = delete;
+
+    // Construct from the directory path, name of the file and region coordinates.
     AMULET_CORE_EXPORT AnvilRegion(const std::filesystem::path& directory, const std::string& file_name, std::int64_t rx, std::int64_t rz, bool mcc = false);
+
+    // Construct from the directory path and region coordinates.
+    // File name is computed from region coordinates.
     AMULET_CORE_EXPORT AnvilRegion(const std::filesystem::path& directory, std::int64_t rx, std::int64_t rz, bool mcc = false);
+
+    // Construct from the path to the region file.
+    // Coordinates are computed from the file name.
+    // File name must match "r.X.Z.mca".
     AMULET_CORE_EXPORT AnvilRegion(std::filesystem::path path, bool mcc = false);
 
     // Destructor
@@ -188,7 +200,7 @@ public:
 
     // A mutex which can be used to synchronise calls.
     // Thread safe.
-    AMULET_CORE_EXPORT Amulet::OrderedMutex& get_mutex() const;
+    AMULET_CORE_EXPORT Amulet::OrderedMutex& get_mutex();
 
     // The path of the region file.
     // Thread safe.
@@ -204,8 +216,8 @@ public:
 
     // Get the coordinates of all values in the region file.
     // Coordinates are in world space.
-    // External shared read lock required.
-    // External shared read-only lock optional.
+    // External Read:SharedReadWrite lock required.
+    // External Read:SharedReadOnly lock optional.
     AMULET_CORE_EXPORT std::vector<std::pair<std::int64_t, std::int64_t>> get_coords();
 
     // Is the coordinate in the region.
@@ -216,36 +228,38 @@ public:
 
     // Is there a value stored for this coordinate.
     // Coordinates are in world space.
-    // External shared read lock required.
-    // External shared read-only lock optional.
+    // External Read:SharedReadWrite lock required.
+    // External Read:SharedReadOnly lock optional.
     AMULET_CORE_EXPORT bool has_value(std::int64_t cx, std::int64_t cz);
 
     // Get the value for this coordinate.
     // Coordinates are in world space.
-    // External shared read lock required.
+    // External Read:SharedReadWrite lock required.
     AMULET_CORE_EXPORT AmuletNBT::NamedTag get_value(std::int64_t cx, std::int64_t cz);
+    
     // AMULET_CORE_EXPORT std::vector<std::optional<AmuletNBT::NamedTag>> get_batch(std::vector<std::pair<std::int64_t, std::int64_t>>& coords);
 
     // Set the value for this coordinate.
     // Coordinates are in world space.
-    // External shared read-write lock required.
+    // External ReadWrite:SharedReadWrite lock required.
     AMULET_CORE_EXPORT void set_value(std::int64_t cx, std::int64_t cz, const AmuletNBT::NamedTag& tag);
+    
     // AMULET_CORE_EXPORT void set_batch(std::vector<std::tuple<std::int64_t, std::int64_t, AmuletNBT::NamedTag>>& batch);
 
     // Delete the chunk data.
     // Coordinates are in world space.
-    // External shared read-write lock required.
+    // External ReadWrite:SharedReadWrite lock required.
     AMULET_CORE_EXPORT void delete_value(std::int64_t cx, std::int64_t cz);
 
     // Delete multiple chunk's data.
     // Coordinates are in world space.
-    // External shared read-write lock required.
+    // External ReadWrite:SharedReadWrite lock required.
     AMULET_CORE_EXPORT void delete_batch(std::vector<std::pair<std::int64_t, std::int64_t>>& coords);
 
     // Compact the region file.
     // Defragments the file and deletes unused space.
     // If there are no chunks remaining in the region file it will be deleted.
-    // Thread safe.
+    // External ReadWrite:SharedReadWrite lock required.
     AMULET_CORE_EXPORT void compact();
 
     // Close the file object if open.
@@ -256,8 +270,13 @@ public:
     // Destroy the instance.
     // Calls made after this will fail.
     // This may only be called by the owner of the instance.
-    // External unique lock required.
+    // External ReadWrite:Unique lock required.
     AMULET_CORE_EXPORT void destroy();
+
+    // Has the instance been destroyed.
+    // If this is false, other calls will fail.
+    // External Read:SharedReadWrite lock required.
+    AMULET_CORE_EXPORT bool is_destroyed();
 
     // Get the object responsible for closing the region file.
     // When this object is deleted it will close the region file

@@ -5,6 +5,11 @@
 
 namespace Amulet {
 
+JavaRawDimension::~JavaRawDimension()
+{
+    _anvil_dimension.destroy();
+}
+
 OrderedMutex& JavaRawDimension::get_mutex()
 {
     return _public_mutex;
@@ -71,7 +76,7 @@ void JavaRawDimension::set_raw_chunk(std::int64_t cx, std::int64_t cz, const Jav
 void JavaRawDimension::compact()
 {
     auto& mutex = _anvil_dimension.get_mutex();
-    mutex.lock<ThreadAccessMode::Read, ThreadShareMode::SharedReadWrite>();
+    mutex.lock<ThreadAccessMode::ReadWrite, ThreadShareMode::SharedReadOnly>();
     std::lock_guard lock(mutex, std::adopt_lock);
     _anvil_dimension.compact();
 }

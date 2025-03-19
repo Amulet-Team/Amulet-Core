@@ -18,6 +18,7 @@
 #include "region.hpp"
 #include <amulet/dll.hpp>
 #include <amulet/utils/mutex.hpp>
+#include <amulet/utils/logging.hpp>
 
 namespace Amulet {
 
@@ -54,6 +55,8 @@ AMULET_CORE_EXPORT bool operator==(const AnvilRegionCoordIterator&, const AnvilR
 static_assert(std::input_iterator<AnvilRegionCoordIterator>);
 
 // An input iterator over chunk coordinates in a dimension layer.
+// Layer's Read::SharedReadWrite lock required.
+// Layer's Read::SharedReadOnly lock optional.
 class AnvilChunkCoordIterator {
     // Not thread safe.
 private:
@@ -93,6 +96,7 @@ private:
     bool _mcc;
     std::mutex _regions_mutex;
     std::map<std::pair<std::int64_t, std::int64_t>, std::shared_ptr<Amulet::AnvilRegion>> _regions;
+    bool destroyed = false;
 
 public:
     // Constructors
@@ -120,45 +124,68 @@ public:
     // Get the path to the region file
     // Thread safe.
     std::filesystem::path region_path(std::int64_t rx, std::int64_t rz) const;
-    
+
     // An iterator of all region coordinates in this layer.
-    // External shared read lock required.
-    // External shared read-only lock optional.
+    // External Read::SharedReadWrite lock required.
+    // External Read::SharedReadOnly lock optional.
     AMULET_CORE_EXPORT AnvilRegionCoordIterator all_region_coords();
-    
-    // Check if a region file exists in this layer.
-    // External shared read lock required.
-    // External shared read-only lock optional.
+
+    // Check if a region file exists in this layer at given the coordinates.
+    // External Read::SharedReadWrite lock required.
+    // External Read::SharedReadOnly lock optional.
     AMULET_CORE_EXPORT bool has_region(std::int64_t rx, std::int64_t rz) const;
-    
-    // Get an AnvilRegion instance. This must not be stored long-term.
+
+    // Check if a region file exists in this layer that contains the given chunk.
+    // External Read::SharedReadWrite lock required.
+    // External Read::SharedReadOnly lock optional.
+    AMULET_CORE_EXPORT bool has_region_at_chunk(std::int64_t cx, std::int64_t cz) const;
+
+    // Get an AnvilRegion instance from its coordinates. This must not be stored long-term.
     // Will throw RegionDoesNotExist if create is false and the region does not exist.
-    // External shared read lock required.
+    // External Read::SharedReadWrite lock required if only calling Read methods on AnvilRegion.
+    // External ReadWrite::SharedReadWrite lock required if calling ReadWrite methods on AnvilRegion.
     AMULET_CORE_EXPORT std::shared_ptr<AnvilRegion> get_region(std::int64_t rx, std::int64_t rz, bool create = false);
 
+    // Get an AnvilRegion instance from chunk coordinates it contains. This must not be stored long-term.
+    // Will throw RegionDoesNotExist if create is false and the region does not exist.
+    // External Read::SharedReadWrite lock required if only calling Read methods on AnvilRegion.
+    // External ReadWrite::SharedReadWrite lock required if calling ReadWrite methods on AnvilRegion.
+    AMULET_CORE_EXPORT std::shared_ptr<AnvilRegion> get_region_at_chunk(std::int64_t cx, std::int64_t cz, bool create = false);
+
     // Chunk
-    
+
     // Check if the chunk has data in this layer.
-    // External shared read lock required.
-    // External shared read-only lock optional.
+    // External Read::SharedReadWrite lock required.
+    // External Read::SharedReadOnly lock optional.
     AMULET_CORE_EXPORT bool has_chunk(std::int64_t cx, std::int64_t cz);
-    
+
     // Get the chunk data for this layer.
     // Will throw ChunkDoesNotExist if the chunk does not exist.
-    // External shared read lock required.
+    // External Read::SharedReadWrite lock required.
     AMULET_CORE_EXPORT AmuletNBT::NamedTag get_chunk_data(std::int64_t cx, std::int64_t cz);
-    
+
     // Set the chunk data for this layer.
-    // External shared read-write lock required.
+    // External ReadWrite::SharedReadWrite lock required.
     AMULET_CORE_EXPORT void set_chunk_data(std::int64_t cx, std::int64_t cz, const AmuletNBT::NamedTag&);
-    
+
     // Delete the chunk data from this layer.
-    // External shared read-write lock required.
+    // External ReadWrite::SharedReadWrite lock required.
     AMULET_CORE_EXPORT void delete_chunk(std::int64_t cx, std::int64_t cz);
-    
+
     // Defragment the region files and remove unused region files.
-    // External unique lock required.
+    // External ReadWrite::SharedReadOnly lock required.
     AMULET_CORE_EXPORT void compact();
+
+    // Destroy the instance.
+    // Calls made after this will fail.
+    // This may only be called by the owner of the instance.
+    // External ReadWrite:Unique lock required.
+    AMULET_CORE_EXPORT void destroy();
+
+    // Has the instance been destroyed.
+    // If this is false, other calls will fail.
+    // External Read:SharedReadWrite lock required.
+    AMULET_CORE_EXPORT bool is_destroyed();
 };
 
 template <typename Range, typename T>
@@ -174,6 +201,7 @@ private:
     std::shared_mutex _layers_mutex;
     std::map<std::string, std::shared_ptr<AnvilDimensionLayer>> _layers;
     std::shared_ptr<AnvilDimensionLayer> _default_layer;
+    bool destroyed = false;
 
 public:
     template <TypedInputRange<std::string> layersT>
@@ -203,37 +231,39 @@ public:
     AMULET_CORE_EXPORT bool mcc() const;
 
     // Get the names of all layers in this dimension.
-    // External shared read lock required.
-    // External shared read-only lock optional.
+    // External Read::SharedReadWrite lock required.
+    // External Read::SharedReadOnly lock optional.
     AMULET_CORE_EXPORT std::vector<std::string> layer_names();
-    
+
     // Check if this dimension has the requested layer.
-    // External shared read lock required.
-    // External shared read-only lock optional.
+    // External Read::SharedReadWrite lock required.
+    // External Read::SharedReadOnly lock optional.
     AMULET_CORE_EXPORT bool has_layer(const std::string& layer_name);
-    
+
     // Get the AnvilDimensionLayer for a specific layer. The returned value must not be stored long-term.
-    // Thread safe.
-    AMULET_CORE_EXPORT std::shared_ptr<AnvilDimensionLayer> get_layer(const std::string& layer_name);
+    // If create=true the layer will be created if it doesn't exist.
+    // External Read::SharedReadWrite lock required if only calling Read methods on AnvilDimensionLayer.
+    // External ReadWrite::SharedReadWrite lock required if create=true or calling ReadWrite methods on AnvilDimensionLayer.
+    AMULET_CORE_EXPORT std::shared_ptr<AnvilDimensionLayer> get_layer(const std::string& layer_name, bool create = false);
 
     // Get an iterator for all the chunks that exist in this dimension.
-    // External shared read lock required.
-    // External shared read-only lock optional.
+    // External Read::SharedReadWrite lock required.
+    // External Read::SharedReadOnly lock optional.
     AMULET_CORE_EXPORT AnvilChunkCoordIterator all_chunk_coords() const;
 
     // Check if a chunk exists.
-    // External shared read lock required.
-    // External shared read-only lock optional.
+    // External Read::SharedReadWrite lock required.
+    // External Read::SharedReadOnly lock optional.
     AMULET_CORE_EXPORT bool has_chunk(std::int64_t cx, std::int64_t cz) const;
 
     // Get the data for a chunk
-    // External shared read lock required.
+    // External Read::SharedReadWrite lock required.
     AMULET_CORE_EXPORT JavaRawChunk get_chunk_data(std::int64_t cx, std::int64_t cz);
-    
+
     // Set the data for a chunk.
     // data_layers can be any object supporting std::ranges::input_range of [std::string, AmuletNBT::NamedTag || std::optional<AmuletNBT::NamedTag>]
     // If the second value is a nullopt optional, the value will be deleted.
-    // External shared read-write lock required.
+    // External ReadWrite::SharedReadWrite lock required.
     template <typename dataT>
     void set_chunk_data(std::int64_t cx, std::int64_t cz, const dataT& data_layers)
     {
@@ -255,8 +285,10 @@ public:
                         // If it was going to be deleted then do nothing.
                         continue;
                     }
-                }
-                if (std::all_of(layer_name.begin(), layer_name.end(), [](char c) { return 0x61 <= c && c <= 0x7A; })) {
+                } else if (std::all_of(layer_name.begin(), layer_name.end(), [](char c) { return 0x61 <= c && c <= 0x7A; })) {
+                    if (destroyed) {
+                        throw std::runtime_error("This AnvilDimension instance has been destroyed.");
+                    }
                     // Switch to a unique lock to mutate _layers
                     slock.unlock();
                     std::unique_lock ulock(_layers_mutex);
@@ -265,6 +297,9 @@ public:
                     // Switch back to a shared lock
                     ulock.unlock();
                     slock.lock();
+                } else {
+                    error("Anvil layer contains characters not in the range a-z");
+                    continue;
                 }
             }
             auto& layer = it->second;
@@ -282,14 +317,25 @@ public:
             }
         }
     }
-    
+
     // Delete all data for the given chunk.
-    // External shared read-write lock required.
+    // External ReadWrite::SharedReadWrite lock required.
     AMULET_CORE_EXPORT void delete_chunk(std::int64_t cx, std::int64_t cz);
-    
+
     // Defragment the region files and remove unused region files.
-    // External shared read lock required.
+    // External ReadWrite::SharedReadOnly lock required.
     AMULET_CORE_EXPORT void compact();
+
+    // Destroy the instance.
+    // Calls made after this will fail.
+    // This may only be called by the owner of the instance.
+    // External ReadWrite:Unique lock required.
+    AMULET_CORE_EXPORT void destroy();
+
+    // Has the instance been destroyed.
+    // If this is false, other calls will fail.
+    // External Read:SharedReadWrite lock required.
+    AMULET_CORE_EXPORT bool is_destroyed();
 };
 
 } // namespace Amulet
