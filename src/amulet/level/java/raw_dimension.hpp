@@ -32,6 +32,7 @@ private:
     SelectionBox _bounds;
     BlockStack _default_block;
     Biome _default_biome;
+    bool _destroyed = false;
 
     template <typename layersT>
     JavaRawDimension(
@@ -118,6 +119,17 @@ public:
     // Compact the level.
     // External shared read lock required.
     AMULET_CORE_EXPORT void compact();
+
+    // Destroy the instance.
+    // Calls made after this will fail.
+    // This may only be called by the owner of the instance.
+    // External ReadWrite:Unique lock required.
+    AMULET_CORE_EXPORT void destroy();
+
+    // Has the instance been destroyed.
+    // If this is false, other calls will fail.
+    // External Read:SharedReadWrite lock required.
+    AMULET_CORE_EXPORT bool is_destroyed();
 };
 
 } // namespace Amulet
