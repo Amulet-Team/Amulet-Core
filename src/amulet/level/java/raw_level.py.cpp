@@ -153,7 +153,7 @@ py::module init_java_raw_level(py::module m_parent)
                 "Set the maximum game version.\n"
                 "If the game version is different this will close and re-open the level.\n"
                 "External unique lock required."));
-    JavaRawLevel.def(
+    JavaRawLevel.def_property_readonly(
         "is_supported",
         &Amulet::JavaRawLevel::is_supported,
         py::doc(
