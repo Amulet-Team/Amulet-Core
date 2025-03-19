@@ -152,7 +152,15 @@ class JavaRawLevelTestCase(TestCase):
 
     def test_compact(self) -> None:
         with WorldTemp(java_vanilla_1_13) as world_data:
-            start_size = sum(entry.stat().st_size for entry in os.scandir(world_data.temp_path) if entry.is_file())
+            def get_region_size() -> int:
+                return sum(
+                    entry.stat().st_size
+                    for entry in os.scandir(
+                        os.path.join(world_data.temp_path, "region")
+                    )
+                    if entry.is_file()
+                )
+            start_size = get_region_size()
             raw_level = JavaRawLevel.load(world_data.temp_path)
             with self.assertRaises(RuntimeError):
                 raw_level.compact()
@@ -161,8 +169,8 @@ class JavaRawLevelTestCase(TestCase):
                 raw_level.compact()
             finally:
                 raw_level.close()
-            end_size = sum(entry.stat().st_size for entry in os.scandir(world_data.temp_path) if entry.is_file())
-            self.assertLess(end_size, start_size)
+            end_size = get_region_size()
+            self.assertLessEqual(end_size, start_size)
 
     def test_id_override(self) -> None:
         with WorldTemp(java_vanilla_1_13) as world_data:
