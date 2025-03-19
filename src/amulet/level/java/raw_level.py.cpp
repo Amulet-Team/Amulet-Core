@@ -62,12 +62,12 @@ py::module init_java_raw_level(py::module m_parent)
         py::call_guard<py::gil_scoped_release>(),
         py::doc("Create a new Java level at the given directory.\n"
                 "Thread safe."));
-    JavaRawLevel.def(
+    JavaRawLevel.def_property_readonly(
         "lock",
         &Amulet::JavaRawLevel::get_mutex,
         py::doc("The public lock\n"
                 "Thread safe."));
-    JavaRawLevel.def(
+    JavaRawLevel.def_property_readonly(
         "is_open",
         &Amulet::JavaRawLevel::is_open,
         py::call_guard<py::gil_scoped_release>(),
