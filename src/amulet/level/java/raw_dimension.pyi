@@ -32,6 +32,14 @@ class JavaRawDimension:
         External shared read-write lock required.
         """
 
+    def destroy(self) -> None:
+        """
+        Destroy the instance.
+        Calls made after this will fail.
+        This may only be called by the owner of the instance.
+        External ReadWrite:Unique lock required.
+        """
+
     def encode_chunk(
         self, chunk: amulet.level.java.chunk.JavaChunk, cx: int, cz: int
     ) -> dict[str, amulet_nbt.NamedTag]:
@@ -51,6 +59,13 @@ class JavaRawDimension:
         Does the chunk exist in this dimension.
         External shared read lock required.
         External shared read-only lock optional.
+        """
+
+    def is_destroyed(self) -> bool:
+        """
+        Has the instance been destroyed.
+        If this is false, other calls will fail.
+        External Read:SharedReadWrite lock required.
         """
 
     def set_raw_chunk(
