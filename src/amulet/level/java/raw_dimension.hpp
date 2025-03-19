@@ -58,6 +58,9 @@ private:
     friend JavaRawLevel;
 
 public:
+    // Destructor.
+    AMULET_CORE_EXPORT ~JavaRawDimension();
+
     // The public mutex
     // Thread safe.
     AMULET_CORE_EXPORT OrderedMutex& get_mutex();

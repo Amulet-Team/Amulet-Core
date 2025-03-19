@@ -5,6 +5,11 @@
 
 namespace Amulet {
 
+JavaRawDimension::~JavaRawDimension()
+{
+    _anvil_dimension.destroy();
+}
+
 OrderedMutex& JavaRawDimension::get_mutex()
 {
     return _public_mutex;
