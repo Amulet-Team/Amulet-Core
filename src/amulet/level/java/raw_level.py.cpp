@@ -208,14 +208,14 @@ py::module init_java_raw_level(py::module m_parent)
         py::call_guard<py::gil_scoped_release>(),
         py::doc("Compact the level.\n"
                 "External shared read lock required."));
-    JavaRawLevel.def(
-        "get_block_id_override",
+    JavaRawLevel.def_property_readonly(
+        "block_id_override",
         &Amulet::JavaRawLevel::get_block_id_override,
         py::call_guard<py::gil_scoped_release>(),
         py::doc("Overridden block ids.\n"
                 "External shared read lock required."));
-    JavaRawLevel.def(
-        "get_biome_id_override",
+    JavaRawLevel.def_property_readonly(
+        "biome_id_override",
         &Amulet::JavaRawLevel::get_biome_id_override,
         py::call_guard<py::gil_scoped_release>(),
         py::doc("Overridden biome ids.\n"

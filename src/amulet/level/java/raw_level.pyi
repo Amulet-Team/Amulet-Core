@@ -57,18 +57,6 @@ class JavaRawLevel:
         External shared read lock required.
         """
 
-    def get_biome_id_override(self) -> amulet.level.abc.registry.IdRegistry:
-        """
-        Overridden biome ids.
-        External shared read lock required.
-        """
-
-    def get_block_id_override(self) -> amulet.level.abc.registry.IdRegistry:
-        """
-        Overridden block ids.
-        External shared read lock required.
-        """
-
     def get_dimension(
         self, dimension_id: str
     ) -> amulet.level.java.raw_dimension.JavaRawDimension:
@@ -101,6 +89,20 @@ class JavaRawLevel:
         """
         Reload the metadata. This can only be called when the level is closed.
         External unique lock required.
+        """
+
+    @property
+    def biome_id_override(self) -> amulet.level.abc.registry.IdRegistry:
+        """
+        Overridden biome ids.
+        External shared read lock required.
+        """
+
+    @property
+    def block_id_override(self) -> amulet.level.abc.registry.IdRegistry:
+        """
+        Overridden block ids.
+        External shared read lock required.
         """
 
     @property
