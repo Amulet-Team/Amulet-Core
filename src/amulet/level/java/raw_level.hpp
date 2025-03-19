@@ -55,6 +55,8 @@ public:
     JavaRawLevelOpenData(
         std::unique_ptr<LockFile> session_lock)
         : session_lock(std::move(session_lock))
+        , block_id_override(std::make_shared<IdRegistry>())
+        , biome_id_override(std::make_shared<IdRegistry>())
     {
     }
 };
