@@ -105,6 +105,9 @@ public:
     AnvilDimensionLayer(AnvilDimensionLayer&&) = delete;
     AMULET_CORE_EXPORT AnvilDimensionLayer(std::filesystem::path directory, bool mcc = false);
 
+    // Destructor
+    AMULET_CORE_EXPORT ~AnvilDimensionLayer();
+
     // Accessors
 
     // External mutex.
@@ -217,6 +220,9 @@ public:
         }
         _default_layer = _layers[*layer_names.begin()];
     }
+
+    // Destructor
+    AMULET_CORE_EXPORT ~AnvilDimension();
 
     // External mutex.
     // Thread safe.

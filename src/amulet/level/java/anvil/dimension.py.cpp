@@ -3,6 +3,8 @@
 
 #include <pybind11_extensions/collections.hpp>
 
+#include <amulet/utils/holder.py.hpp>
+
 #include "dimension.hpp"
 
 namespace py = pybind11;
@@ -11,7 +13,7 @@ py::module init_anvil_dimension(py::module m_parent)
 {
     py::module m = m_parent.def_submodule("dimension");
 
-    py::class_<Amulet::AnvilDimensionLayer, std::shared_ptr<Amulet::AnvilDimensionLayer>> AnvilDimensionLayer(m, "AnvilDimensionLayer",
+    py::class_<Amulet::AnvilDimensionLayer, Amulet::nogil_shared_ptr<Amulet::AnvilDimensionLayer>> AnvilDimensionLayer(m, "AnvilDimensionLayer",
         "A class to manage a directory of region files.");
     AnvilDimensionLayer.def(
         py::init(
@@ -148,7 +150,7 @@ py::module init_anvil_dimension(py::module m_parent)
                 "If this is false, other calls will fail.\n"
                 "External Read:SharedReadWrite lock required."));
 
-    py::class_<Amulet::AnvilDimension, std::shared_ptr<Amulet::AnvilDimension>> AnvilDimension(m, "AnvilDimension",
+    py::class_<Amulet::AnvilDimension, Amulet::nogil_shared_ptr<Amulet::AnvilDimension>> AnvilDimension(m, "AnvilDimension",
         "A class to manage the data for a dimension.\n"
         "This can consist of multiple layers. Eg the region layer which contains chunk data and the entities layer which contains entities.");
     AnvilDimension.def(
