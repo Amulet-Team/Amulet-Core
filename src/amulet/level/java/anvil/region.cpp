@@ -114,7 +114,7 @@ AnvilRegion::AnvilRegion(std::filesystem::path path, bool mcc)
 
 AnvilRegion::~AnvilRegion()
 {
-    close();
+    destroy();
 }
 
 Amulet::OrderedMutex& AnvilRegion::get_mutex() { return _public_mutex; }

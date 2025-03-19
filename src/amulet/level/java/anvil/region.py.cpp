@@ -1,6 +1,8 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
+#include <amulet/utils/holder.py.hpp>
+
 #include "region.hpp"
 
 namespace py = pybind11;
@@ -9,7 +11,7 @@ py::module init_anvil_region(py::module m_parent)
 {
     py::module m = m_parent.def_submodule("region");
 
-    py::class_<Amulet::AnvilRegion, std::shared_ptr<Amulet::AnvilRegion>> AnvilRegion(m, "AnvilRegion",
+    py::class_<Amulet::AnvilRegion, Amulet::nogil_shared_ptr<Amulet::AnvilRegion>> AnvilRegion(m, "AnvilRegion",
         "A class to read and write Minecraft Java Edition Region files.\n"
         "Only one instance should exist per region file at any given time otherwise bad things may happen.\n"
         "This class is internally thread safe but a public lock is provided to enable external synchronisation.\n"

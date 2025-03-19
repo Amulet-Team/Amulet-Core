@@ -149,6 +149,11 @@ AnvilDimensionLayer::AnvilDimensionLayer(
     }
 }
 
+AnvilDimensionLayer::~AnvilDimensionLayer()
+{
+    destroy();
+}
+
 // Accessors
 
 Amulet::OrderedMutex& AnvilDimensionLayer::get_mutex() { return _public_mutex; }
@@ -309,6 +314,11 @@ std::vector<std::string> AnvilDimension::layer_names()
         layers.push_back(node.first);
     }
     return layers;
+}
+
+AnvilDimension::~AnvilDimension()
+{
+    destroy();
 }
 
 bool AnvilDimension::has_layer(const std::string& layer_name)

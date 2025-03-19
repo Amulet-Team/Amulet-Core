@@ -3,6 +3,8 @@
 
 #include <memory>
 
+#include <amulet/utils/holder.py.hpp>
+
 #include "raw_dimension.hpp"
 
 namespace py = pybind11;
@@ -13,7 +15,7 @@ py::module init_java_raw_dimension(py::module m_parent)
 
     py::class_<
         Amulet::JavaRawDimension,
-        std::shared_ptr<Amulet::JavaRawDimension>>
+        Amulet::nogil_shared_ptr<Amulet::JavaRawDimension>>
         JavaRawDimension(m, "JavaRawDimension");
     JavaRawDimension.def_property_readonly(
         "lock",
@@ -112,6 +114,20 @@ py::module init_java_raw_dimension(py::module m_parent)
         &Amulet::JavaRawDimension::compact,
         py::doc("Compact the level.\n"
                 "External shared read lock required."));
+    JavaRawDimension.def(
+        "destroy",
+        &Amulet::JavaRawDimension::destroy,
+        py::call_guard<py::gil_scoped_release>(),
+        py::doc("Destroy the instance.\n"
+                "Calls made after this will fail.\n"
+                "This may only be called by the owner of the instance.\n"
+                "External ReadWrite:Unique lock required."));
+    JavaRawDimension.def(
+        "is_destroyed",
+        &Amulet::JavaRawDimension::is_destroyed,
+        py::doc("Has the instance been destroyed.\n"
+                "If this is false, other calls will fail.\n"
+                "External Read:SharedReadWrite lock required."));
 
     return m;
 }
