@@ -39,7 +39,7 @@ const std::string JavaLevel::get_platform()
 const VersionNumber JavaLevel::get_max_game_version()
 {
     auto& mutex = _raw_level->get_mutex();
-    mutex.lock<Amulet::CurrentThreadMode::Read, Amulet::OtherThreadMode::ReadWrite>();
+    mutex.lock<Amulet::ThreadAccessMode::Read, Amulet::ThreadShareMode::SharedReadWrite>();
     std::lock_guard lock(mutex, std::adopt_lock);
     return _raw_level->get_data_version();
 }
@@ -57,7 +57,7 @@ PIL::Image::Image JavaLevel::get_thumbnail()
 const std::string JavaLevel::get_level_name()
 {
     auto& mutex = _raw_level->get_mutex();
-    mutex.lock<Amulet::CurrentThreadMode::Read, Amulet::OtherThreadMode::ReadWrite>();
+    mutex.lock<Amulet::ThreadAccessMode::Read, Amulet::ThreadShareMode::SharedReadWrite>();
     std::lock_guard lock(mutex, std::adopt_lock);
     return _raw_level->get_level_name();
 }
@@ -65,7 +65,7 @@ const std::string JavaLevel::get_level_name()
 std::chrono::system_clock::time_point JavaLevel::get_modified_time()
 {
     auto& mutex = _raw_level->get_mutex();
-    mutex.lock<Amulet::CurrentThreadMode::Read, Amulet::OtherThreadMode::ReadWrite>();
+    mutex.lock<Amulet::ThreadAccessMode::Read, Amulet::ThreadShareMode::SharedReadWrite>();
     std::lock_guard lock(mutex, std::adopt_lock);
     return _raw_level->get_modified_time();
 }
@@ -87,7 +87,7 @@ void JavaLevel::open()
     }
     {
         auto& mutex = _raw_level->get_mutex();
-        mutex.lock<Amulet::CurrentThreadMode::ReadWrite, Amulet::OtherThreadMode::Null>();
+        mutex.lock<Amulet::ThreadAccessMode::ReadWrite, Amulet::ThreadShareMode::Unique>();
         std::lock_guard lock(mutex, std::adopt_lock);
         _raw_level->open();
     }
@@ -99,7 +99,7 @@ void JavaLevel::purge()
 {
     {
         auto& open_data = _get_open_data();
-        std::lock_guard lock(open_data.history_manager.mutex());
+        std::lock_guard lock(open_data.history_manager.get_mutex());
         open_data.history_manager.reset();
     }
     purged.emit();
@@ -119,7 +119,7 @@ void JavaLevel::close()
     _open_data = nullptr;
     {
         auto& mutex = _raw_level->get_mutex();
-        mutex.lock<Amulet::CurrentThreadMode::ReadWrite, Amulet::OtherThreadMode::Null>();
+        mutex.lock<Amulet::ThreadAccessMode::ReadWrite, Amulet::ThreadShareMode::Unique>();
         std::lock_guard lock(mutex, std::adopt_lock);
         _raw_level->close();
     }
@@ -130,7 +130,7 @@ void JavaLevel::create_restore_point()
 {
     {
         auto& open_data = _get_open_data();
-        std::lock_guard lock(open_data.history_manager.mutex());
+        std::lock_guard lock(open_data.history_manager.get_mutex());
         open_data.history_manager.create_undo_bin();
     }
     history_changed.emit();
@@ -139,7 +139,7 @@ void JavaLevel::create_restore_point()
 size_t JavaLevel::get_undo_count()
 {
     auto& open_data = _get_open_data();
-    std::shared_lock lock(open_data.history_manager.mutex());
+    std::shared_lock lock(open_data.history_manager.get_mutex());
     return open_data.history_manager.get_undo_count();
 }
 
@@ -147,7 +147,7 @@ void JavaLevel::undo()
 {
     {
         auto& open_data = _get_open_data();
-        std::lock_guard lock(open_data.history_manager.mutex());
+        std::lock_guard lock(open_data.history_manager.get_mutex());
         open_data.history_manager.undo();
     }
     history_changed.emit();
@@ -156,7 +156,7 @@ void JavaLevel::undo()
 size_t JavaLevel::get_redo_count()
 {
     auto& open_data = _get_open_data();
-    std::shared_lock lock(open_data.history_manager.mutex());
+    std::shared_lock lock(open_data.history_manager.get_mutex());
     return open_data.history_manager.get_redo_count();
 }
 
@@ -164,7 +164,7 @@ void JavaLevel::redo()
 {
     {
         auto& open_data = _get_open_data();
-        std::lock_guard lock(open_data.history_manager.mutex());
+        std::lock_guard lock(open_data.history_manager.get_mutex());
         open_data.history_manager.redo();
     }
     history_changed.emit();
@@ -184,7 +184,7 @@ void JavaLevel::set_history_enabled(bool history_enabled)
 std::vector<std::string> JavaLevel::get_dimension_ids()
 {
     auto& mutex = _raw_level->get_mutex();
-    mutex.lock<Amulet::CurrentThreadMode::Read, Amulet::OtherThreadMode::ReadWrite>();
+    mutex.lock<Amulet::ThreadAccessMode::Read, Amulet::ThreadShareMode::SharedReadWrite>();
     std::lock_guard lock(mutex, std::adopt_lock);
     return _raw_level->get_dimension_ids();
 }
@@ -197,7 +197,7 @@ std::shared_ptr<Dimension> JavaLevel::get_dimension(const std::string&)
 void JavaLevel::compact()
 {
     auto& mutex = _raw_level->get_mutex();
-    mutex.lock<Amulet::CurrentThreadMode::Read, Amulet::OtherThreadMode::ReadWrite>();
+    mutex.lock<Amulet::ThreadAccessMode::Read, Amulet::ThreadShareMode::SharedReadWrite>();
     std::lock_guard lock(mutex, std::adopt_lock);
     _raw_level->compact();
 }
