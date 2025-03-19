@@ -44,16 +44,22 @@ private:
         const SelectionBox& bounds,
         const BlockStack& default_block,
         const Biome& default_biome)
-        : _anvil_dimension(path, layers, mcc)
+        : _anvil_dimension(
+              [&path] {
+                  if (!std::filesystem::exists(path)) {
+                      std::filesystem::create_directories(path);
+                  } else if (!std::filesystem::is_directory(path)) {
+                      throw std::invalid_argument("JavaRawDimension path is not a directory: " + path.string());
+                  }
+                  return path;
+              }(),
+              layers, mcc)
         , _relative_path(relative_path)
         , _dimension_id(dimension_id)
         , _bounds(bounds)
         , _default_block(default_block)
         , _default_biome(default_biome)
     {
-        if (!std::filesystem::is_directory(path)) {
-            throw std::invalid_argument("path is not a directory.");
-        }
     }
 
     friend JavaRawLevel;

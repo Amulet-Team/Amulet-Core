@@ -144,8 +144,10 @@ AnvilDimensionLayer::AnvilDimensionLayer(
     : _directory(directory)
     , _mcc(mcc)
 {
-    if (!std::filesystem::is_directory(_directory)) {
-        throw std::invalid_argument("path is not a directory");
+    if (!std::filesystem::exists(_directory)) {
+        std::filesystem::create_directories(_directory);
+    } else if (!std::filesystem::is_directory(_directory)) {
+        throw std::invalid_argument("AnvilDimensionLayer path is not a directory: " + _directory.string());
     }
 }
 
