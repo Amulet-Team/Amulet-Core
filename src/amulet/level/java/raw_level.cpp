@@ -184,7 +184,12 @@ std::unique_ptr<LockFile> JavaRawLevel::_close()
 {
     auto raw_open_data = std::move(_raw_open_data);
     auto lock_file = std::move(raw_open_data->session_lock);
-    // TODO: destroy open data
+
+    // destroy open data
+    std::lock_guard dimensions_lock(raw_open_data->dimensions_mutex);
+    for (auto& [_, dimension_ptr] : raw_open_data->dimensions) {
+        dimension_ptr->destroy();
+    }
 
     return lock_file;
 }
