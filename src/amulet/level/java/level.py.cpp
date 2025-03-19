@@ -22,7 +22,7 @@ py::module init_java_level(py::module m_parent)
         JavaLevel(m, "JavaLevel");
     JavaLevel.def_static(
         "load",
-        [](std::string path) {
+        [](std::string path) -> std::shared_ptr<Amulet::JavaLevel> {
             return Amulet::JavaLevel::load(path);
         },
         py::arg("path"),
@@ -31,7 +31,9 @@ py::module init_java_level(py::module m_parent)
                 "Thread safe."));
     JavaLevel.def_static(
         "create",
-        &Amulet::JavaLevel::create,
+        [](const Amulet::JavaCreateArgsV1& args) -> std::shared_ptr<Amulet::JavaLevel> {
+            return Amulet::JavaLevel::create(args);
+        },
         py::arg("args"),
         py::call_guard<py::gil_scoped_release>(),
         py::doc("Create a new Java level at the given directory.\n"
