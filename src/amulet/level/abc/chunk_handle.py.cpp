@@ -14,16 +14,21 @@ py::module init_chunk_handle(py::module m_parent)
 
     py::class_<Amulet::ChunkHandle, std::shared_ptr<Amulet::ChunkHandle>> ChunkHandle(m, "ChunkHandle");
     ChunkHandle.def_property_readonly(
+        "lock",
+        &Amulet::ChunkHandle::get_mutex,
+        py::doc("The public lock.\n"
+                "Thread safe."));
+    ChunkHandle.def_property_readonly(
         "dimension_id",
-        &Amulet::ChunkHandle::dimension_id,
+        &Amulet::ChunkHandle::get_dimension_id,
         py::doc("The dimension identifier this chunk is from."));
     ChunkHandle.def_property_readonly(
         "cx",
-        &Amulet::ChunkHandle::cx,
+        &Amulet::ChunkHandle::get_cx,
         py::doc("The chunk x coordinate."));
     ChunkHandle.def_property_readonly(
         "cz",
-        &Amulet::ChunkHandle::cz,
+        &Amulet::ChunkHandle::get_cz,
         py::doc("The chunk z coordinate."));
     ChunkHandle.def(
         "exists",

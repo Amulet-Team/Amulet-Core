@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import amulet.chunk
+import amulet.utils.lock
 
 __all__ = ["ChunkHandle"]
 
@@ -63,4 +64,11 @@ class ChunkHandle:
     def dimension_id(self) -> str:
         """
         The dimension identifier this chunk is from.
+        """
+
+    @property
+    def lock(self) -> amulet.utils.lock.OrderedLock:
+        """
+        The public lock.
+        Thread safe.
         """
