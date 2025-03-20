@@ -41,6 +41,7 @@ py::module init_java_level(py::module m_parent)
     JavaLevel.def_property_readonly(
         "raw_level",
         &Amulet::JavaLevel::get_raw_level,
+        py::keep_alive<0, 1>(),
         py::doc(
             "Access the raw level instance.\n"
             "Before calling any mutating functions, the caller must call :meth:`purge` (optionally saving before)\n"
