@@ -18,6 +18,7 @@ class CompactibleLevel:
         """
 
 class DiskLevel:
+    @property
     def path(self) -> str:
         """
         The path to the level on disk.

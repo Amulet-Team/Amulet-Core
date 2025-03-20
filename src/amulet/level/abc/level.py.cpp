@@ -199,7 +199,7 @@ py::module init_level_abc_level(py::module m_parent)
                 "External unique lock required."));
 
     py::class_<Amulet::DiskLevel, std::shared_ptr<Amulet::DiskLevel>> DiskLevel(m, "DiskLevel");
-    DiskLevel.def(
+    DiskLevel.def_property_readonly(
         "path",
         [](Amulet::DiskLevel& self) { return self.get_path().string(); },
         py::doc("The path to the level on disk.\n"
