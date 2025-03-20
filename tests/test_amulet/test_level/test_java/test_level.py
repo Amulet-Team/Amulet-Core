@@ -7,14 +7,25 @@ from amulet.level import get_level
 
 from amulet.version import VersionNumber
 from amulet.level.loader import LevelLoaderPathToken
-from amulet.level.java import JavaLevel, JavaCreateArgsV1, JavaRawLevel
+# from amulet.level.abc import Dimension
+from amulet.level.java import (
+    JavaLevel,
+    JavaCreateArgsV1,
+    JavaRawLevel,
+    # JavaDimension,
+)
 
 from tests.data.worlds_src import java_vanilla_1_13
 from tests.data.world_utils import WorldTemp
 from test_amulet.test_level.test_abc.test_level import LevelTestCases
 
 
-class JavaLevelTestCase(LevelTestCases.LevelTestCase):
+class JavaLevelTestCase(
+    LevelTestCases.LevelTestCase,
+    LevelTestCases.CompactibleLevelTestCase,
+    LevelTestCases.DiskLevelTestCase,
+    LevelTestCases.ReloadableLevelTestCase,
+):
     @contextmanager
     def level(self) -> JavaLevel:
         with WorldTemp(java_vanilla_1_13) as world_data:
@@ -40,6 +51,76 @@ class JavaLevelTestCase(LevelTestCases.LevelTestCase):
     @staticmethod
     def get_expected_sub_chunk_size() -> int:
         return 16
+
+    def test_save(self) -> None:
+        # TODO
+        pass
+
+    def test_history(self) -> None:
+        # TODO
+        pass
+
+    def test_dimension(self) -> None:
+        with WorldTemp(java_vanilla_1_13) as world_data:
+            level = JavaLevel.load(world_data.temp_path)
+            with self.assertRaises(RuntimeError):
+                _ = level.dimension_ids()
+            level.open()
+            try:
+                dimension_ids = level.dimension_ids()
+                self.assertIsInstance(dimension_ids, list)
+                self.assertEqual(
+                    {"minecraft:overworld", "minecraft:the_end", "minecraft:the_nether"},
+                    set(dimension_ids)
+                )
+                for dimension_id in dimension_ids:
+                    self.assertIsInstance(dimension_id, str)
+                    # TODO
+                    # dimension = level.get_dimension(dimension_id)
+                    # self.assertIsInstance(dimension, Dimension)
+                    # self.assertIsInstance(dimension, JavaDimension)
+            finally:
+                level.close()
+
+    def test_compact(self) -> None:
+        with WorldTemp(java_vanilla_1_13) as world_data:
+            level = JavaLevel.load(world_data.temp_path)
+            with self.assertRaises(RuntimeError):
+                level.compact()
+            level.open()
+            try:
+                level.compact()
+            finally:
+                level.close()
+
+    def test_path(self) -> None:
+        with WorldTemp(java_vanilla_1_13) as world_data:
+            level = JavaLevel.load(world_data.temp_path)
+            path = level.path
+            self.assertIsInstance(path, str)
+            self.assertEqual(world_data.temp_path, path)
+
+    def test_reload_metadata(self) -> None:
+        with WorldTemp(java_vanilla_1_13) as world_data:
+            level = JavaLevel.load(world_data.temp_path)
+            level.reload_metadata()
+            level.open()
+            try:
+                with self.assertRaises(RuntimeError):
+                    level.reload_metadata()
+            finally:
+                level.close()
+
+    def test_reload(self) -> None:
+        with WorldTemp(java_vanilla_1_13) as world_data:
+            level = JavaLevel.load(world_data.temp_path)
+            with self.assertRaises(RuntimeError):
+                level.reload()
+            level.open()
+            try:
+                level.reload()
+            finally:
+                level.close()
 
     def test_load_level(self) -> None:
         with WorldTemp(java_vanilla_1_13) as world_data:

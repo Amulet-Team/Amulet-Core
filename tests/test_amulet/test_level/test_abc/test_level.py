@@ -5,7 +5,11 @@ from datetime import datetime
 
 from PIL import Image
 
-from amulet.level.abc.level import LevelMetadata
+from amulet.level.abc.level import (
+    LevelMetadata,
+    Level,
+    ReloadableLevel,
+)
 from amulet.version import VersionNumber
 from amulet.utils.lock import OrderedLock
 
@@ -92,7 +96,87 @@ class LevelTestCases:
                 self.assertEqual(self.get_expected_sub_chunk_size(), sub_chunk_size)
 
     class LevelTestCase(LevelMetadataTestCase):
-        pass
-        # def test_open_close(self):
-        #     raise NotImplementedError
+        @abstractmethod
+        def level(self) -> AbstractContextManager[Level]:
+            raise NotImplementedError
 
+        def test_open_close(self) -> None:
+            with self.level() as level:
+                opened_count = 0
+                closed_count = 0
+                reloaded_count = 0
+
+                def on_open() -> None:
+                    nonlocal opened_count
+                    opened_count += 1
+
+                def on_close() -> None:
+                    nonlocal closed_count
+                    closed_count += 1
+
+                def on_reload() -> None:
+                    nonlocal reloaded_count
+                    reloaded_count += 1
+
+                opened_token = level.opened.connect(on_open)
+                closed_token = level.closed.connect(on_close)
+                if isinstance(level, ReloadableLevel):
+                    reloaded_token = level.reloaded.connect(on_reload)
+
+                self.assertFalse(level.is_open())
+
+                level.open()
+                self.assertTrue(level.is_open())
+                self.assertEqual(1, opened_count)
+                self.assertEqual(0, closed_count)
+                self.assertEqual(0, reloaded_count)
+
+                opened_count = 0
+
+                if isinstance(level, ReloadableLevel):
+                    level.reload()
+                    self.assertTrue(level.is_open())
+                    self.assertEqual(0, opened_count)
+                    self.assertEqual(0, closed_count)
+                    self.assertEqual(1, reloaded_count)
+
+                    with self.assertRaises(RuntimeError):
+                        level.reload_metadata()
+
+                    reloaded_count = 0
+                level.close()
+                self.assertFalse(level.is_open())
+                self.assertEqual(0, opened_count)
+                self.assertEqual(1, closed_count)
+                self.assertEqual(0, reloaded_count)
+
+        @abstractmethod
+        def test_save(self) -> None:
+            raise NotImplementedError
+
+        @abstractmethod
+        def test_history(self) -> None:
+            raise NotImplementedError
+
+        @abstractmethod
+        def test_dimension(self) -> None:
+            raise NotImplementedError
+
+    class CompactibleLevelTestCase(TestCase):
+        @abstractmethod
+        def test_compact(self) -> None:
+            raise NotImplementedError
+
+    class DiskLevelTestCase(ABC, TestCase):
+        @abstractmethod
+        def test_path(self) -> None:
+            raise NotImplementedError
+
+    class ReloadableLevelTestCase(ABC, TestCase):
+        @abstractmethod
+        def test_reload_metadata(self) -> None:
+            raise NotImplementedError
+
+        @abstractmethod
+        def test_reload(self) -> None:
+            raise NotImplementedError
