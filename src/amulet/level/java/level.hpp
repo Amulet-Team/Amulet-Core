@@ -2,12 +2,16 @@
 
 #include <chrono>
 #include <filesystem>
+#include <map>
+#include <memory>
 
 #include <amulet/image/image.hpp>
+#include <amulet/level/abc/dimension.hpp>
 #include <amulet/level/abc/history.hpp>
 #include <amulet/level/abc/level.hpp>
 
 #include "raw_level.hpp"
+#include "dimension.hpp"
 
 namespace Amulet {
 
@@ -15,6 +19,8 @@ class JavaLevelOpenData {
 public:
     HistoryManager history_manager;
     bool history_enabled = true;
+    std::shared_mutex dimensions_mutex;
+    std::map<DimensionID, std::shared_ptr<JavaDimension>> dimensions;
 };
 
 class JavaLevel : public Level, public CompactibleLevel, public DiskLevel, public ReloadableLevel {

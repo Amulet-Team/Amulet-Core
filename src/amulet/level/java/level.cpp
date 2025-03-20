@@ -189,9 +189,36 @@ std::vector<std::string> JavaLevel::get_dimension_ids()
     return _raw_level->get_dimension_ids();
 }
 
-std::shared_ptr<Dimension> JavaLevel::get_dimension(const std::string&)
+std::shared_ptr<Dimension> JavaLevel::get_dimension(const std::string& dimension_id)
 {
-    throw std::runtime_error("NotImplementedError");
+    auto& open_data = _get_open_data();
+    {
+        // Find the dimension with a shared lock.
+        std::shared_lock dimensions_lock(open_data.dimensions_mutex);
+        auto it = open_data.dimensions.find(dimension_id);
+        if (it != open_data.dimensions.end()) {
+            return it->second;
+        }
+    }
+    {
+        // If it doesn't exist try again with a unique lock.
+        std::lock_guard dimensions_lock(open_data.dimensions_mutex);
+        auto it = open_data.dimensions.find(dimension_id);
+        if (it != open_data.dimensions.end()) {
+            return it->second;
+        }
+        OrderedLockGuard<
+            ThreadAccessMode::Read,
+            ThreadShareMode::SharedReadWrite>
+            raw_level_lock(_raw_level->get_mutex());
+        auto raw_dimension = _raw_level->get_dimension(dimension_id);
+        auto dimension = std::shared_ptr<JavaDimension>(new JavaDimension(
+            raw_dimension,
+            open_data.history_manager));
+        open_data.dimensions.emplace(raw_dimension->get_dimension_id(), dimension);
+        open_data.dimensions.emplace(raw_dimension->get_relative_path(), dimension);
+        return dimension;
+    }
 }
 
 void JavaLevel::compact()
