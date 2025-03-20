@@ -333,4 +333,22 @@ public:
     }
 };
 
+template <
+    ThreadAccessMode DesiredThreadAccessMode = ThreadAccessMode::ReadWrite,
+    ThreadShareMode DesiredThreadShareMode = ThreadShareMode::Unique>
+class OrderedLockGuard {
+private:
+    OrderedMutex& mutex;
+
+public:
+    OrderedLockGuard(OrderedMutex& mutex)
+        : mutex(mutex)
+    {
+        mutex.lock<DesiredThreadAccessMode, DesiredThreadShareMode>();
+    }
+    ~OrderedLockGuard() {
+        mutex.unlock();
+    }
+};
+
 } // namespace Amulet
