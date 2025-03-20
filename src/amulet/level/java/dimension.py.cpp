@@ -15,6 +15,7 @@ py::module init_java_dimension(py::module m_parent)
 
     py::class_<
         Amulet::JavaDimension,
+        Amulet::Dimension,
         std::shared_ptr<Amulet::JavaDimension>>
         JavaDimension(m, "JavaDimension");
 

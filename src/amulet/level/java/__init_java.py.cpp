@@ -34,6 +34,7 @@ py::module init_java(py::module m_parent)
 
     auto dimension = init_java_dimension(m);
     m.attr("JavaInternalDimensionID") = dimension.attr("JavaInternalDimensionID");
+    m.attr("JavaDimension") = dimension.attr("JavaDimension");
 
     auto level = init_java_level(m);
     m.attr("JavaLevel") = level.attr("JavaLevel");

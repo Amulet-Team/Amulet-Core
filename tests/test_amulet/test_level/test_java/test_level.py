@@ -7,12 +7,12 @@ from amulet.level import get_level
 
 from amulet.version import VersionNumber
 from amulet.level.loader import LevelLoaderPathToken
-# from amulet.level.abc import Dimension
+from amulet.level.abc import Dimension
 from amulet.level.java import (
     JavaLevel,
     JavaCreateArgsV1,
     JavaRawLevel,
-    # JavaDimension,
+    JavaDimension,
 )
 
 from tests.data.worlds_src import java_vanilla_1_13
@@ -75,10 +75,9 @@ class JavaLevelTestCase(
                 )
                 for dimension_id in dimension_ids:
                     self.assertIsInstance(dimension_id, str)
-                    # TODO
-                    # dimension = level.get_dimension(dimension_id)
-                    # self.assertIsInstance(dimension, Dimension)
-                    # self.assertIsInstance(dimension, JavaDimension)
+                    dimension = level.get_dimension(dimension_id)
+                    self.assertIsInstance(dimension, Dimension)
+                    self.assertIsInstance(dimension, JavaDimension)
             finally:
                 level.close()
 
