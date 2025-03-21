@@ -2,9 +2,12 @@
 
 #include <memory>
 #include <string>
+#include <variant>
 
 #include <amulet/biome.hpp>
 #include <amulet/block.hpp>
+#include <amulet/selection/box.hpp>
+#include <amulet/selection/group.hpp>
 
 #include "chunk_handle.hpp"
 
@@ -14,11 +17,28 @@ using DimensionID = std::string;
 
 class Dimension {
 public:
+    // Destructor
     virtual ~Dimension() = default;
-    virtual DimensionID dimension_id() = 0;
-    virtual const BlockStack& default_block() = 0;
-    virtual const Biome& default_biome() = 0;
-    virtual std::shared_ptr<ChunkHandle> get_chunk_handle(std::int64_t, std::int64_t) = 0;
+
+    // Get the dimension id for this dimension.
+    // Thread safe.
+    virtual const DimensionID& get_dimension_id() const = 0;
+
+    // The editable region of the dimension.
+    // Thread safe.
+    virtual std::variant<SelectionBox, SelectionGroup> get_bounds() const = 0;
+
+    // Get the default block for this dimension.
+    // Thread safe.
+    virtual const BlockStack& get_default_block() const = 0;
+
+    // Get the default biome for this dimension.
+    // Thread safe.
+    virtual const Biome& get_default_biome() const = 0;
+
+    // Get a chunk handle for a specific chunk.
+    // Thread safe.
+    virtual std::shared_ptr<ChunkHandle> get_chunk_handle(std::int64_t cx, std::int64_t cz) = 0;
 };
 
 } // namespace Amulet
