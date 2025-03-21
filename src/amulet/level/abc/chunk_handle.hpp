@@ -22,6 +22,7 @@ protected:
     ChunkHandle(const DimensionID& dimension_id, std::int64_t cx, std::int64_t cz);
 
 public:
+    ChunkHandle() = delete;
     virtual ~ChunkHandle() = default;
 
     // The public mutex.
