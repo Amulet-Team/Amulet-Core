@@ -3,6 +3,8 @@ from __future__ import annotations
 import amulet.biome
 import amulet.block
 import amulet.level.abc.chunk_handle
+import amulet.selection.box
+import amulet.selection.group
 
 __all__ = ["Dimension"]
 
@@ -31,7 +33,9 @@ class Dimension:
         """
 
     @property
-    def bounds(self) -> ...:
+    def bounds(
+        self,
+    ) -> amulet.selection.box.SelectionBox | amulet.selection.group.SelectionGroup:
         """
         The editable region of the dimension.
         Thread safe.
