@@ -65,6 +65,7 @@ py::module init_java_raw_level(py::module m_parent)
     JavaRawLevel.def_property_readonly(
         "lock",
         &Amulet::JavaRawLevel::get_mutex,
+        py::keep_alive<0, 1>(),
         py::doc("The public lock\n"
                 "Thread safe."));
     JavaRawLevel.def(

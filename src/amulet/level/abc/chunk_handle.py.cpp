@@ -16,6 +16,7 @@ py::module init_chunk_handle(py::module m_parent)
     ChunkHandle.def_property_readonly(
         "lock",
         &Amulet::ChunkHandle::get_mutex,
+        py::keep_alive<0, 1>(),
         py::doc("The public lock.\n"
                 "Thread safe."));
     ChunkHandle.def_property_readonly(

@@ -20,6 +20,7 @@ py::module init_java_raw_dimension(py::module m_parent)
     JavaRawDimension.def_property_readonly(
         "lock",
         &Amulet::JavaRawDimension::get_mutex,
+        py::keep_alive<0, 1>(),
         py::doc("The public lock\n"
                 "Thread safe."));
     JavaRawDimension.def_property_readonly(
