@@ -46,6 +46,16 @@ py::module init_java_level(py::module m_parent)
             "Access the raw level instance.\n"
             "Before calling any mutating functions, the caller must call :meth:`purge` (optionally saving before)\n"
             "External ReadWrite:Unique lock required."));
+    JavaLevel.attr("get_dimension") = py::cpp_function(
+        [](Amulet::JavaLevel & self, const Amulet::DimensionID& dimension_id) {
+            return std::dynamic_pointer_cast<Amulet::JavaDimension>(self.get_dimension(dimension_id));
+        },
+        py::name("get_dimension"),
+        py::is_method(JavaLevel),
+        py::arg("dimension_id"),
+        py::doc("Get a dimension.\n"
+                "External Read:SharedReadWrite lock required.\n"
+                "External ReadWrite:SharedReadWrite lock required when calling code in Dimension (and its children) that need write permission."));
 
     return m;
 }
