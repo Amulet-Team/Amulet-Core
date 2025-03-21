@@ -56,30 +56,30 @@ py::module init_java_raw_dimension(py::module m_parent)
                 Amulet::AnvilChunkCoordIterator());
         },
         py::doc("An iterator of all chunk coordinates in the dimension.\n"
-                "External shared read lock required.\n"
-                "External shared read-only lock optional."));
+                "External Read:SharedReadWrite lock required.\n"
+                "External Read:SharedReadOnly lock optional."));
     JavaRawDimension.def(
         "has_chunk",
         &Amulet::JavaRawDimension::has_chunk,
         py::arg("cx"),
         py::arg("cz"),
         py::doc("Does the chunk exist in this dimension.\n"
-                "External shared read lock required.\n"
-                "External shared read-only lock optional."));
+                "External Read:SharedReadWrite lock required.\n"
+                "External Read:SharedReadOnly lock optional."));
     JavaRawDimension.def(
         "delete_chunk",
         &Amulet::JavaRawDimension::delete_chunk,
         py::arg("cx"),
         py::arg("cz"),
         py::doc("Delete the chunk from this dimension.\n"
-                "External shared read-write lock required."));
+                "External ReadWrite:SharedReadWrite lock required."));
     JavaRawDimension.def(
         "get_raw_chunk",
         &Amulet::JavaRawDimension::get_raw_chunk,
         py::arg("cx"),
         py::arg("cz"),
         py::doc("Get the raw chunk from this dimension.\n"
-                "External shared read lock required."));
+                "External Read:SharedReadWrite lock required."));
     JavaRawDimension.def(
         "set_raw_chunk",
         &Amulet::JavaRawDimension::set_raw_chunk,
@@ -87,7 +87,7 @@ py::module init_java_raw_dimension(py::module m_parent)
         py::arg("cz"),
         py::arg("chunk"),
         py::doc("Set the chunk in this dimension from raw data.\n"
-                "External shared read-write lock required."));
+                "External ReadWrite:SharedReadWrite lock required."));
     JavaRawDimension.def(
         "decode_chunk",
         [](
@@ -114,7 +114,7 @@ py::module init_java_raw_dimension(py::module m_parent)
         "compact",
         &Amulet::JavaRawDimension::compact,
         py::doc("Compact the level.\n"
-                "External shared read lock required."));
+                "External Read:SharedReadWrite lock required."));
     JavaRawDimension.def(
         "destroy",
         &Amulet::JavaRawDimension::destroy,

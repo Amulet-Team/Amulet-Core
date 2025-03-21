@@ -15,7 +15,7 @@ class JavaRawDimension:
     def compact(self) -> None:
         """
         Compact the level.
-        External shared read lock required.
+        External Read:SharedReadWrite lock required.
         """
 
     def decode_chunk(
@@ -29,7 +29,7 @@ class JavaRawDimension:
     def delete_chunk(self, cx: int, cz: int) -> None:
         """
         Delete the chunk from this dimension.
-        External shared read-write lock required.
+        External ReadWrite:SharedReadWrite lock required.
         """
 
     def destroy(self) -> None:
@@ -51,14 +51,14 @@ class JavaRawDimension:
     def get_raw_chunk(self, cx: int, cz: int) -> dict[str, amulet_nbt.NamedTag]:
         """
         Get the raw chunk from this dimension.
-        External shared read lock required.
+        External Read:SharedReadWrite lock required.
         """
 
     def has_chunk(self, cx: int, cz: int) -> bool:
         """
         Does the chunk exist in this dimension.
-        External shared read lock required.
-        External shared read-only lock optional.
+        External Read:SharedReadWrite lock required.
+        External Read:SharedReadOnly lock optional.
         """
 
     def is_destroyed(self) -> bool:
@@ -73,15 +73,15 @@ class JavaRawDimension:
     ) -> None:
         """
         Set the chunk in this dimension from raw data.
-        External shared read-write lock required.
+        External ReadWrite:SharedReadWrite lock required.
         """
 
     @property
     def all_chunk_coords(self) -> typing.Iterator[tuple[int, int]]:
         """
         An iterator of all chunk coordinates in the dimension.
-        External shared read lock required.
-        External shared read-only lock optional.
+        External Read:SharedReadWrite lock required.
+        External Read:SharedReadOnly lock optional.
         """
 
     @property
