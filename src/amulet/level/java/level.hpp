@@ -162,7 +162,12 @@ public:
     // Get a dimension.
     // External Read:SharedReadWrite lock required.
     // External ReadWrite:SharedReadWrite lock required when calling code in Dimension (and its children) that need write permission.
-    AMULET_CORE_EXPORT std::shared_ptr<Dimension> get_dimension(const std::string&) override;
+    AMULET_CORE_EXPORT std::shared_ptr<Dimension> get_dimension(const DimensionID&) override;
+
+    // Get a dimension.
+    // External Read:SharedReadWrite lock required.
+    // External ReadWrite:SharedReadWrite lock required when calling code in Dimension (and its children) that need write permission.
+    AMULET_CORE_EXPORT std::shared_ptr<JavaDimension> get_java_dimension(const DimensionID&);
 
     // CompactibleLevel
 

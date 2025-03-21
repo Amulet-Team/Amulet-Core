@@ -191,6 +191,11 @@ std::vector<std::string> JavaLevel::get_dimension_ids()
 
 std::shared_ptr<Dimension> JavaLevel::get_dimension(const std::string& dimension_id)
 {
+    return get_java_dimension(dimension_id);
+}
+
+std::shared_ptr<JavaDimension> JavaLevel::get_java_dimension(const std::string& dimension_id)
+{
     auto& open_data = _get_open_data();
     {
         // Find the dimension with a shared lock.
