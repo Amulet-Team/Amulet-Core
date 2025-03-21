@@ -1,36 +1,54 @@
 #pragma once
 
 #include <memory>
+#include <shared_mutex>
+#include <variant>
 
+#include "chunk_handle.hpp"
+#include "raw_dimension.hpp"
 #include <amulet/dll.hpp>
 #include <amulet/level/abc/dimension.hpp>
 #include <amulet/level/abc/history.hpp>
-#include "chunk_handle.hpp"
-#include "raw_dimension.hpp"
 
 namespace Amulet {
 
 class JavaDimension : public Dimension {
 private:
     std::map<std::pair<std::int64_t, std::int64_t>, std::weak_ptr<JavaChunkHandle>> _chunk_handles;
+    std::shared_mutex _chunk_handles_mutex;
     std::shared_ptr<JavaRawDimension> _raw_dimension;
-    //HistoryManagerLayer _chunk_history;
-    //HistoryManagerLayer _chunk_data_history;
+    // HistoryManagerLayer _chunk_history;
+    // HistoryManagerLayer _chunk_data_history;
 
     JavaDimension(
         std::shared_ptr<JavaRawDimension> raw_dimension,
-        HistoryManager& history_manager
-    );
+        HistoryManager& history_manager);
 
     friend class JavaLevel;
 
 public:
-    AMULET_CORE_EXPORT ~JavaDimension();
+    // Destructor
+    AMULET_CORE_EXPORT ~JavaDimension() override;
 
-    DimensionID dimension_id() override;
-    const BlockStack& default_block() override;
-    const Biome& default_biome() override;
-    std::shared_ptr<ChunkHandle> get_chunk_handle(std::int64_t, std::int64_t) override;
+    // Get the dimension id for this dimension.
+    // Thread safe.
+    const DimensionID& get_dimension_id() const override;
+
+    // The editable region of the dimension.
+    // Thread safe.
+    std::variant<SelectionBox, SelectionGroup> get_bounds() const override;
+
+    // Get the default block for this dimension.
+    // Thread safe.
+    const BlockStack& get_default_block() const override;
+
+    // Get the default biome for this dimension.
+    // Thread safe.
+    const Biome& get_default_biome() const override;
+
+    // Get a chunk handle for a specific chunk.
+    // Thread safe.
+    std::shared_ptr<ChunkHandle> get_chunk_handle(std::int64_t cx, std::int64_t cz) override;
 };
 
 } // namespace Amulet
