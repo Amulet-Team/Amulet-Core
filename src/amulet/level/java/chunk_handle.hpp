@@ -8,12 +8,14 @@ namespace Amulet {
 class JavaChunkHandle : public ChunkHandle {
 private:
     JavaChunkHandle(
-        const std::string& dimension_id,
+        const DimensionID& dimension_id,
         std::int64_t cx,
         std::int64_t cz)
         : ChunkHandle(dimension_id, cx, cz)
     {
     }
+
+    friend class JavaDimension;
 
 public:
     AMULET_CORE_EXPORT bool exists() override;
