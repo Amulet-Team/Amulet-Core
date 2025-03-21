@@ -81,7 +81,7 @@ private:
     }
 
     // Validate _raw_open_data is valid and return a reference.
-    // External shared read lock required.
+    // External Read:SharedReadWrite lock required.
     JavaRawLevelOpenData& _get_raw_open()
     {
         if (!_raw_open_data) {
@@ -122,11 +122,11 @@ public:
     AMULET_CORE_EXPORT OrderedMutex& get_mutex();
 
     // Is the level open.
-    // External shared read lock required.
+    // External Read:SharedReadWrite lock required.
     AMULET_CORE_EXPORT bool is_open() const;
 
     // Reload the metadata. This can only be called when the level is closed.
-    // External unique lock required.
+    // External ReadWrite:Unique lock required.
     AMULET_CORE_EXPORT void reload_metadata();
 
     // A signal emitted when the level is opened.
@@ -134,7 +134,7 @@ public:
 
     // Open the level.
     // opened signal will be emitted when complete.
-    // External unique lock required.
+    // External ReadWrite:Unique lock required.
     AMULET_CORE_EXPORT void open();
 
     // A signal emitted when the level is closed.
@@ -142,7 +142,7 @@ public:
 
     // Close the level.
     // closed signal will be emitted when complete.
-    // External unique lock required.
+    // External ReadWrite:Unique lock required.
     AMULET_CORE_EXPORT void close();
 
     // A signal emitted when the level is reloaded.
@@ -150,7 +150,7 @@ public:
 
     // Reload the level.
     // This is like closing and re-opening without releasing the session.lock file.
-    // External unique lock required.
+    // External ReadWrite:Unique lock required.
     AMULET_CORE_EXPORT void reload();
 
     // The path to the level directory.
@@ -158,11 +158,12 @@ public:
     AMULET_CORE_EXPORT const std::filesystem::path& get_path() const;
 
     // The NamedTag stored in the level.dat file. Returns a unique copy.
-    // External shared read lock required.
+    // External Read:SharedReadWrite lock required.
     AMULET_CORE_EXPORT AmuletNBT::NamedTag get_level_dat() const;
 
     // Set the level.dat NamedTag
-    // External unique lock required.
+    // This calls `reload` if the data version changed.
+    // External ReadWrite:Unique lock required.
     AMULET_CORE_EXPORT void set_level_dat(const AmuletNBT::NamedTag&);
 
     // The platform identifier. "java"
@@ -170,17 +171,17 @@ public:
     AMULET_CORE_EXPORT std::string get_platform() const;
 
     // The game data version that the level was last opened in.
-    // External shared read lock required.
+    // External Read:SharedReadWrite lock required.
     AMULET_CORE_EXPORT VersionNumber get_data_version() const;
 
     // Set the maximum game version.
-    // If the game version is different this will close and re-open the level.
-    // External unique lock required.
+    // If the game version is different this will call `reload`.
+    // External ReadWrite:Unique lock required.
     AMULET_CORE_EXPORT void set_data_version(const VersionNumber&);
 
     // Is this level a supported version.
-    // This is true for all versions we support and false for
-    // snapshots and unsupported newer versions.
+    // This is true for all versions we support and false for snapshots and unsupported newer versions.
+    // TODO: thread safety
     AMULET_CORE_EXPORT bool is_supported() const;
 
     // Get the thumbnail for the level.
@@ -189,36 +190,36 @@ public:
     AMULET_CORE_EXPORT PIL::Image::Image get_thumbnail() const;
 
     // The time when the level was lasted edited.
-    // External shared read lock required.
+    // External Read:SharedReadWrite lock required.
     AMULET_CORE_EXPORT std::chrono::system_clock::time_point get_modified_time() const;
 
     // The name of the level.
-    // External shared read lock required.
+    // External Read:SharedReadWrite lock required.
     AMULET_CORE_EXPORT std::string get_level_name() const;
 
     // Set the level name.
-    // External unique lock required.
+    // External ReadWrite:Unique lock required.
     AMULET_CORE_EXPORT void set_level_name(const std::string&);
 
     // The identifiers for all dimensions in this level.
-    // External shared read lock required.
-    // External shared read-only lock optional.
+    // External Read:SharedReadWrite lock required.
+    // External Read:SharedReadOnly lock optional.
     AMULET_CORE_EXPORT std::vector<std::string> get_dimension_ids();
 
     // Get the raw dimension object for a specific dimension.
-    // External shared read lock required.
+    // External Read:SharedReadWrite lock required.
     AMULET_CORE_EXPORT std::shared_ptr<JavaRawDimension> get_dimension(const DimensionID&);
 
     // Compact the level.
-    // External shared read lock required.
+    // External Read:SharedReadWrite lock required.
     AMULET_CORE_EXPORT void compact();
 
     // Overridden block ids.
-    // External shared read lock required.
+    // External Read:SharedReadWrite lock required.
     AMULET_CORE_EXPORT std::shared_ptr<IdRegistry> get_block_id_override();
 
     // Overridden biome ids.
-    // External shared read lock required.
+    // External Read:SharedReadWrite lock required.
     AMULET_CORE_EXPORT std::shared_ptr<IdRegistry> get_biome_id_override();
 };
 
