@@ -14,7 +14,7 @@ class CompactibleLevel:
     def compact(self) -> None:
         """
         Compact the level data to reduce file size.
-        External unique lock required.
+        External ReadWrite:SharedReadWrite lock required.
         """
 
 class DiskLevel:
@@ -22,13 +22,14 @@ class DiskLevel:
     def path(self) -> str:
         """
         The path to the level on disk.
-        External shared read lock required.
+        External Read:SharedReadWrite lock required.
         """
 
 class Level(LevelMetadata):
     def close(self) -> None:
         """
         Close the level.
+        External ReadWrite:Unique lock required.
 
         If the level is not open, this does nothing.
         """
@@ -37,31 +38,35 @@ class Level(LevelMetadata):
         """
         Create a new history restore point.
         Any changes made after this point can be reverted by calling undo.
-        External shared lock required.
+        External Read:SharedReadWrite lock required.
         """
 
     def dimension_ids(self) -> list[str]:
         """
         The identifiers for all dimensions in the level.
-        External shared read lock required.
+        External Read:SharedReadWrite lock required.
+        External Read:SharedReadOnly lock optional.
         """
 
     def get_dimension(self, dimension_id: str) -> amulet.level.abc.dimension.Dimension:
         """
         Get a dimension.
-        External shared read lock required.
+        External Read:SharedReadWrite lock required.
+        External ReadWrite:SharedReadWrite lock required when calling code in Dimension (and its children) that need write permission.
         """
 
     def get_redo_count(self) -> int:
         """
         Get the number of times redo can be called.
-        External shared lock required.
+        External Read:SharedReadWrite lock required.
+        External Read:SharedReadOnly lock optional.
         """
 
     def get_undo_count(self) -> int:
         """
         Get the number of times undo can be called.
-        External shared lock required.
+        External Read:SharedReadWrite lock required.
+        External Read:SharedReadOnly lock optional.
         """
 
     def open(self) -> None:
@@ -69,31 +74,33 @@ class Level(LevelMetadata):
         Open the level.
 
         If the level is already open, this does nothing.
-        External unique lock required.
+        External ReadWrite:Unique lock required.
         """
 
     def purge(self) -> None:
         """
         Clear all unsaved changes and restore points.
-        External unique lock required.
+        External ReadWrite:Unique lock required.
         """
 
     def redo(self) -> None:
         """
         Redo changes that were previously reverted.
-        External unique lock required.
+        External ReadWrite:SharedReadWrite lock required.
+        External ReadWrite:Unique lock optional.
         """
 
     def save(self) -> None:
         """
         Save all changes to the level.
-        External unique lock required.
+        External ReadWrite:Unique lock required.
         """
 
     def undo(self) -> None:
         """
         Revert the changes made since the previous restore point.
-        External unique lock required.
+        External ReadWrite:SharedReadWrite lock required.
+        External ReadWrite:Unique lock optional.
         """
 
     @property
@@ -114,6 +121,8 @@ class Level(LevelMetadata):
     def history_enabled(self) -> bool:
         """
         A boolean tracking if the history system is enabled.
+        External Read:SharedReadWrite lock required when getting.
+        External ReadWrite:SharedReadWrite lock required when setting.
 
         If true, the caller must call :meth:`create_restore_point` before making changes.
         :attr:`history_enabled_changed` is emitted when this is set.
@@ -146,7 +155,7 @@ class LevelMetadata:
     def is_open(self) -> bool:
         """
         Has the level been opened.
-        External shared read lock required.
+        External Read:SharedReadWrite lock required.
 
         :return: True if the level is open otherwise False.
         """
@@ -155,13 +164,14 @@ class LevelMetadata:
         """
         Is this level a supported version.
         This is true for all versions we support and false for snapshots, betas and unsupported newer versions.
+        External Read:SharedReadWrite lock required.
         """
 
     @property
     def level_name(self) -> str:
         """
         The name of the level
-        External shared read lock required.
+        External Read:SharedReadWrite lock required.
         """
 
     @property
@@ -175,35 +185,35 @@ class LevelMetadata:
     def max_game_version(self) -> amulet.version.VersionNumber:
         """
         The maximum game version the level has been opened with.
-        External shared read lock required.
+        External Read:SharedReadWrite lock required.
         """
 
     @property
     def modified_time(self) -> datetime.datetime:
         """
         The time when the level was last modified.
-        External shared read lock required.
+        External Read:SharedReadWrite lock required.
         """
 
     @property
     def platform(self) -> str:
         """
         The platform string for the level.
-        External shared read lock required.
+        External Read:SharedReadWrite lock required.
         """
 
     @property
     def sub_chunk_size(self) -> int:
         """
         The size of the sub-chunk. Must be a cube.
-        External shared read lock required.
+        External Read:SharedReadWrite lock required.
         """
 
     @property
     def thumbnail(self) -> PIL.Image.Image:
         """
         The thumbnail for the level.
-        External shared read lock required.
+        External Read:SharedReadWrite lock required.
         """
 
 class ReloadableLevel:
@@ -211,14 +221,14 @@ class ReloadableLevel:
         """
         Reload the level.
         This is like closing and opening the level but does not release locks.
-        This can only be done when the level is open.External unique mutex required.
+        This can only be done when the level is open.External ReadWrite:Unique lock required.
         """
 
     def reload_metadata(self) -> None:
         """
         Reload the level metadata.
         This can only be done when the level is not open.
-        External unique mutex required.
+        External ReadWrite:Unique lock required.
         """
 
     @property

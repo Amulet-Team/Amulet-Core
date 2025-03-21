@@ -45,7 +45,7 @@ py::module init_java_level(py::module m_parent)
         py::doc(
             "Access the raw level instance.\n"
             "Before calling any mutating functions, the caller must call :meth:`purge` (optionally saving before)\n"
-            "External unique lock required."));
+            "External ReadWrite:Unique lock required."));
 
     return m;
 }

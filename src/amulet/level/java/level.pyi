@@ -30,5 +30,5 @@ class JavaLevel(
         """
         Access the raw level instance.
         Before calling any mutating functions, the caller must call :meth:`purge` (optionally saving before)
-        External unique lock required.
+        External ReadWrite:Unique lock required.
         """

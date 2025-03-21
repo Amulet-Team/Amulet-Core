@@ -185,6 +185,7 @@ public:
 
     // Get the thumbnail for the level.
     // This depends upon python so the GIL must be held.
+    // Thread safe.
     AMULET_CORE_EXPORT PIL::Image::Image get_thumbnail() const;
 
     // The time when the level was lasted edited.
