@@ -41,6 +41,7 @@ py::module init_dimension(py::module m_parent)
         &Amulet::Dimension::get_chunk_handle,
         py::arg("cx"),
         py::arg("cz"),
+        py::call_guard<py::gil_scoped_release>(),
         py::doc(
             "Get the chunk handle for the given chunk in this dimension.\n"
             "Thread safe.\n"

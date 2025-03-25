@@ -41,6 +41,7 @@ py::module init_chunk_handle(py::module m_parent)
     ChunkHandle.def(
         "exists",
         &Amulet::ChunkHandle::exists,
+        py::call_guard<py::gil_scoped_release>(),
         py::doc(
             "Does the chunk exist. This is a quick way to check if the chunk exists without loading it.\n"
             "\n"
@@ -50,6 +51,7 @@ py::module init_chunk_handle(py::module m_parent)
     ChunkHandle.def(
         "get_chunk",
         &Amulet::ChunkHandle::get_chunk,
+        py::call_guard<py::gil_scoped_release>(),
         py::doc(
             "Get a unique copy of the chunk data.\n"
             "\n"
@@ -64,6 +66,7 @@ py::module init_chunk_handle(py::module m_parent)
         "set_chunk",
         &Amulet::ChunkHandle::set_chunk,
         py::arg("chunk"),
+        py::call_guard<py::gil_scoped_release>(),
         py::doc(
             "Overwrite the chunk data.\n"
             "You must acquire the chunk lock before setting.\n"
@@ -75,6 +78,7 @@ py::module init_chunk_handle(py::module m_parent)
     ChunkHandle.def(
         "delete_chunk",
         &Amulet::ChunkHandle::delete_chunk,
+        py::call_guard<py::gil_scoped_release>(),
         py::doc(
             "Delete the chunk from the level.\n"
             "You must acquire the chunk lock before deleting.\n"
