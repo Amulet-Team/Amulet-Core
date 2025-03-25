@@ -33,7 +33,7 @@ const Biome& JavaDimension::get_default_biome() const
     return _raw_dimension->get_default_biome();
 }
 
-std::shared_ptr<ChunkHandle> JavaDimension::get_chunk_handle(std::int64_t cx, std::int64_t cz)
+std::shared_ptr<JavaChunkHandle> JavaDimension::get_java_chunk_handle(std::int64_t cx, std::int64_t cz)
 {
     auto key = std::make_pair(cx, cz);
     {
@@ -62,6 +62,11 @@ std::shared_ptr<ChunkHandle> JavaDimension::get_chunk_handle(std::int64_t cx, st
             return chunk_handle;
         }
     }
+}
+
+std::shared_ptr<ChunkHandle> JavaDimension::get_chunk_handle(std::int64_t cx, std::int64_t cz)
+{
+    return get_java_chunk_handle(cx, cz);
 }
 
 } // namespace Amulet
