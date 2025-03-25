@@ -13,6 +13,7 @@ void init_java_chunk(py::module);
 void init_java_anvil(py::module);
 py::module init_java_raw_dimension(py::module);
 py::module init_java_raw_level(py::module);
+py::module init_java_chunk_handle(py::module);
 py::module init_java_dimension(py::module);
 py::module init_java_level(py::module);
 
@@ -31,6 +32,9 @@ py::module init_java(py::module m_parent)
     auto raw_level = init_java_raw_level(m);
     m.attr("JavaCreateArgsV1") = raw_level.attr("JavaCreateArgsV1");
     m.attr("JavaRawLevel") = raw_level.attr("JavaRawLevel");
+
+    auto chunk_handle = init_java_chunk_handle(m);
+    m.attr("JavaChunkHandle") = chunk_handle.attr("JavaChunkHandle");
 
     auto dimension = init_java_dimension(m);
     m.attr("JavaInternalDimensionID") = dimension.attr("JavaInternalDimensionID");

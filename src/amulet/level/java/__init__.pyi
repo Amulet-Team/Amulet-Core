@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from builtins import str as JavaInternalDimensionID
 
+from amulet.level.java.chunk_handle import JavaChunkHandle
 from amulet.level.java.dimension import JavaDimension
 from amulet.level.java.level import JavaLevel
 from amulet.level.java.raw_dimension import JavaRawDimension
@@ -11,6 +12,7 @@ from . import (
     anvil,
     chunk,
     chunk_components,
+    chunk_handle,
     dimension,
     level,
     long_array,
@@ -19,6 +21,7 @@ from . import (
 )
 
 __all__ = [
+    "JavaChunkHandle",
     "JavaCreateArgsV1",
     "JavaDimension",
     "JavaInternalDimensionID",
@@ -28,6 +31,7 @@ __all__ = [
     "anvil",
     "chunk",
     "chunk_components",
+    "chunk_handle",
     "dimension",
     "level",
     "long_array",
