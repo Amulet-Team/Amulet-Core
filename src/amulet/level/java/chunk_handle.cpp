@@ -8,11 +8,11 @@ bool JavaChunkHandle::exists()
 {
     throw std::runtime_error("NotImplementedError");
 }
-std::shared_ptr<Chunk> JavaChunkHandle::get_chunk()
+std::unique_ptr<Chunk> JavaChunkHandle::get_chunk()
 {
     throw std::runtime_error("NotImplementedError");
 }
-void JavaChunkHandle::set_chunk(std::shared_ptr<Chunk>)
+void JavaChunkHandle::set_chunk(const Chunk&)
 {
     throw std::runtime_error("NotImplementedError");
 }

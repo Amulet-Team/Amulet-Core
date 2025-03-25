@@ -48,10 +48,10 @@ public:
     virtual bool exists() = 0;
 
     // Get a unique copy of the chunk data.
-    virtual std::shared_ptr<Chunk> get_chunk() = 0;
+    virtual std::unique_ptr<Chunk> get_chunk() = 0;
 
     // Overwrite the chunk data.
-    virtual void set_chunk(std::shared_ptr<Chunk>) = 0;
+    virtual void set_chunk(const Chunk&) = 0;
 
     // Delete the chunk from the level.
     virtual void delete_chunk() = 0;

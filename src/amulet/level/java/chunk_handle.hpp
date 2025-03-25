@@ -1,7 +1,10 @@
 #pragma once
 
 #include <amulet/dll.hpp>
+
 #include <amulet/level/abc/chunk_handle.hpp>
+
+#include "chunk.hpp"
 
 namespace Amulet {
 
@@ -18,9 +21,16 @@ private:
     friend class JavaDimension;
 
 public:
+    // Does the chunk exist. This is a quick way to check if the chunk exists without loading it.
     AMULET_CORE_EXPORT bool exists() override;
-    AMULET_CORE_EXPORT std::shared_ptr<Chunk> get_chunk() override;
-    AMULET_CORE_EXPORT void set_chunk(std::shared_ptr<Chunk>) override;
+
+    // Get a unique copy of the chunk data.
+    AMULET_CORE_EXPORT std::unique_ptr<Chunk> get_chunk() override;
+
+    // Overwrite the chunk data.
+    AMULET_CORE_EXPORT void set_chunk(const Chunk&) override;
+
+    // Delete the chunk from the level.
     AMULET_CORE_EXPORT void delete_chunk() override;
 };
 

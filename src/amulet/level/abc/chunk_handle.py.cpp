@@ -50,7 +50,9 @@ py::module init_chunk_handle(py::module m_parent)
             ":return: True if the chunk exists. Calling get on this chunk handle may still throw ChunkLoadError"));
     ChunkHandle.def(
         "get_chunk",
-        &Amulet::ChunkHandle::get_chunk,
+        [](Amulet::ChunkHandle& self) -> std::shared_ptr<Amulet::Chunk> {
+            return self.get_chunk();
+        },
         py::call_guard<py::gil_scoped_release>(),
         py::doc(
             "Get a unique copy of the chunk data.\n"
