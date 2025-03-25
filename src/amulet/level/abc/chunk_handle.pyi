@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import amulet.chunk
 import amulet.utils.lock
+import amulet.utils.signal
 
 __all__ = ["ChunkHandle"]
 
@@ -46,6 +47,12 @@ class ChunkHandle:
         :param chunk: The chunk data to set.
         :raises:
             LockNotAcquired: If the chunk is already locked by another thread.
+        """
+
+    @property
+    def changed(self) -> amulet.utils.signal.Signal[()]:
+        """
+        Signal emitted when the chunk data changes.
         """
 
     @property

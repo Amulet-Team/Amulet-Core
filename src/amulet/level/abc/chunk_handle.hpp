@@ -6,6 +6,7 @@
 
 #include <amulet/chunk.hpp>
 #include <amulet/utils/mutex.hpp>
+#include <amulet/utils/signal.hpp>
 
 namespace Amulet {
 
@@ -24,6 +25,8 @@ protected:
 public:
     ChunkHandle() = delete;
     virtual ~ChunkHandle() = default;
+
+    Signal<> changed;
 
     // The public mutex.
     // Thread safe.
