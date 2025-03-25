@@ -25,7 +25,13 @@ public:
     AMULET_CORE_EXPORT bool exists() override;
 
     // Get a unique copy of the chunk data.
+    AMULET_CORE_EXPORT std::unique_ptr<JavaChunk> get_java_chunk();
+
+    // Get a unique copy of the chunk data.
     AMULET_CORE_EXPORT std::unique_ptr<Chunk> get_chunk() override;
+
+    // Overwrite the chunk data.
+    AMULET_CORE_EXPORT void set_java_chunk(const JavaChunk&);
 
     // Overwrite the chunk data.
     AMULET_CORE_EXPORT void set_chunk(const Chunk&) override;
