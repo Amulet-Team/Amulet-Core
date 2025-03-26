@@ -6,6 +6,7 @@ namespace Amulet {
 JavaDimension::JavaDimension(
     std::shared_ptr<JavaRawDimension> raw_dimension,
     HistoryManager& history_manager)
+    : _raw_dimension(std::move(raw_dimension))
 {
 }
 
