@@ -189,7 +189,7 @@ std::vector<std::string> JavaLevel::get_dimension_ids()
     return _raw_level->get_dimension_ids();
 }
 
-std::shared_ptr<JavaDimension> JavaLevel::get_java_dimension(const std::string& dimension_id)
+std::shared_ptr<JavaDimension> JavaLevel::get_java_dimension(const DimensionID& dimension_id)
 {
     auto& open_data = _get_open_data();
     {
@@ -221,7 +221,7 @@ std::shared_ptr<JavaDimension> JavaLevel::get_java_dimension(const std::string& 
     }
 }
 
-std::shared_ptr<Dimension> JavaLevel::get_dimension(const std::string& dimension_id)
+std::shared_ptr<Dimension> JavaLevel::get_dimension(const DimensionID& dimension_id)
 {
     return get_java_dimension(dimension_id);
 }
