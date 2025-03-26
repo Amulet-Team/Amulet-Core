@@ -12,6 +12,25 @@ namespace Amulet {
 
 using DimensionID = std::string;
 
+namespace detail {
+
+    class ChunkKey {
+    private:
+        std::int64_t cx;
+        std::int64_t cz;
+
+    public:
+        ChunkKey(std::int64_t cx, std::int64_t cz);
+        ~ChunkKey();
+        std::int64_t get_cx();
+        std::int64_t get_cz();
+        operator std::string();
+        bool operator==(const ChunkKey&) const = default;
+        std::strong_ordering operator<=>(const ChunkKey&) const = default;
+    };
+
+} // namespace detail
+
 class ChunkHandle {
 private:
     OrderedMutex _public_mutex;
