@@ -1,5 +1,7 @@
 #include <stdexcept>
 
+#include <amulet/utils/mutex.hpp>
+
 #include "chunk_handle.hpp"
 
 namespace Amulet {
@@ -20,7 +22,13 @@ JavaChunkHandle::JavaChunkHandle(
 
 bool JavaChunkHandle::exists()
 {
-    throw std::runtime_error("NotImplementedError");
+    try {
+        std::shared_lock lock(_chunk_history->get_mutex());
+        return !_chunk_history->get_value(detail::ChunkKey(_cx, _cz)).empty();
+    } catch (const std::out_of_range&) {
+        OrderedLockGuard<ThreadAccessMode::Read, ThreadShareMode::SharedReadWrite> lock(_raw_dimension->get_mutex());
+        return _raw_dimension->has_chunk(_cx, _cz);
+    }
 }
 
 std::unique_ptr<JavaChunk> JavaChunkHandle::get_java_chunk()
