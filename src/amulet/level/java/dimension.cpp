@@ -53,13 +53,27 @@ std::shared_ptr<JavaChunkHandle> JavaDimension::get_java_chunk_handle(std::int64
         std::lock_guard handle_lock(_chunk_handles_mutex);
         auto it = _chunk_handles.find(key);
         if (it == _chunk_handles.end()) {
-            auto chunk_handle = std::shared_ptr<JavaChunkHandle>(new JavaChunkHandle(get_dimension_id(), cx, cz));
+            auto chunk_handle = std::shared_ptr<JavaChunkHandle>(
+                new JavaChunkHandle(
+                    get_dimension_id(),
+                    cx,
+                    cz,
+                    _raw_dimension,
+                    _chunk_history,
+                    _chunk_data_history));
             _chunk_handles.emplace(key, chunk_handle);
             return chunk_handle;
         } else {
             auto chunk_handle = it->second.lock();
             if (!chunk_handle) {
-                chunk_handle = std::shared_ptr<JavaChunkHandle>(new JavaChunkHandle(get_dimension_id(), cx, cz));
+                auto chunk_handle = std::shared_ptr<JavaChunkHandle>(
+                    new JavaChunkHandle(
+                        get_dimension_id(),
+                        cx,
+                        cz,
+                        _raw_dimension,
+                        _chunk_history,
+                        _chunk_data_history));
                 it->second = chunk_handle;
             }
             return chunk_handle;

@@ -4,6 +4,20 @@
 
 namespace Amulet {
 
+JavaChunkHandle::JavaChunkHandle(
+    const DimensionID& dimension_id,
+    std::int64_t cx,
+    std::int64_t cz,
+    std::shared_ptr<JavaRawDimension> raw_dimension,
+    std::shared_ptr<HistoryManagerLayer<detail::ChunkKey>> chunk_history,
+    std::shared_ptr<HistoryManagerLayer<std::string>> chunk_data_history)
+    : ChunkHandle(dimension_id, cx, cz)
+    , _raw_dimension(std::move(raw_dimension))
+    , _chunk_history(std::move(chunk_history))
+    , _chunk_data_history(std::move(chunk_data_history))
+{
+}
+
 bool JavaChunkHandle::exists()
 {
     throw std::runtime_error("NotImplementedError");

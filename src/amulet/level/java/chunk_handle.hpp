@@ -3,20 +3,27 @@
 #include <amulet/dll.hpp>
 
 #include <amulet/level/abc/chunk_handle.hpp>
+#include <amulet/level/abc/history.hpp>
 
 #include "chunk.hpp"
+#include "raw_dimension.hpp"
 
 namespace Amulet {
 
 class JavaChunkHandle : public ChunkHandle {
 private:
+    std::shared_ptr<HistoryManagerLayer<detail::ChunkKey>> _chunk_history;
+    std::shared_ptr<HistoryManagerLayer<std::string>> _chunk_data_history;
+
+    std::shared_ptr<JavaRawDimension> _raw_dimension;
+
     JavaChunkHandle(
         const DimensionID& dimension_id,
         std::int64_t cx,
-        std::int64_t cz)
-        : ChunkHandle(dimension_id, cx, cz)
-    {
-    }
+        std::int64_t cz,
+        std::shared_ptr<JavaRawDimension> raw_dimension,
+        std::shared_ptr<HistoryManagerLayer<detail::ChunkKey>> chunk_history,
+        std::shared_ptr<HistoryManagerLayer<std::string>> chunk_data_history);
 
     friend class JavaDimension;
 
