@@ -22,9 +22,9 @@ namespace detail {
     public:
         ChunkKey(std::int64_t cx, std::int64_t cz);
         ~ChunkKey();
-        std::int64_t get_cx();
-        std::int64_t get_cz();
-        operator std::string();
+        std::int64_t get_cx() const;
+        std::int64_t get_cz() const;
+        operator std::string() const;
         bool operator==(const ChunkKey&) const = default;
         std::strong_ordering operator<=>(const ChunkKey&) const = default;
     };
@@ -34,11 +34,12 @@ namespace detail {
 class ChunkHandle {
 private:
     OrderedMutex _public_mutex;
+
+protected:
     std::string _dimension_id;
     std::int64_t _cx;
     std::int64_t _cz;
 
-protected:
     ChunkHandle(const DimensionID& dimension_id, std::int64_t cx, std::int64_t cz);
 
 public:

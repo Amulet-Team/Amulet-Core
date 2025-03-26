@@ -11,17 +11,18 @@ namespace detail {
 
     ChunkKey::~ChunkKey() { }
 
-    std::int64_t ChunkKey::get_cx()
+    std::int64_t ChunkKey::get_cx() const
     {
         return cx;
     }
 
-    std::int64_t ChunkKey::get_cz()
+    std::int64_t ChunkKey::get_cz() const
     {
         return cz;
     }
 
-    ChunkKey::operator std::string() { 
+    ChunkKey::operator std::string() const
+    {
         std::string str(2 * sizeof(std::int64_t) + 1, '/');
         *reinterpret_cast<std::int64_t*>(str.data()) = cx;
         *reinterpret_cast<std::int64_t*>(str.data() + sizeof(std::int64_t) + 1) = cz;
