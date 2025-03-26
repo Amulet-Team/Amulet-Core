@@ -24,13 +24,13 @@ py::module init_dimension(py::module m_parent)
         &Amulet::Dimension::get_bounds,
         py::doc("The editable region of the dimension.\n"
                 "Thread safe."));
-    Dimension.def(
+    Dimension.def_property_readonly(
         "default_block",
         &Amulet::Dimension::get_default_block,
         py::keep_alive<0, 1>(),
         py::doc("The default block for this dimension.\n"
                 "Thread safe."));
-    Dimension.def(
+    Dimension.def_property_readonly(
         "default_biome",
         &Amulet::Dimension::get_default_biome,
         py::keep_alive<0, 1>(),
