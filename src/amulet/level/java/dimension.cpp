@@ -7,6 +7,8 @@ JavaDimension::JavaDimension(
     std::shared_ptr<JavaRawDimension> raw_dimension,
     HistoryManager& history_manager)
     : _raw_dimension(std::move(raw_dimension))
+    , _chunk_history(history_manager.new_layer<detail::ChunkKey>())
+    , _chunk_data_history(history_manager.new_layer<std::string>())
 {
 }
 

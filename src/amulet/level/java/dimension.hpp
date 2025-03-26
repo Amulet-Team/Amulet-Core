@@ -7,6 +7,7 @@
 #include "chunk_handle.hpp"
 #include "raw_dimension.hpp"
 #include <amulet/dll.hpp>
+#include <amulet/level/abc/chunk_handle.hpp>
 #include <amulet/level/abc/dimension.hpp>
 #include <amulet/level/abc/history.hpp>
 
@@ -16,9 +17,11 @@ class JavaDimension : public Dimension {
 private:
     std::map<std::pair<std::int64_t, std::int64_t>, std::weak_ptr<JavaChunkHandle>> _chunk_handles;
     std::shared_mutex _chunk_handles_mutex;
+
     std::shared_ptr<JavaRawDimension> _raw_dimension;
-    // HistoryManagerLayer _chunk_history;
-    // HistoryManagerLayer _chunk_data_history;
+
+    std::shared_ptr<HistoryManagerLayer<detail::ChunkKey>> _chunk_history;
+    std::shared_ptr<HistoryManagerLayer<std::string>> _chunk_data_history;
 
     JavaDimension(
         std::shared_ptr<JavaRawDimension> raw_dimension,
