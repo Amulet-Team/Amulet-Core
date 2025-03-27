@@ -69,7 +69,7 @@ public:
     virtual bool exists() = 0;
 
     // Get a unique copy of the chunk data.
-    virtual std::unique_ptr<Chunk> get_chunk() = 0;
+    virtual std::unique_ptr<Chunk> get_chunk(std::optional<std::set<std::string>> component_ids = std::nullopt) = 0;
 
     // Overwrite the chunk data.
     virtual void set_chunk(const Chunk&) = 0;
