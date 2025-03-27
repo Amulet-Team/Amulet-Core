@@ -134,4 +134,31 @@ static const ChunkNullConstructor<JavaChunk0> _jc0;
 static const ChunkNullConstructor<JavaChunk1444> _jc1444;
 static const ChunkNullConstructor<JavaChunk1466> _jc1466;
 static const ChunkNullConstructor<JavaChunk2203> _jc2203;
+
+static std::map<std::string, std::function<std::unique_ptr<JavaChunk>()>> java_chunk_constructors = {
+    { JavaChunkNA::ChunkID, []() { return std::make_unique<JavaChunkNA>(); } },
+    { JavaChunk0::ChunkID, []() { return std::make_unique<JavaChunk0>(); } },
+    { JavaChunk1444::ChunkID, []() { return std::make_unique<JavaChunk1444>(); } },
+    { JavaChunk1466::ChunkID, []() { return std::make_unique<JavaChunk1466>(); } },
+    { JavaChunk2203::ChunkID, []() { return std::make_unique<JavaChunk2203>(); } },
+};
+
+namespace detail {
+    std::unique_ptr<JavaChunk> get_java_null_chunk(const std::string& chunk_id)
+    {
+        auto it = java_chunk_constructors.find(chunk_id);
+        if (it == java_chunk_constructors.end()) {
+            throw std::runtime_error("Unknown chunk_id " + chunk_id);
+        }
+        return it->second();
+    }
+    std::string get_java_chunk_id(const JavaChunk& chunk) {
+        std::string chunk_id = chunk.get_chunk_id();
+        if (!java_chunk_constructors.contains(chunk_id)) {
+            throw std::runtime_error("Unknown chunk_id " + chunk_id);
+        }
+        return chunk_id;
+    }
+} // namespace detail
+
 }

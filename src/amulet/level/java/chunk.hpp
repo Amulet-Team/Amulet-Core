@@ -141,4 +141,13 @@ public:
         const BlockStack& default_block,
         const Biome& default_biome);
 };
+
+namespace detail {
+    // Get a null chunk instance for the given chunk id.
+    std::unique_ptr<JavaChunk> get_java_null_chunk(const std::string& chunk_id);
+
+    // Get the chunk's identifier.
+    std::string get_java_chunk_id(const JavaChunk& chunk);
+} // namespace detail
+
 }
