@@ -57,7 +57,7 @@ void JavaChunkHandle::_preload() {
     // Get the chunk data.
     JavaRawChunk raw_chunk;
     try {
-        auto raw_chunk = _raw_dimension->get_raw_chunk(_cx, _cz);
+        raw_chunk = _raw_dimension->get_raw_chunk(_cx, _cz);
     } catch (const ChunkDoesNotExist& e) {
         _chunk_history->set_initial_value(_key, "");
         return;
