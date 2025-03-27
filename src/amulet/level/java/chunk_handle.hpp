@@ -32,6 +32,7 @@ private:
     std::unique_ptr<JavaChunk> _get_null_chunk();
 
     // Load the chunk from the raw level.
+    // Requires _chunk_history unique lock.
     void _preload();
 
 public:

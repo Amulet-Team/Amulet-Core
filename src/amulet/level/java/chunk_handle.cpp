@@ -49,7 +49,37 @@ std::unique_ptr<JavaChunk> JavaChunkHandle::_get_null_chunk()
 }
 
 void JavaChunkHandle::_preload() {
-    throw std::runtime_error("NotImplementedError");
+    if (_chunk_history->has_resource(_key)) {
+        // Do nothing if the resource already exists.
+        return;
+    }
+
+    // Get the chunk data.
+    JavaRawChunk raw_chunk;
+    try {
+        auto raw_chunk = _raw_dimension->get_raw_chunk(_cx, _cz);
+    } catch (const ChunkDoesNotExist& e) {
+        _chunk_history->set_initial_value(_key, "");
+        return;
+    }
+
+    // Decode the chunk.
+    std::unique_ptr<JavaChunk> chunk;
+    try {
+        chunk = _raw_dimension->decode_chunk(raw_chunk, _cx, _cz);
+    } catch (const ChunkLoadError& e) {
+        _chunk_history->set_initial_value(_key, '\x01' + std::string(e.what()));
+        return;
+    }
+
+    // Save the chunk.
+    _chunk_history->set_initial_value(_key, detail::get_java_chunk_id(*chunk));
+    for (const auto& [component_id, component_data] : chunk->serialise_chunk()) {
+        if (!component_data) {
+            throw std::runtime_error("Component " + component_id + " cannot be undefined when initialising chunk");
+        }
+        _chunk_data_history->set_initial_value(std::string(_key) + '/' + component_id, *component_data);
+    }
 }
 
 std::unique_ptr<JavaChunk> JavaChunkHandle::get_java_chunk(std::optional<std::set<std::string>> component_ids)
@@ -91,10 +121,8 @@ std::unique_ptr<JavaChunk> JavaChunkHandle::get_java_chunk(std::optional<std::se
     }
     {
         std::lock_guard lock(_chunk_history->get_mutex());
-        if (!_chunk_history->has_resource(_key)) {
-            // Load the chunk if it wasn't previously populated.
-            _preload();
-        }
+        // Load the chunk if it wasn't previously populated.
+        _preload();
     }
     {
         std::shared_lock lock(_chunk_history->get_mutex());
