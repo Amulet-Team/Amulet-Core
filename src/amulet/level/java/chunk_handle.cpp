@@ -73,7 +73,7 @@ void JavaChunkHandle::_preload() {
     }
 
     // Save the chunk.
-    _chunk_history->set_initial_value(_key, detail::get_java_chunk_id(*chunk));
+    _chunk_history->set_initial_value(_key, '\x00' + detail::get_java_chunk_id(*chunk));
     for (const auto& [component_id, component_data] : chunk->serialise_chunk()) {
         if (!component_data) {
             throw std::runtime_error("Component " + component_id + " cannot be undefined when initialising chunk");
@@ -138,7 +138,46 @@ std::unique_ptr<Chunk> JavaChunkHandle::get_chunk(std::optional<std::set<std::st
 
 void JavaChunkHandle::set_java_chunk(const JavaChunk& chunk)
 {
-    throw std::runtime_error("NotImplementedError");
+    std::lock_guard lock(_chunk_history->get_mutex());
+
+    // Set initial state.
+    if (true) {
+        // TODO: set above to history_enabled
+        _preload();
+    } else if (!_chunk_history->has_resource(_key)) {
+        _chunk_history->set_initial_value(_key, "");
+    }
+
+    auto old_chunk_id = _chunk_history->get_value(_key);
+    auto new_chunk_id = "\x00" + detail::get_java_chunk_id(chunk);
+
+    auto component_data = chunk.serialise_chunk();
+    std::list<std::pair<std::string, std::string>> values;
+
+    auto copy_values = [&]<bool error_undefined>() {
+        for (const auto& [component_id, data] : component_data) {
+            if (data) {
+                values.emplace_back(component_id, *data);
+            } else if constexpr (error_undefined) {
+                throw std::runtime_error("When changing chunk class all the data must be present.");
+            }
+        }
+    };
+
+    // Copy defined values.
+    if (old_chunk_id != new_chunk_id) {
+        // Error if any component is undefined
+        copy_values.operator()<true>();
+    } else {
+        // Remove undefined components.
+        copy_values.operator()<false>();
+    }
+
+    // Set new state.
+    _chunk_history->set_value(_key, new_chunk_id);
+    if (!values.empty()) {
+        _chunk_data_history->set_values(values);
+    }
 }
 
 void JavaChunkHandle::set_chunk(const Chunk& chunk)
@@ -152,7 +191,18 @@ void JavaChunkHandle::set_chunk(const Chunk& chunk)
 
 void JavaChunkHandle::delete_chunk()
 {
-    throw std::runtime_error("NotImplementedError");
+    std::lock_guard lock(_chunk_history->get_mutex());
+
+    // Set initial state.
+    if (true) {
+        // TODO: set above to history_enabled
+        _preload();
+    } else if (!_chunk_history->has_resource(_key)) {
+        _chunk_history->set_initial_value(_key, "");
+    }
+
+    // Delete
+    _chunk_history->set_value(_key, "");
 }
 
 } // namespace Amulet
