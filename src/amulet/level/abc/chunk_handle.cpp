@@ -28,7 +28,7 @@ namespace detail {
         *reinterpret_cast<std::int64_t*>(str.data() + sizeof(std::int64_t) + 1) = cz;
         return str;
     }
-}
+} // namespace detail
 
 ChunkHandle::ChunkHandle(
     const DimensionID& dimension_id,
@@ -37,6 +37,7 @@ ChunkHandle::ChunkHandle(
     : _dimension_id(dimension_id)
     , _cx(cx)
     , _cz(cz)
+    , _key(cx, cz)
 {
 }
 

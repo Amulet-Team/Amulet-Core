@@ -39,6 +39,7 @@ protected:
     std::string _dimension_id;
     std::int64_t _cx;
     std::int64_t _cz;
+    detail::ChunkKey _key;
 
     ChunkHandle(const DimensionID& dimension_id, std::int64_t cx, std::int64_t cz);
 
