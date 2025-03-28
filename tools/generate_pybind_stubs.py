@@ -214,6 +214,7 @@ def main() -> None:
             "__hash__: typing.ClassVar[None] = None  # type: ignore",
         )
         pyi = EqPattern.sub(eq_sub_func, pyi)
+        pyi = pyi.replace("**kwargs)", "**kwargs: typing.Any)")
         pyi_split = [l.rstrip("\r") for l in pyi.split("\n")]
         if "import typing" not in pyi_split:
             pyi_split.insert(2, "import typing")
