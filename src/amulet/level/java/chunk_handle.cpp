@@ -176,7 +176,7 @@ void JavaChunkHandle::set_java_chunk(const JavaChunk& chunk)
     // Set new state.
     _chunk_history->set_value(_key, new_chunk_id);
     if (!values.empty()) {
-        _chunk_data_history->set_values(values);
+        _chunk_data_history->set_values(values, true);
     }
 }
 
