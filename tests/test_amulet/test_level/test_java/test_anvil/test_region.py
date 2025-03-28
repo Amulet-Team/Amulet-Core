@@ -77,7 +77,7 @@ class AnvilRegionTestCase(unittest.TestCase):
             end_times: list[float] = []
             thread_count = 0
 
-            def increment_thread_count():
+            def increment_thread_count() -> None:
                 nonlocal thread_count
                 thread_count += 1
                 with condition:
@@ -215,8 +215,8 @@ class AnvilRegionTestCase(unittest.TestCase):
                                 ):
                                     section.pop("BlockLight")
 
-                    remove_sections(zlib_chunk.compound.get_list("sections"))
-                    remove_sections(lz4_chunk.compound.get_list("sections"))
+                    remove_sections(zlib_chunk.compound.get_list("sections", raise_errors=True))
+                    remove_sections(lz4_chunk.compound.get_list("sections", raise_errors=True))
 
                     self.assertEqual(zlib_chunk, lz4_chunk)
             finally:
@@ -231,7 +231,7 @@ class AnvilRegionTestCase(unittest.TestCase):
                 os.path.join(tempdir, "java"),
             )
 
-            def compact(path) -> None:
+            def compact(path: str) -> None:
                 region = AnvilRegion(path, mcc=True)
                 original_file_size = os.stat(region.path).st_size
 

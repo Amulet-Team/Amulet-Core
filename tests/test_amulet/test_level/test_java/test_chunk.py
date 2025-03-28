@@ -28,13 +28,15 @@ from test_amulet.test_chunk_components.test_component import test_component
 
 def test_data_version_component(self: TestCase, chunk: Chunk) -> None:
     self.assertIsInstance(chunk, DataVersionComponent)
+    assert isinstance(chunk, DataVersionComponent)
     self.assertIsInstance(chunk.data_version, int)
     with self.assertRaises(AttributeError):
-        chunk.data_version = 0
+        chunk.data_version = 0  # type: ignore
 
 
 def test_java_raw_chunk_component(self: TestCase, chunk: Chunk) -> None:
     self.assertIsInstance(chunk, JavaRawChunkComponent)
+    assert isinstance(chunk, JavaRawChunkComponent)
     self.assertIsInstance(chunk.raw_data, MutableMapping)
     raw_data = chunk.raw_data
     self.assertEqual(raw_data, raw_data)
