@@ -216,7 +216,10 @@ std::unique_ptr<JavaChunk> _decode_java_chunk(
     }
 
     // Sections
-    ListTagPtr sections_ptr = get_tag<ListTagPtr>(level, "sections", []() { return std::make_shared<ListTag>(); });
+    ListTagPtr sections_ptr = get_tag<ListTagPtr>(
+        level,
+        []() { if constexpr (DataVersion >= 2844){ return "sections"; } else { return "Sections"; } }(),
+        []() { return std::make_shared<ListTag>(); });
     if (!std::holds_alternative<CompoundListTag>(*sections_ptr)) {
         throw std::invalid_argument("Chunk sections is not a list of compound tags.");
     }
