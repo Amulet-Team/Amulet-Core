@@ -94,7 +94,7 @@ void init_block_mesh(py::module m)
 
     // BlockMeshCullDirection
     py::enum_<Amulet::BlockMeshCullDirection>(m, "BlockMeshCullDirection",
-        "The direction a mesh part is culled by. The value corrosponds to the index in the mesh parts array.",
+        "The direction a mesh part is culled by. The value corresponds to the index in the mesh parts array.",
         py::arithmetic())
         .value("CullNone", Amulet::BlockMeshCullDirection::BlockMeshCullNone, "Is not culled by any neighbouring blocks.")
         .value("CullUp", Amulet::BlockMeshCullDirection::BlockMeshCullUp, "Is culled by an opaque block above.")
@@ -131,8 +131,20 @@ void init_block_mesh(py::module m)
         py::arg("parts"));
     BlockMesh.def_readonly("transparency", &Amulet::BlockMesh::transparency, py::doc("The transparency state of this block mesh."));
     BlockMesh.def_readonly("textures", &Amulet::BlockMesh::textures, py::doc("The texture paths used in this block mesh. The Triangle's texture_index attribute is an index into this list."));
-    BlockMesh.def_readonly("parts", &Amulet::BlockMesh::parts, py::doc("The mesh parts that make up this mesh. The index corrosponds to the value of BlockMeshCullDirection."));
-    BlockMesh.def("rotate", &Amulet::BlockMesh::rotate, py::arg("rotx"), py::arg("roty"), py::doc("Rotate the mesh in the x and y axis. Accepted values are -3 to 3 which corrospond to 90 degree rotations."));
+    BlockMesh.def_property_readonly(
+        "parts",
+        [](const Amulet::BlockMesh& self) -> py::typing::Tuple<
+                                              std::optional<Amulet::BlockMeshPart>,
+                                              std::optional<Amulet::BlockMeshPart>,
+                                              std::optional<Amulet::BlockMeshPart>,
+                                              std::optional<Amulet::BlockMeshPart>,
+                                              std::optional<Amulet::BlockMeshPart>,
+                                              std::optional<Amulet::BlockMeshPart>,
+                                              std::optional<Amulet::BlockMeshPart>> {
+            return py::make_tuple(self.parts.begin(), self.parts.end());
+        },
+        py::doc("The mesh parts that make up this mesh. The index corresponds to the value of BlockMeshCullDirection."));
+    BlockMesh.def("rotate", &Amulet::BlockMesh::rotate, py::arg("rotx"), py::arg("roty"), py::doc("Rotate the mesh in the x and y axis. Accepted values are -3 to 3 which correspond to 90 degree rotations."));
 
     m.def(
         "merge_block_meshes", [](pybind11_extensions::collections::abc::Sequence<Amulet::BlockMesh> py_meshes) {
