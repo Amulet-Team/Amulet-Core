@@ -26,7 +26,9 @@ class JavaDimensionTestCase(TestCase):
                 self.assertIsInstance(exists_chunk_handle.lock, OrderedLock)
 
                 self.assertIsInstance(exists_chunk_handle.dimension_id, str)
-                self.assertEqual("minecraft:overworld", exists_chunk_handle.dimension_id)
+                self.assertEqual(
+                    "minecraft:overworld", exists_chunk_handle.dimension_id
+                )
 
                 self.assertIsInstance(exists_chunk_handle.cx, int)
                 self.assertEqual(1, exists_chunk_handle.cx)
@@ -42,7 +44,9 @@ class JavaDimensionTestCase(TestCase):
                 self.assertIsInstance(does_not_exist_chunk_handle.lock, OrderedLock)
 
                 self.assertIsInstance(does_not_exist_chunk_handle.dimension_id, str)
-                self.assertEqual("minecraft:overworld", does_not_exist_chunk_handle.dimension_id)
+                self.assertEqual(
+                    "minecraft:overworld", does_not_exist_chunk_handle.dimension_id
+                )
 
                 self.assertIsInstance(does_not_exist_chunk_handle.cx, int)
                 self.assertEqual(100, does_not_exist_chunk_handle.cx)

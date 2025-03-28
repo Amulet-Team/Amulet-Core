@@ -2,6 +2,7 @@ from datetime import datetime
 from tempfile import TemporaryDirectory
 import os
 from contextlib import contextmanager
+from typing import Generator
 
 from amulet.level import get_level
 
@@ -27,7 +28,7 @@ class JavaLevelTestCase(
     LevelTestCases.ReloadableLevelTestCase,
 ):
     @contextmanager
-    def level(self) -> JavaLevel:
+    def level(self) -> Generator[JavaLevel, None, None]:
         with WorldTemp(java_vanilla_1_13) as world_data:
             level = JavaLevel.load(world_data.temp_path)
             yield level
@@ -70,8 +71,12 @@ class JavaLevelTestCase(
                 dimension_ids = level.dimension_ids()
                 self.assertIsInstance(dimension_ids, list)
                 self.assertEqual(
-                    {"minecraft:overworld", "minecraft:the_end", "minecraft:the_nether"},
-                    set(dimension_ids)
+                    {
+                        "minecraft:overworld",
+                        "minecraft:the_end",
+                        "minecraft:the_nether",
+                    },
+                    set(dimension_ids),
                 )
                 for dimension_id in dimension_ids:
                     self.assertIsInstance(dimension_id, str)

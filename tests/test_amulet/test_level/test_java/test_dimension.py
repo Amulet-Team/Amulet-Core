@@ -23,7 +23,12 @@ class JavaDimensionTestCase(TestCase):
                 self.assertIsInstance(overworld, JavaDimension)
                 self.assertEqual("minecraft:overworld", overworld.dimension_id)
                 self.assertIsInstance(overworld.bounds, SelectionBox)
-                self.assertEqual(SelectionBox(-30_000_000, 0, -30_000_000, 60_000_000, 256, 60_000_000), overworld.bounds)
+                self.assertEqual(
+                    SelectionBox(
+                        -30_000_000, 0, -30_000_000, 60_000_000, 256, 60_000_000
+                    ),
+                    overworld.bounds,
+                )
                 self.assertIsInstance(overworld.default_block, Block)
                 self.assertIsInstance(overworld.default_biome, Biome)
                 self.assertIsInstance(overworld.get_chunk_handle(0, 0), JavaChunkHandle)
