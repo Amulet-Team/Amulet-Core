@@ -36,6 +36,10 @@ public:
     // Thread safe.
     virtual const Biome& get_default_biome() const = 0;
 
+    // TODO
+    // chunk_coords
+    // changed_chunk_coords
+
     // Get a chunk handle for a specific chunk.
     // Thread safe.
     virtual std::shared_ptr<ChunkHandle> get_chunk_handle(std::int64_t cx, std::int64_t cz) = 0;
