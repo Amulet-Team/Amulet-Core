@@ -3,6 +3,7 @@
 #include <functional>
 #include <memory>
 #include <optional>
+#include <set>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
@@ -27,7 +28,7 @@ class Chunk {
 public:
     virtual ~Chunk() = default;
     virtual std::string get_chunk_id() const = 0;
-    virtual std::vector<std::string> get_component_ids() const = 0;
+    virtual std::set<std::string> get_component_ids() const = 0;
     // private:
     //  These are public but may become private one day
     virtual SerialisedComponents serialise_chunk() const = 0;
@@ -65,12 +66,12 @@ template <class ChunkBaseClass, class... Components>
 class ChunkComponentHelper : public ChunkBaseClass, public Components... {
 public:
     // Component list
-    std::vector<std::string> get_component_ids() const override
+    std::set<std::string> get_component_ids() const override
     {
-        std::vector<std::string> component_ids;
+        std::set<std::string> component_ids;
         (
             [&] {
-                component_ids.push_back(Components::ComponentID);
+                component_ids.emplace(Components::ComponentID);
             }(),
             ...);
         return component_ids;
