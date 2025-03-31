@@ -9,7 +9,10 @@ import pybind11
 
 def get_package_path(name: str) -> str:
     try:
-        module_path = importlib.util.find_spec(name).origin
+        spec = importlib.util.find_spec(name)
+        if spec is None:
+            raise RuntimeError(f"Could not find {name}")
+        module_path = spec.origin
         if module_path is None:
             raise RuntimeError(f"Could not find {name}")
         if not module_path.endswith("__init__.py"):
@@ -20,7 +23,7 @@ def get_package_path(name: str) -> str:
         return importlib.import_module(name).__path__[0].replace(os.sep, "/")
 
 
-def main():
+def main() -> None:
     os.chdir(os.path.dirname(__file__))
 
     if os.path.isdir("build/CMakeFiles"):

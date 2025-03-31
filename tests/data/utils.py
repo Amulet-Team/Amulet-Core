@@ -5,6 +5,7 @@ import shutil
 from contextlib import contextmanager
 from tempfile import TemporaryDirectory
 import atexit
+from typing import Generator
 
 import tests.data
 
@@ -25,7 +26,7 @@ def get_data_path(name: str) -> str:
     return os.path.join(DATA_DIR, name)
 
 
-def clean_path(path: str):
+def clean_path(path: str) -> None:
     """Clean a given path removing all data at that path."""
     if os.path.isdir(path):
         shutil.rmtree(path, ignore_errors=True)
@@ -34,7 +35,9 @@ def clean_path(path: str):
 
 
 @contextmanager
-def timeout(test_instance, time_constraint: float, show_completion_time=False):
+def timeout(
+    test_instance, time_constraint: float, show_completion_time=False
+) -> Generator[None, None, None]:
     start = time.time()
     yield
 

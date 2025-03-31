@@ -11,7 +11,7 @@ java_vanilla_1_12_2 = os.path.join("java", "vanilla", "1_12_2")
 java_vanilla_1_13 = os.path.join("java", "vanilla", "1_13")
 
 
-def __find_levels():
+def __find_levels() -> None:
     this_dir = os.path.dirname(__file__)
     for path in glob.glob(
         os.path.join(this_dir, "**", "world_test_data.json"), recursive=True

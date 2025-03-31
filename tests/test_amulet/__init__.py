@@ -4,6 +4,11 @@ if __name__ != "test_amulet":
     )
 
 
+import faulthandler
+
+faulthandler.enable()
+
+
 def _init() -> None:
     import sys
 
