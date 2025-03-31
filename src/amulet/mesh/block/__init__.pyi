@@ -4,7 +4,6 @@ import collections.abc
 import typing
 
 import numpy
-import pybind11_stubgen.typing_ext
 from amulet.mesh.block._cube import get_cube, get_unit_cube
 from amulet.mesh.block._missing_block import get_missing_block
 
@@ -50,17 +49,23 @@ class BlockMesh:
     ) -> None: ...
     def rotate(self, rotx: int, roty: int) -> BlockMesh:
         """
-        Rotate the mesh in the x and y axis. Accepted values are -3 to 3 which corrospond to 90 degree rotations.
+        Rotate the mesh in the x and y axis. Accepted values are -3 to 3 which correspond to 90 degree rotations.
         """
 
     @property
     def parts(
         self,
-    ) -> typing.Annotated[
-        list[BlockMeshPart | None], pybind11_stubgen.typing_ext.FixedSize(7)
+    ) -> tuple[
+        BlockMeshPart | None,
+        BlockMeshPart | None,
+        BlockMeshPart | None,
+        BlockMeshPart | None,
+        BlockMeshPart | None,
+        BlockMeshPart | None,
+        BlockMeshPart | None,
     ]:
         """
-        The mesh parts that make up this mesh. The index corrosponds to the value of BlockMeshCullDirection.
+        The mesh parts that make up this mesh. The index corresponds to the value of BlockMeshCullDirection.
         """
 
     @property
@@ -77,7 +82,7 @@ class BlockMesh:
 
 class BlockMeshCullDirection:
     """
-    The direction a mesh part is culled by. The value corrosponds to the index in the mesh parts array.
+    The direction a mesh part is culled by. The value corresponds to the index in the mesh parts array.
 
     Members:
 
