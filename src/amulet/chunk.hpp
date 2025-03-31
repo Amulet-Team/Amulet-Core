@@ -35,7 +35,7 @@ public:
 };
 
 namespace detail {
-    extern std::unordered_map<std::string, std::function<std::shared_ptr<Chunk>()>> chunk_constructors;
+    std::unordered_map<std::string, std::function<std::shared_ptr<Chunk>()>>& get_chunk_constructors();
 }
 
 AMULET_CORE_EXPORT std::shared_ptr<Chunk> get_null_chunk(std::string chunk_id);
@@ -47,16 +47,16 @@ class ChunkNullConstructor {
 public:
     ChunkNullConstructor()
     {
-        if (detail::chunk_constructors.contains(ChunkT::ChunkID)) {
+        if (detail::get_chunk_constructors().contains(ChunkT::ChunkID)) {
             throw std::runtime_error("A chunk class has already been registered with ID " + ChunkT::ChunkID);
         }
-        detail::chunk_constructors[ChunkT::ChunkID] = []() {
+        detail::get_chunk_constructors()[ChunkT::ChunkID] = []() {
             return std::make_shared<ChunkT>();
         };
     }
     ~ChunkNullConstructor()
     {
-        detail::chunk_constructors.erase(ChunkT::ChunkID);
+        detail::get_chunk_constructors().erase(ChunkT::ChunkID);
     }
 };
 
