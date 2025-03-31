@@ -21,6 +21,23 @@ The less compact version does not allow entries to straddle long values. Instead
 PGGGGGGGGGFFFFFFFFFEEEEEEEEEDDDDDDDDDCCCCCCCCCBBBBBBBBBAAAAAAAAA PNNNNNNNNNMMMMMMMMMLLLLLLLLLKKKKKKKKKJJJJJJJJJIIIIIIIIIHHHHHHHHH
 */
 
+// Get the number of longs required to store the encoded long array.
+inline size_t encoded_long_array_size(
+    size_t decoded_size, // The number of elements to encode
+    std::uint8_t bits_per_entry, // The number of bits of each number to use
+    bool dense = true)
+{
+    if (dense) {
+        // Total number of decoded bits ceiling divided by number of bits in a long.
+        return (decoded_size * bits_per_entry + 63) / 64;
+    } else {
+        // The number of entries that can fit in one long.
+        size_t entries_per_long = 64 / bits_per_entry;
+        // The number of longs required to fit all entries.
+        return (decoded_size + entries_per_long - 1) / entries_per_long;
+    }
+}
+
 template <typename decodedT>
 void decode_long_array(
     const std::span<std::uint64_t>& encoded, // The long array to decode
@@ -33,12 +50,10 @@ void decode_long_array(
         throw std::invalid_argument("bits_per_entry must be between 1 and 64 inclusive. Got " + std::to_string(bits_per_entry));
     }
 
-    size_t expected_len = static_cast<size_t>(std::ceil(
-        dense ? static_cast<float>(decoded.size()) * bits_per_entry / 64 : static_cast<float>(decoded.size()) / (64 / bits_per_entry)));
-
-    if (encoded.size() != expected_len) {
+    size_t encoded_len = encoded_long_array_size(decoded.size(), bits_per_entry, dense);
+    if (encoded.size() != encoded_len) {
         throw std::invalid_argument(
-            dense ? "Dense encoded long array with " : "Encoded long array with " + std::to_string(bits_per_entry) + " bits per entry should contain " + std::to_string(expected_len) + " longs but got " + std::to_string(encoded.size()) + ".");
+            dense ? "Dense encoded long array with " : "Encoded long array with " + std::to_string(bits_per_entry) + " bits per entry should contain " + std::to_string(encoded_len) + " longs but got " + std::to_string(encoded.size()) + ".");
     }
 
     const std::uint64_t mask = ~0ull >> (64 - bits_per_entry);
@@ -48,7 +63,7 @@ void decode_long_array(
             size_t bit_stop = (decoded_index + 1) * bits_per_entry;
             size_t long_start = bit_start / 64;
             decodedT& value = decoded[decoded_index];
-            value = (encoded[long_start] >> (bit_start % 64)) & mask;
+            value = static_cast<decodedT>((encoded[long_start] >> (bit_start % 64)) & mask);
             if ((long_start + 1) * 64 < bit_stop) {
                 // Overflows into the next long
                 size_t overflow_bits = bit_stop - (long_start + 1) * 64;
@@ -64,23 +79,9 @@ void decode_long_array(
                 size_t offset = 0;
                 offset < entries_per_long && decoded_index < decoded.size();
                 offset++, decoded_index++) {
-                decoded[decoded_index] = (encoded_value >> (bits_per_entry * offset)) & mask;
+                decoded[decoded_index] = static_cast<decodedT>((encoded_value >> (bits_per_entry * offset)) & mask);
             }
         }
-    }
-}
-
-// Get the number of longs required to store the encoded long array.
-inline size_t encoded_long_array_size(
-    size_t decoded_size, // The number of elements to encode
-    std::uint8_t bits_per_entry, // The number of bits of each number to use
-    bool dense = true)
-{
-    if (dense) {
-        return static_cast<size_t>(std::ceil(static_cast<float>(decoded_size * bits_per_entry) / 64));
-    } else {
-        size_t entries_per_long = 64 / bits_per_entry;
-        return static_cast<size_t>(std::ceil(static_cast<float>(decoded_size) / entries_per_long));
     }
 }
 
@@ -126,7 +127,7 @@ void encode_long_array(
     } else {
         size_t entries_per_long = 64 / bits_per_entry;
         size_t decoded_index = 0;
-        size_t long_count = std::ceil(static_cast<float>(decoded.size()) / entries_per_long);
+        size_t long_count = (decoded.size() + entries_per_long - 1) / entries_per_long;
         for (size_t encoded_index = 0; encoded_index < long_count; encoded_index++) {
             auto& encoded_value = encoded[encoded_index];
             encoded_value = 0;

@@ -106,18 +106,77 @@ void init_long_array(py::module m_parent)
                 static_cast<std::uint64_t*>(encoded_buffer_info.ptr),
                 encoded_buffer_info.size);
 
-            size_t byte_length = std::pow(2, std::ceil(std::log2(std::ceil(static_cast<float>(bits_per_entry) / 8))));
-            switch (byte_length) {
+            switch (bits_per_entry) {
             case 1:
-                return _decode_long_array<std::uint8_t>(size, bits_per_entry, dense, encoded_span);
             case 2:
-                return _decode_long_array<std::uint16_t>(size, bits_per_entry, dense, encoded_span);
+            case 3:
             case 4:
-                return _decode_long_array<std::uint32_t>(size, bits_per_entry, dense, encoded_span);
+            case 5:
+            case 6:
+            case 7:
             case 8:
+                return _decode_long_array<std::uint8_t>(size, bits_per_entry, dense, encoded_span);
+            case 9:
+            case 10:
+            case 11:
+            case 12:
+            case 13:
+            case 14:
+            case 15:
+            case 16:
+                return _decode_long_array<std::uint16_t>(size, bits_per_entry, dense, encoded_span);
+            case 17:
+            case 18:
+            case 19:
+            case 20:
+            case 21:
+            case 22:
+            case 23:
+            case 24:
+            case 25:
+            case 26:
+            case 27:
+            case 28:
+            case 29:
+            case 30:
+            case 31:
+            case 32:
+                return _decode_long_array<std::uint32_t>(size, bits_per_entry, dense, encoded_span);
+            case 33:
+            case 34:
+            case 35:
+            case 36:
+            case 37:
+            case 38:
+            case 39:
+            case 40:
+            case 41:
+            case 42:
+            case 43:
+            case 44:
+            case 45:
+            case 46:
+            case 47:
+            case 48:
+            case 49:
+            case 50:
+            case 51:
+            case 52:
+            case 53:
+            case 54:
+            case 55:
+            case 56:
+            case 57:
+            case 58:
+            case 59:
+            case 60:
+            case 61:
+            case 62:
+            case 63:
+            case 64:
                 return _decode_long_array<std::uint64_t>(size, bits_per_entry, dense, encoded_span);
             default:
-                throw std::runtime_error("Byte length must be 1, 2, 4 or 8. Got " + std::to_string(byte_length));
+                throw std::runtime_error("Expected 1 <= bits_per_entry <= 64. Got " + std::to_string(bits_per_entry));
             }
         },
         py::arg("long_array"),
