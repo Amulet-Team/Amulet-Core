@@ -32,7 +32,8 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install --no-cache-dir -v .
+        pip cache purge
+        pip install -v .
         pip install pybind11[global]==2.13.6
         pip install Amulet_pybind11_extensions@git+https://github.com/Amulet-Team/Amulet-pybind11-extensions.git@f781177e52f352ea0c1750e9219a1a84f4ddd92f
         python tests/compile.py
