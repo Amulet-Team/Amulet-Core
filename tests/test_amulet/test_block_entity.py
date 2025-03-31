@@ -19,6 +19,13 @@ def get_test_block_entity() -> BlockEntity:
 def get_test_block_entity_variants() -> tuple[BlockEntity, ...]:
     return (
         BlockEntity(
+            "bedrock",
+            VersionNumber(3578),
+            "namespace",
+            "basename",
+            NamedTag(CompoundTag({"int": IntTag(1), "str": StringTag("hi")})),
+        ),
+        BlockEntity(
             "java",
             VersionNumber(3579),
             "namespace",
@@ -70,6 +77,18 @@ class BlockEntityTestCase(unittest.TestCase):
         block_entity.nbt.compound["int"] = IntTag(2)
         self.assertEqual(
             NamedTag(CompoundTag({"int": IntTag(2), "str": StringTag("hi")})),
+            block_entity.nbt,
+        )
+        old_nbt = block_entity.nbt
+        block_entity.nbt = NamedTag(
+            CompoundTag({"int": IntTag(3), "str": StringTag("hi")})
+        )
+        self.assertEqual(
+            NamedTag(CompoundTag({"int": IntTag(2), "str": StringTag("hi")})),
+            old_nbt,
+        )
+        self.assertEqual(
+            NamedTag(CompoundTag({"int": IntTag(3), "str": StringTag("hi")})),
             block_entity.nbt,
         )
 
