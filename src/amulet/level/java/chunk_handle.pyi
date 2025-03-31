@@ -22,8 +22,6 @@ class JavaChunkHandle(amulet.level.abc.chunk_handle.ChunkHandle):
         If you want to edit the chunk, use :meth:`edit` instead.
 
         :param chunk: The chunk data to set.
-        :raises:
-            LockNotAcquired: If the chunk is already locked by another thread.
         """
 
     @typing.overload
@@ -34,6 +32,4 @@ class JavaChunkHandle(amulet.level.abc.chunk_handle.ChunkHandle):
         If you want to edit the chunk, use :meth:`edit` instead.
 
         :param chunk: The chunk data to set.
-        :raises:
-            LockNotAcquired: If the chunk is already locked by another thread.
         """

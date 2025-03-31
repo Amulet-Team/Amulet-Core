@@ -11,9 +11,6 @@ class ChunkHandle:
         """
         Delete the chunk from the level.
         You must acquire the chunk lock before deleting.
-
-        :raises:
-            LockNotAcquired: If the chunk is already locked by another thread.
         """
 
     def exists(self) -> bool:
@@ -45,8 +42,6 @@ class ChunkHandle:
         If you want to edit the chunk, use :meth:`edit` instead.
 
         :param chunk: The chunk data to set.
-        :raises:
-            LockNotAcquired: If the chunk is already locked by another thread.
         """
 
     @property

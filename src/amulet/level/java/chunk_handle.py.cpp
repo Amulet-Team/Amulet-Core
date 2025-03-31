@@ -35,9 +35,7 @@ py::module init_java_chunk_handle(py::module m_parent)
             "You must acquire the chunk lock before setting.\n"
             "If you want to edit the chunk, use :meth:`edit` instead.\n"
             "\n"
-            ":param chunk: The chunk data to set.\n"
-            ":raises:\n"
-            "    LockNotAcquired: If the chunk is already locked by another thread."));
+            ":param chunk: The chunk data to set."));
     // This is here to appease mypy.
     JavaChunkHandle.def(
         "set_chunk",
@@ -49,9 +47,7 @@ py::module init_java_chunk_handle(py::module m_parent)
             "You must acquire the chunk lock before setting.\n"
             "If you want to edit the chunk, use :meth:`edit` instead.\n"
             "\n"
-            ":param chunk: The chunk data to set.\n"
-            ":raises:\n"
-            "    LockNotAcquired: If the chunk is already locked by another thread."));
+            ":param chunk: The chunk data to set."));
 
     return m;
 }

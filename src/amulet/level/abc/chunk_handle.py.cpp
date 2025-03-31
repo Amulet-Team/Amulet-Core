@@ -74,19 +74,14 @@ py::module init_chunk_handle(py::module m_parent)
             "You must acquire the chunk lock before setting.\n"
             "If you want to edit the chunk, use :meth:`edit` instead.\n"
             "\n"
-            ":param chunk: The chunk data to set.\n"
-            ":raises:\n"
-            "    LockNotAcquired: If the chunk is already locked by another thread."));
+            ":param chunk: The chunk data to set."));
     ChunkHandle.def(
         "delete_chunk",
         &Amulet::ChunkHandle::delete_chunk,
         py::call_guard<py::gil_scoped_release>(),
         py::doc(
             "Delete the chunk from the level.\n"
-            "You must acquire the chunk lock before deleting.\n"
-            "\n"
-            ":raises:\n"
-            "    LockNotAcquired: If the chunk is already locked by another thread."));
+            "You must acquire the chunk lock before deleting."));
 
     return m;
 }
