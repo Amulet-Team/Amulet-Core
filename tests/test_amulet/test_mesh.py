@@ -139,6 +139,8 @@ class BlockMeshTestCase(TestCase):
         )
         self.assertEqual(BlockMeshTransparency.FullOpaque, mesh.transparency)
         self.assertEqual(["texture/one", "texture/two"], mesh.textures)
+        self.assertIsInstance(mesh.parts, tuple)
+        self.assertEqual(7, len(mesh.parts))
         for part in mesh.parts:
             self._validate_part(part)
 

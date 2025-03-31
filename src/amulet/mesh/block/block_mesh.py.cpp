@@ -141,7 +141,14 @@ void init_block_mesh(py::module m)
                                               std::optional<Amulet::BlockMeshPart>,
                                               std::optional<Amulet::BlockMeshPart>,
                                               std::optional<Amulet::BlockMeshPart>> {
-            return py::make_tuple(self.parts.begin(), self.parts.end());
+            return py::make_tuple(
+                py::cast(self.parts[0]),
+                py::cast(self.parts[1]),
+                py::cast(self.parts[2]),
+                py::cast(self.parts[3]),
+                py::cast(self.parts[4]),
+                py::cast(self.parts[5]),
+                py::cast(self.parts[6]));
         },
         py::doc("The mesh parts that make up this mesh. The index corresponds to the value of BlockMeshCullDirection."));
     BlockMesh.def("rotate", &Amulet::BlockMesh::rotate, py::arg("rotx"), py::arg("roty"), py::doc("Rotate the mesh in the x and y axis. Accepted values are -3 to 3 which correspond to 90 degree rotations."));
