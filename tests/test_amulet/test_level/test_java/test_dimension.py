@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from amulet.block import Block
+from amulet.block import BlockStack
 from amulet.biome import Biome
 from amulet.selection import SelectionBox
 from amulet.level.java import (
@@ -29,7 +29,7 @@ class JavaDimensionTestCase(TestCase):
                     ),
                     overworld.bounds,
                 )
-                self.assertIsInstance(overworld.default_block, Block)
+                self.assertIsInstance(overworld.default_block, BlockStack)
                 self.assertIsInstance(overworld.default_biome, Biome)
                 self.assertIsInstance(overworld.get_chunk_handle(0, 0), JavaChunkHandle)
 
