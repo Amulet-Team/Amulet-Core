@@ -11,64 +11,55 @@
 
 namespace py = pybind11;
 
-inline bool is_image(py::handle obj)
-{
-    py::gil_scoped_acquire gil;
-    auto ImageCls = py::module::import("PIL.Image").attr("Image");
-    return py::module::import("builtins").attr("isinstance")(obj, ImageCls).cast<bool>();
-}
-
 namespace PIL {
 namespace Image {
 
+    // Is the object an image.
+    // The GIL must be held when calling this.
+    AMULET_CORE_EXPORT bool is_image(py::handle obj);
+
     // A C++ wrapper around a Pillow Image class.
+    // The GIL must be held while interacting with this class.
     class Image : public py::object {
     public:
         PYBIND11_OBJECT_DEFAULT(Image, py::object, is_image)
 
-        size_t get_width()
-        {
-            return attr("width").cast<size_t>();
-        }
+        // Get the image width.
+        // The GIL must be held while calling this.
+        AMULET_CORE_EXPORT size_t get_width() const;
 
-        size_t get_height()
-        {
-            return attr("height").cast<size_t>();
-        }
+        // Get the image height.
+        // The GIL must be held while calling this.
+        AMULET_CORE_EXPORT size_t get_height() const;
 
-        std::string get_mode()
-        {
-            return attr("mode").cast<std::string>();
-        }
+        // Get the image mode.
+        // The GIL must be held while calling this.
+        AMULET_CORE_EXPORT std::string get_mode() const;
 
-        py::buffer get_buffer()
-        {
-            return *this;
-        }
+        // Get the image buffer.
+        // The GIL must be held before calling and while interacting with the buffer.
+        AMULET_CORE_EXPORT py::buffer get_buffer() const;
     };
 
-    inline Image open(std::filesystem::path path)
-    {
-        return py::module::import("PIL.Image").attr("open")(path.string());
-    }
+    // Open an image file at the given path.
+    // The GIL must be held while calling this and while interacting with the image.
+    AMULET_CORE_EXPORT Image open(const std::filesystem::path& path);
 
-    inline Image load(std::string_view data)
-    {
-        py::bytes py_data(data);
-        auto f = py::module::import("io").attr("BytesIO")(py_data);
-        return py::module::import("PIL.Image").attr("open")(f);
-    }
+    // Load an image file from its raw data.
+    // The GIL must be held while calling this and while interacting with the image.
+    AMULET_CORE_EXPORT Image load(std::string_view data);
 
 } // namespace Image
-
 } // namespace PIL
 
 namespace pybind11 {
 namespace detail {
+
     template <>
     struct handle_type_name<PIL::Image::Image> {
         static constexpr auto name = const_name("PIL.Image.Image");
     };
+
 } // namespace detail
 } // namespace pybind11
 
