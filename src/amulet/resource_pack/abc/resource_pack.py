@@ -1,4 +1,4 @@
-from amulet.img import missing_pack_icon_path
+from amulet.image import missing_pack_icon_path
 
 
 class BaseResourcePack:
