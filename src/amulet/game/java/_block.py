@@ -1,5 +1,4 @@
 from __future__ import annotations
-from enum import IntEnum
 from collections.abc import Mapping
 from typing import TYPE_CHECKING
 
@@ -13,14 +12,10 @@ from amulet.game.translate import (
     BlockFromUniversalTranslator,
 )
 
+from amulet._game.java.block import Waterloggable
+
 if TYPE_CHECKING:
     from ._version import JavaGameVersion
-
-
-class Waterloggable(IntEnum):
-    No = 0
-    Yes = 1
-    Always = 2
 
 
 class JavaBlockData(DatabaseBlockData, BlockDataNumericalComponent):
