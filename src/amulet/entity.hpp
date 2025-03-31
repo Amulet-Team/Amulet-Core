@@ -54,10 +54,6 @@ public:
     AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
     AMULET_CORE_EXPORT static Entity deserialise(BinaryReader&);
 
-    bool operator==(const Entity& other) const
-    {
-        return (
-            PlatformVersionContainer::operator==(other) && _namespace == other._namespace && _base_name == other._base_name && AmuletNBT::NBTTag_eq(*_nbt, *other._nbt));
-    }
+    AMULET_CORE_EXPORT bool operator==(const Entity& other) const;
 };
 }
