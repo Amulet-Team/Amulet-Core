@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Protocol, TypeVarTuple
+from typing import Protocol, TypeVarTuple, runtime_checkable
 from collections.abc import Callable
 from ._signal import ConnectionMode
 
@@ -11,6 +11,7 @@ class SignalToken(Protocol[*Args]):
     pass
 
 
+@runtime_checkable
 class Signal(Protocol[*Args]):
     def connect(
         self,
