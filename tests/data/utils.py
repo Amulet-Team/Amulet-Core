@@ -35,7 +35,9 @@ def clean_path(path: str) -> None:
 
 
 @contextmanager
-def timeout(test_instance, time_constraint: float, show_completion_time=False) -> Generator[None, None, None]:
+def timeout(
+    test_instance, time_constraint: float, show_completion_time=False
+) -> Generator[None, None, None]:
     start = time.time()
     yield
 

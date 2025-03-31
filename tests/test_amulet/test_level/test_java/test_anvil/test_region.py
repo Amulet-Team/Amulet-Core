@@ -215,8 +215,12 @@ class AnvilRegionTestCase(unittest.TestCase):
                                 ):
                                     section.pop("BlockLight")
 
-                    remove_sections(zlib_chunk.compound.get_list("sections", raise_errors=True))
-                    remove_sections(lz4_chunk.compound.get_list("sections", raise_errors=True))
+                    remove_sections(
+                        zlib_chunk.compound.get_list("sections", raise_errors=True)
+                    )
+                    remove_sections(
+                        lz4_chunk.compound.get_list("sections", raise_errors=True)
+                    )
 
                     self.assertEqual(zlib_chunk, lz4_chunk)
             finally:
