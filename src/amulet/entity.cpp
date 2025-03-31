@@ -63,6 +63,9 @@ bool Entity::operator==(const Entity& other) const
         PlatformVersionContainer::operator==(other)
         && _namespace == other._namespace
         && _base_name == other._base_name
+        && _x == other._x
+        && _y == other._y
+        && _z == other._z
         && AmuletNBT::NBTTag_eq(*_nbt, *other._nbt));
 }
 
