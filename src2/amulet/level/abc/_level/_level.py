@@ -11,7 +11,7 @@ from PIL import Image
 
 from amulet.version import PlatformType, VersionNumber
 from amulet.data_types import DimensionId
-from amulet.img import missing_world_icon_path
+from amulet.image import missing_world_icon_path
 
 from amulet.chunk import Chunk
 

@@ -4,7 +4,7 @@ import json
 from amulet.block import Block, BlockStack
 from amulet.mesh.block import BlockMesh, merge_block_meshes, get_missing_block
 from amulet.resource_pack.abc.resource_pack import BaseResourcePack
-from amulet.img import missing_no_icon_path
+from amulet.image import missing_no_icon_path
 
 PackT = TypeVar("PackT", bound=BaseResourcePack)
 
