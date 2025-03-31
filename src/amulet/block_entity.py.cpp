@@ -78,7 +78,7 @@ void init_block_entity(py::module m_parent)
     BlockEntity.def(
         "__repr__",
         [](const Amulet::BlockEntity& self) {
-            return "Block(" 
+            return "BlockEntity("
                 + py::repr(py::cast(self.get_platform())).cast<std::string>() + ", " 
                 + py::repr(py::cast(self.get_version(), py::return_value_policy::reference)).cast<std::string>() + ", " 
                 + py::repr(py::cast(self.get_namespace())).cast<std::string>() + ", " 
