@@ -39,12 +39,14 @@ std::unique_ptr<JavaChunk> JavaChunkHandle::_get_null_chunk()
     if (data.empty()) {
         // Empty if chunk does not exist.
         throw ChunkDoesNotExist();
-    } else if (data[0]) {
+    } else if (data[0] == 'e') {
         // 1 followed by the string if other error.
         throw ChunkLoadError(data.substr(1));
-    } else {
+    } else if (data[0] == 'c') {
         // 0 followed by the chunk id if a valid chunk.
         return detail::get_java_null_chunk(data.substr(1));
+    } else {
+        throw std::runtime_error("Invalid chunk id prefix.");
     }
 }
 
@@ -58,7 +60,7 @@ void JavaChunkHandle::_preload() {
     JavaRawChunk raw_chunk;
     try {
         raw_chunk = _raw_dimension->get_raw_chunk(_cx, _cz);
-    } catch (const ChunkDoesNotExist& e) {
+    } catch (const ChunkDoesNotExist&) {
         _chunk_history->set_initial_value(_key, "");
         return;
     }
@@ -68,12 +70,12 @@ void JavaChunkHandle::_preload() {
     try {
         chunk = _raw_dimension->decode_chunk(raw_chunk, _cx, _cz);
     } catch (const ChunkLoadError& e) {
-        _chunk_history->set_initial_value(_key, '\x01' + std::string(e.what()));
+        _chunk_history->set_initial_value(_key, 'e' + std::string(e.what()));
         return;
     }
 
     // Save the chunk.
-    _chunk_history->set_initial_value(_key, '\x00' + detail::get_java_chunk_id(*chunk));
+    _chunk_history->set_initial_value(_key, 'c' + detail::get_java_chunk_id(*chunk));
     for (const auto& [component_id, component_data] : chunk->serialise_chunk()) {
         if (!component_data) {
             throw std::runtime_error("Component " + component_id + " cannot be undefined when initialising chunk");
@@ -149,7 +151,7 @@ void JavaChunkHandle::set_java_chunk(const JavaChunk& chunk)
     }
 
     auto old_chunk_id = _chunk_history->get_value(_key);
-    auto new_chunk_id = "\x00" + detail::get_java_chunk_id(chunk);
+    auto new_chunk_id = 'c' + detail::get_java_chunk_id(chunk);
 
     auto component_data = chunk.serialise_chunk();
     std::list<std::pair<std::string, std::string>> values;
@@ -157,7 +159,7 @@ void JavaChunkHandle::set_java_chunk(const JavaChunk& chunk)
     auto copy_values = [&]<bool error_undefined>() {
         for (const auto& [component_id, data] : component_data) {
             if (data) {
-                values.emplace_back(component_id, *data);
+                values.emplace_back(std::string(_key) + '/' + component_id, *data);
             } else if constexpr (error_undefined) {
                 throw std::runtime_error("When changing chunk class all the data must be present.");
             }
