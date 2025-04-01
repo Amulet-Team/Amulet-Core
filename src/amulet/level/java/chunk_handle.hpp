@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 #include <amulet/dll.hpp>
 
 #include <amulet/level/abc/chunk_handle.hpp>
@@ -12,10 +14,12 @@ namespace Amulet {
 
 class JavaChunkHandle : public ChunkHandle {
 private:
+    std::shared_ptr<JavaRawDimension> _raw_dimension;
+
     std::shared_ptr<HistoryManagerLayer<detail::ChunkKey>> _chunk_history;
     std::shared_ptr<HistoryManagerLayer<std::string>> _chunk_data_history;
 
-    std::shared_ptr<JavaRawDimension> _raw_dimension;
+    std::shared_ptr<bool> _history_enabled;
 
     JavaChunkHandle(
         const DimensionID& dimension_id,
@@ -23,7 +27,8 @@ private:
         std::int64_t cz,
         std::shared_ptr<JavaRawDimension> raw_dimension,
         std::shared_ptr<HistoryManagerLayer<detail::ChunkKey>> chunk_history,
-        std::shared_ptr<HistoryManagerLayer<std::string>> chunk_data_history);
+        std::shared_ptr<HistoryManagerLayer<std::string>> chunk_data_history,
+        std::shared_ptr<bool> history_enabled);
 
     friend class JavaDimension;
 

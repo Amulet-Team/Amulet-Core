@@ -13,11 +13,13 @@ JavaChunkHandle::JavaChunkHandle(
     std::int64_t cz,
     std::shared_ptr<JavaRawDimension> raw_dimension,
     std::shared_ptr<HistoryManagerLayer<detail::ChunkKey>> chunk_history,
-    std::shared_ptr<HistoryManagerLayer<std::string>> chunk_data_history)
+    std::shared_ptr<HistoryManagerLayer<std::string>> chunk_data_history,
+    std::shared_ptr<bool> history_enabled)
     : ChunkHandle(dimension_id, cx, cz)
     , _raw_dimension(std::move(raw_dimension))
     , _chunk_history(std::move(chunk_history))
     , _chunk_data_history(std::move(chunk_data_history))
+    , _history_enabled(std::move(history_enabled))
 {
 }
 
@@ -143,8 +145,7 @@ void JavaChunkHandle::set_java_chunk(const JavaChunk& chunk)
     std::lock_guard lock(_chunk_history->get_mutex());
 
     // Set initial state.
-    if (true) {
-        // TODO: set above to history_enabled
+    if (*_history_enabled) {
         _preload();
     } else if (!_chunk_history->has_resource(_key)) {
         _chunk_history->set_initial_value(_key, "");
@@ -196,8 +197,7 @@ void JavaChunkHandle::delete_chunk()
     std::lock_guard lock(_chunk_history->get_mutex());
 
     // Set initial state.
-    if (true) {
-        // TODO: set above to history_enabled
+    if (*_history_enabled) {
         _preload();
     } else if (!_chunk_history->has_resource(_key)) {
         _chunk_history->set_initial_value(_key, "");

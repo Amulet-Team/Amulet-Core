@@ -219,7 +219,8 @@ std::shared_ptr<JavaDimension> JavaLevel::get_java_dimension(const DimensionID& 
         auto raw_dimension = _raw_level->get_dimension(dimension_id);
         auto dimension = std::shared_ptr<JavaDimension>(new JavaDimension(
             raw_dimension,
-            open_data.history_manager));
+            open_data.history_manager,
+            open_data.history_enabled));
         open_data.dimensions.emplace(raw_dimension->get_dimension_id(), dimension);
         open_data.dimensions.emplace(raw_dimension->get_relative_path(), dimension);
         return dimension;

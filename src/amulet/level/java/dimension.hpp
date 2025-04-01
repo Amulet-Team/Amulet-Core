@@ -23,9 +23,12 @@ private:
     std::shared_ptr<HistoryManagerLayer<detail::ChunkKey>> _chunk_history;
     std::shared_ptr<HistoryManagerLayer<std::string>> _chunk_data_history;
 
+    std::shared_ptr<bool> _history_enabled;
+
     JavaDimension(
         std::shared_ptr<JavaRawDimension> raw_dimension,
-        HistoryManager& history_manager);
+        HistoryManager& history_manager,
+        std::shared_ptr<bool> history_enabled);
 
     friend class JavaLevel;
 
