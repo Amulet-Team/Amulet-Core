@@ -364,8 +364,9 @@ public:
         }
         if (_h->history_index != 0) {
             // Add the resources to the global bin
+            auto& bin = _h->history_bins.at(_h->history_index);
             for (const auto& data : resource_data) {
-                _h->history_bins.at(_h->history_index).emplace(std::get<2>(data));
+                bin.emplace(std::get<2>(data));
             }
         }
     }
