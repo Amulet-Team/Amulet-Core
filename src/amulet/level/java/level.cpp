@@ -243,10 +243,18 @@ void JavaLevel::reload_metadata()
 void JavaLevel::reload()
 {
     {
+        // purge loaded data.
+        auto& open_data = _get_open_data();
+        std::lock_guard lock(open_data.history_manager.get_mutex());
+        open_data.history_manager.reset();
+    }
+    {
+        // reload the raw level.
         std::lock_guard lock(_raw_level->get_mutex());
         _raw_level->reload();
     }
     reloaded.emit();
+    history_changed.emit();
 }
 
 JavaRawLevel& JavaLevel::get_raw_level()
