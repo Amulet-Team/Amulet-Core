@@ -143,17 +143,19 @@ void HistoryManager::undo()
     if (_h->history_index == 0) {
         throw std::runtime_error("There is nothing to undo.");
     }
+    // Decrement the history index.
+    auto old_index = _h->history_index;
+    auto new_index = --_h->history_index;
     // For all resources in the bin.
     for_each<HistoryResource>(
-        _h->history_bins.at(_h->history_index),
-        [](HistoryResource& resource) {
-            // Decrement the index
+        _h->history_bins.at(old_index),
+        [&new_index](HistoryResource& resource) {
+            // Decrement the indexes.
             resource.index--;
+            resource.global_index = new_index;
             // Notify listeners that it has changed.
             resource.changed->emit();
         });
-    // Decrement the history index.
-    _h->history_index--;
 }
 
 size_t HistoryManager::get_redo_count()
@@ -168,13 +170,14 @@ void HistoryManager::redo()
         throw std::runtime_error("There is nothing to redo.");
     }
     // Increment the history index.
-    _h->history_index++;
+    auto new_index = ++_h->history_index;
     // For all resources in the bin.
     for_each<HistoryResource>(
-        _h->history_bins.at(_h->history_index),
-        [](HistoryResource& resource) {
+        _h->history_bins.at(new_index),
+        [&new_index](HistoryResource& resource) {
             // Increment the index
             resource.index++;
+            resource.global_index = new_index;
             // Notify listeners that it has changed.
             resource.changed->emit();
         });
