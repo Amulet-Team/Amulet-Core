@@ -18,9 +18,11 @@ namespace Amulet {
 class JavaLevelOpenData {
 public:
     HistoryManager history_manager;
-    bool history_enabled = true;
+    std::shared_ptr<bool> history_enabled;
     std::shared_mutex dimensions_mutex;
     std::map<DimensionID, std::shared_ptr<JavaDimension>> dimensions;
+
+    JavaLevelOpenData();
 };
 
 class JavaLevel : public Level, public CompactibleLevel, public DiskLevel, public ReloadableLevel {

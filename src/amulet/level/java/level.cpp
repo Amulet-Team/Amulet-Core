@@ -6,6 +6,11 @@
 
 namespace Amulet {
 
+JavaLevelOpenData::JavaLevelOpenData()
+    : history_enabled(std::make_shared<bool>())
+{
+}
+
 JavaLevel::JavaLevel(std::unique_ptr<JavaRawLevel> raw_level)
     : _raw_level(std::move(raw_level))
 {
@@ -172,12 +177,12 @@ void JavaLevel::redo()
 
 bool JavaLevel::get_history_enabled()
 {
-    return _get_open_data().history_enabled;
+    return *_get_open_data().history_enabled;
 }
 
 void JavaLevel::set_history_enabled(bool history_enabled)
 {
-    _get_open_data().history_enabled = history_enabled;
+    *_get_open_data().history_enabled = history_enabled;
     history_enabled_changed.emit();
 }
 
