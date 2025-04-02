@@ -394,6 +394,12 @@ public:
             }
         }
     }
+
+    template <HistoryInitialisationMode init_mode = HistoryInitialisationMode::Error>
+    void set_values(std::initializer_list<std::pair<ResourceIdT, std::string>> resources)
+    {
+        set_values<init_mode, std::initializer_list<std::pair<ResourceIdT, std::string>>>(resources);
+    }
 };
 
 // The root history manager class.
