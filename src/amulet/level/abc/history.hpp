@@ -276,9 +276,11 @@ public:
                 throw std::runtime_error("Initial value has not been set for resource: " + std::string(resource_id));
             } else if constexpr (init_mode == HistoryInitialisationMode::Empty) {
                 it = _set_initial_value(resource_id, "");
+                it->second->saved_index = -1;
             } else {
                 static_assert(init_mode == HistoryInitialisationMode::Value);
-                _set_initial_value(resource_id, value);
+                it = _set_initial_value(resource_id, value);
+                it->second->saved_index = -1;
                 return; // There is no point setting it again.
             }
         }
@@ -336,11 +338,14 @@ public:
                 if constexpr (init_mode == HistoryInitialisationMode::Error) {
                     throw std::runtime_error("Initial value has not been set for resource: " + std::string(resource_id));
                 } else if constexpr (init_mode == HistoryInitialisationMode::Empty) {
-                    resource_data.emplace_back(resource_id, value, _set_initial_value(resource_id, "")->second);
+                    const auto& resource_ptr = _set_initial_value(resource_id, "")->second;
+                    resource_ptr->saved_index = -1;
+                    resource_data.emplace_back(resource_id, value, resource_ptr);
                 } else {
                     static_assert(init_mode == HistoryInitialisationMode::Value);
                     // Set the original state and don't add it to resource_data.
-                    _set_initial_value(resource_id, value);
+                    it = _set_initial_value(resource_id, value);
+                    it->second->saved_index = -1;
                 }
             } else {
                 resource_data.emplace_back(resource_id, value, it->second);
