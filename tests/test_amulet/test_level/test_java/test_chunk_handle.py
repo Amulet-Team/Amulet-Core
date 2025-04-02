@@ -33,9 +33,7 @@ class JavaChunkHandleTestCase(TestCase):
                 self.assertIsInstance(chunk_handle.lock, OrderedLock)
 
                 self.assertIsInstance(chunk_handle.dimension_id, str)
-                self.assertEqual(
-                    "minecraft:overworld", chunk_handle.dimension_id
-                )
+                self.assertEqual("minecraft:overworld", chunk_handle.dimension_id)
 
                 self.assertIsInstance(chunk_handle.cx, int)
                 self.assertEqual(1, chunk_handle.cx)
@@ -61,7 +59,9 @@ class JavaChunkHandleTestCase(TestCase):
                         "my_basename",
                     )
                 )
-                self.assertEqual(67, chunk.block.palette.block_stack_to_index(block_stack))
+                self.assertEqual(
+                    67, chunk.block.palette.block_stack_to_index(block_stack)
+                )
                 self.assertEqual(68, len(chunk.block.palette))
 
                 # reload it from the cache
@@ -80,7 +80,9 @@ class JavaChunkHandleTestCase(TestCase):
                 self.assertIs(chunk_3.__class__, chunk.__class__)
                 assert isinstance(chunk_3, BlockComponent)
                 self.assertEqual(68, len(chunk_3.block.palette))
-                self.assertEqual(block_stack, chunk_3.block.palette.index_to_block_stack(67))
+                self.assertEqual(
+                    block_stack, chunk_3.block.palette.index_to_block_stack(67)
+                )
 
                 # delete it
                 chunk_handle.delete_chunk()
@@ -95,7 +97,9 @@ class JavaChunkHandleTestCase(TestCase):
                 self.assertIs(chunk_4.__class__, chunk.__class__)
                 assert isinstance(chunk_4, BlockComponent)
                 self.assertEqual(68, len(chunk_4.block.palette))
-                self.assertEqual(block_stack, chunk_4.block.palette.index_to_block_stack(67))
+                self.assertEqual(
+                    block_stack, chunk_4.block.palette.index_to_block_stack(67)
+                )
 
             finally:
                 level.close()
@@ -114,9 +118,7 @@ class JavaChunkHandleTestCase(TestCase):
                 self.assertIsInstance(chunk_handle.lock, OrderedLock)
 
                 self.assertIsInstance(chunk_handle.dimension_id, str)
-                self.assertEqual(
-                    "minecraft:overworld", chunk_handle.dimension_id
-                )
+                self.assertEqual("minecraft:overworld", chunk_handle.dimension_id)
 
                 self.assertIsInstance(chunk_handle.cx, int)
                 self.assertEqual(100, chunk_handle.cx)
@@ -135,20 +137,8 @@ class JavaChunkHandleTestCase(TestCase):
                 # Create the chunk
                 chunk = JavaChunk1466(
                     1466,
-                    BlockStack(
-                        Block(
-                            "java",
-                            VersionNumber(1466),
-                            "minecraft",
-                            "air"
-                        )
-                    ),
-                    Biome(
-                        "java",
-                        VersionNumber(1466),
-                        "minecraft",
-                        "plains"
-                    )
+                    BlockStack(Block("java", VersionNumber(1466), "minecraft", "air")),
+                    Biome("java", VersionNumber(1466), "minecraft", "plains"),
                 )
                 self.assertEqual(1, len(chunk.block.palette))
 
@@ -160,15 +150,8 @@ class JavaChunkHandleTestCase(TestCase):
                 self.assertIsInstance(chunk_2, JavaChunk1466)
                 self.assertEqual(1, len(chunk_2.block.palette))
                 self.assertEqual(
-                    BlockStack(
-                        Block(
-                            "java",
-                            VersionNumber(1466),
-                            "minecraft",
-                            "air"
-                        )
-                    ),
-                    chunk_2.block.palette.index_to_block_stack(0)
+                    BlockStack(Block("java", VersionNumber(1466), "minecraft", "air")),
+                    chunk_2.block.palette.index_to_block_stack(0),
                 )
 
                 # Delete the chunk
@@ -215,12 +198,16 @@ class JavaChunkHandleTestCase(TestCase):
                         "my_basename",
                     )
                 )
-                self.assertEqual(67, chunk.block.palette.block_stack_to_index(block_stack))
+                self.assertEqual(
+                    67, chunk.block.palette.block_stack_to_index(block_stack)
+                )
 
                 def validate_edited_1(edited_chunk: Chunk) -> None:
                     self.assertIsInstance(edited_chunk, JavaChunk1466)
                     self.assertEqual(68, len(edited_chunk.block.palette))
-                    self.assertEqual(block_stack, edited_chunk.block.palette.index_to_block_stack(67))
+                    self.assertEqual(
+                        block_stack, edited_chunk.block.palette.index_to_block_stack(67)
+                    )
 
                 validate_edited_1(chunk)
 
@@ -249,13 +236,20 @@ class JavaChunkHandleTestCase(TestCase):
                         "my_basename_2",
                     )
                 )
-                self.assertEqual(68, chunk.block.palette.block_stack_to_index(block_stack_2))
+                self.assertEqual(
+                    68, chunk.block.palette.block_stack_to_index(block_stack_2)
+                )
 
                 def validate_edited_2(edited_chunk: Chunk) -> None:
                     self.assertIsInstance(edited_chunk, JavaChunk1466)
                     self.assertEqual(69, len(edited_chunk.block.palette))
-                    self.assertEqual(block_stack, edited_chunk.block.palette.index_to_block_stack(67))
-                    self.assertEqual(block_stack_2, edited_chunk.block.palette.index_to_block_stack(68))
+                    self.assertEqual(
+                        block_stack, edited_chunk.block.palette.index_to_block_stack(67)
+                    )
+                    self.assertEqual(
+                        block_stack_2,
+                        edited_chunk.block.palette.index_to_block_stack(68),
+                    )
 
                 validate_edited_2(chunk)
                 chunk_handle.set_chunk(chunk)
@@ -287,13 +281,20 @@ class JavaChunkHandleTestCase(TestCase):
                         "my_basename_3",
                     )
                 )
-                self.assertEqual(69, chunk.block.palette.block_stack_to_index(block_stack_3))
+                self.assertEqual(
+                    69, chunk.block.palette.block_stack_to_index(block_stack_3)
+                )
 
                 def validate_edited_3(edited_chunk: Chunk) -> None:
                     self.assertIsInstance(edited_chunk, JavaChunk1466)
                     self.assertEqual(70, len(edited_chunk.block.palette))
-                    self.assertEqual(block_stack, edited_chunk.block.palette.index_to_block_stack(67))
-                    self.assertEqual(block_stack_2, edited_chunk.block.palette.index_to_block_stack(68))
+                    self.assertEqual(
+                        block_stack, edited_chunk.block.palette.index_to_block_stack(67)
+                    )
+                    self.assertEqual(
+                        block_stack_2,
+                        edited_chunk.block.palette.index_to_block_stack(68),
+                    )
 
                 validate_edited_3(chunk)
                 chunk_handle.set_chunk(chunk)
@@ -352,20 +353,8 @@ class JavaChunkHandleTestCase(TestCase):
                 # Create and set the chunk.
                 chunk = JavaChunk1444(
                     1444,
-                    BlockStack(
-                        Block(
-                            "java",
-                            VersionNumber(1444),
-                            "minecraft",
-                            "air"
-                        )
-                    ),
-                    Biome(
-                        "java",
-                        VersionNumber(1444),
-                        "minecraft",
-                        "plains"
-                    )
+                    BlockStack(Block("java", VersionNumber(1444), "minecraft", "air")),
+                    Biome("java", VersionNumber(1444), "minecraft", "plains"),
                 )
                 chunk_handle.set_chunk(chunk)
 
@@ -398,20 +387,8 @@ class JavaChunkHandleTestCase(TestCase):
                 # Create and set the chunk.
                 chunk = JavaChunk1444(
                     1444,
-                    BlockStack(
-                        Block(
-                            "java",
-                            VersionNumber(1444),
-                            "minecraft",
-                            "air"
-                        )
-                    ),
-                    Biome(
-                        "java",
-                        VersionNumber(1444),
-                        "minecraft",
-                        "plains"
-                    )
+                    BlockStack(Block("java", VersionNumber(1444), "minecraft", "air")),
+                    Biome("java", VersionNumber(1444), "minecraft", "plains"),
                 )
                 chunk_handle.set_chunk(chunk)
 
