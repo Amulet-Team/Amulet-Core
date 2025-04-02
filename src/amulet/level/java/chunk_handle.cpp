@@ -52,12 +52,8 @@ std::unique_ptr<JavaChunk> JavaChunkHandle::_get_null_chunk()
     }
 }
 
-void JavaChunkHandle::_preload() {
-    if (_chunk_history->has_resource(_key)) {
-        // Do nothing if the resource already exists.
-        return;
-    }
-
+void JavaChunkHandle::_preload()
+{
     // Get the chunk data.
     JavaRawChunk raw_chunk;
     try {
@@ -126,7 +122,9 @@ std::unique_ptr<JavaChunk> JavaChunkHandle::get_java_chunk(std::optional<std::se
     {
         std::lock_guard lock(_chunk_history->get_mutex());
         // Load the chunk if it wasn't previously populated.
-        _preload();
+        if (!_chunk_history->has_resource(_key)) {
+            _preload();
+        }
     }
     {
         std::shared_lock lock(_chunk_history->get_mutex());
@@ -146,7 +144,9 @@ void JavaChunkHandle::set_java_chunk(const JavaChunk& chunk)
 
     // Set initial state.
     if (*_history_enabled) {
-        _preload();
+        if (!_chunk_history->has_resource(_key)) {
+            _preload();
+        }
     } else if (!_chunk_history->has_resource(_key)) {
         _chunk_history->set_initial_value(_key, "");
     }
@@ -198,7 +198,9 @@ void JavaChunkHandle::delete_chunk()
 
     // Set initial state.
     if (*_history_enabled) {
-        _preload();
+        if (!_chunk_history->has_resource(_key)) {
+            _preload();
+        }
     } else if (!_chunk_history->has_resource(_key)) {
         _chunk_history->set_initial_value(_key, "");
     }
