@@ -140,46 +140,61 @@ std::unique_ptr<Chunk> JavaChunkHandle::get_chunk(std::optional<std::set<std::st
 
 void JavaChunkHandle::set_java_chunk(const JavaChunk& chunk)
 {
-    std::lock_guard lock(_chunk_history->get_mutex());
-
-    // Set initial state.
-    if (*_history_enabled) {
-        if (!_chunk_history->has_resource(_key)) {
-            _preload();
-        }
-    } else if (!_chunk_history->has_resource(_key)) {
-        _chunk_history->set_initial_value(_key, "");
-    }
-
-    auto old_chunk_id = _chunk_history->get_value(_key);
+    // This can be done in parallel
     auto new_chunk_id = 'c' + detail::get_java_chunk_id(chunk);
-
     auto component_data = chunk.serialise_chunk();
-    std::list<std::pair<std::string, std::string>> values;
 
-    auto copy_values = [&]<bool error_undefined>() {
+    std::list<std::pair<std::string, std::string>> defined_component_data;
+
+    auto get_defined_components = [&]<bool error_undefined>() {
         for (const auto& [component_id, data] : component_data) {
             if (data) {
-                values.emplace_back(std::string(_key) + '/' + component_id, *data);
+                defined_component_data.emplace_back(std::string(_key) + '/' + component_id, *data);
             } else if constexpr (error_undefined) {
                 throw std::runtime_error("When changing chunk class all the data must be present.");
             }
         }
     };
 
-    // Copy defined values.
-    if (old_chunk_id != new_chunk_id) {
-        // Error if any component is undefined
-        copy_values.operator()<true>();
-    } else {
-        // Remove undefined components.
-        copy_values.operator()<false>();
-    }
+    auto set_new_chunk = [&] {
+        // Get the previous chunk id.
+        auto old_chunk_id = _chunk_history->get_value(_key);
 
-    // Set new state.
-    _chunk_history->set_value(_key, new_chunk_id);
-    if (!values.empty()) {
-        _chunk_data_history->set_values(values, true);
+        // Copy defined component data.
+        if (old_chunk_id != new_chunk_id) {
+            // Error if any component is undefined
+            get_defined_components.operator()<true>();
+        } else {
+            // Remove undefined components.
+            get_defined_components.operator()<false>();
+        }
+
+        // Set new state.
+        _chunk_history->set_value(_key, new_chunk_id);
+        if (!defined_component_data.empty()) {
+            _chunk_data_history->set_values<HistoryInitialisationMode::Empty>(defined_component_data);
+        }
+    };
+
+    // Lock the history state
+    std::lock_guard lock(_chunk_history->get_mutex());
+
+    if (_chunk_history->has_resource(_key)) {
+        set_new_chunk();
+    } else if (*_history_enabled) {
+        _preload();
+        set_new_chunk();
+    } else {
+        // Resource does not exist and history is disabled
+        
+        // Copy components. Error if any component is undefined.
+        get_defined_components.operator()<true>();
+
+        // Set new state. If the resource isn't initialised use this value.
+        _chunk_history->set_value<HistoryInitialisationMode::Value>(_key, new_chunk_id);
+        if (!defined_component_data.empty()) {
+            _chunk_data_history->set_values<HistoryInitialisationMode::Value>(defined_component_data);
+        }
     }
 }
 
