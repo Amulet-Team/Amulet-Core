@@ -7,7 +7,7 @@
 namespace Amulet {
 
 JavaLevelOpenData::JavaLevelOpenData()
-    : history_enabled(std::make_shared<bool>())
+    : history_enabled(std::make_shared<bool>(true))
 {
 }
 

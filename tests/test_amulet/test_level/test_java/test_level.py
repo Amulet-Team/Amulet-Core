@@ -58,8 +58,14 @@ class JavaLevelTestCase(
         pass
 
     def test_history(self) -> None:
+        with WorldTemp(java_vanilla_1_13) as world_data:
+            level = JavaLevel.load(world_data.temp_path)
+            level.open()
+            try:
+                self.assertTrue(level.history_enabled)
+            finally:
+                level.close()
         # TODO
-        pass
 
     def test_dimension(self) -> None:
         with WorldTemp(java_vanilla_1_13) as world_data:
