@@ -37,32 +37,54 @@ std::string cast_to_string(const T& obj)
     }
 }
 
-#define ASSERT_EQUAL(CLS, A, B)                                                                                    \
-    {                                                                                                              \
-        CLS a;                                                                                                     \
-        try {                                                                                                      \
-            a = A;                                                                                                 \
-        } catch (const std::exception& e) {                                                                        \
-            throw std::runtime_error("Failed evaluating A at line " + std::to_string(__LINE__) + ". " + e.what()); \
-        }                                                                                                          \
-        CLS b;                                                                                                     \
-        try {                                                                                                      \
-            b = B;                                                                                                 \
-        } catch (const std::exception& e) {                                                                        \
-            throw std::runtime_error("Failed evaluating B at line " + std::to_string(__LINE__) + ". " + e.what()); \
-        }                                                                                                          \
-        if (a != b) {                                                                                              \
-            std::string msg = "Values are not equal at line: " + std::to_string(__LINE__) + ".";                   \
-            auto a_msg = cast_to_string(a);                                                                        \
-            if (!a_msg.empty()) {                                                                                  \
-                msg += " Expected \"" + a_msg + "\".";                                                             \
-            }                                                                                                      \
-            auto b_msg = cast_to_string(b);                                                                        \
-            if (!a_msg.empty()) {                                                                                  \
-                msg += " Got \"" + b_msg + "\".";                                                                  \
-            }                                                                                                      \
-            throw std::runtime_error(msg);                                                                         \
-        }                                                                                                          \
+#define ASSERT_EQUAL(CLS, A, B)                        \
+    {                                                  \
+        CLS a;                                         \
+        try {                                          \
+            a = A;                                     \
+        } catch (const std::exception& e) {            \
+            std::string msg;                           \
+            msg.reserve(200);                          \
+            msg += "Failed evaluating A in file ";     \
+            msg += __FILE__;                           \
+            msg += " at line ";                        \
+            msg += std::to_string(__LINE__);           \
+            msg += ". ";                               \
+            msg += e.what();                           \
+            throw std::runtime_error(msg);             \
+        }                                              \
+        CLS b;                                         \
+        try {                                          \
+            b = B;                                     \
+        } catch (const std::exception& e) {            \
+            std::string msg;                           \
+            msg.reserve(200);                          \
+            msg += "Failed evaluating B in file ";     \
+            msg += __FILE__;                           \
+            msg += " at line ";                        \
+            msg += std::to_string(__LINE__);           \
+            msg += ". ";                               \
+            msg += e.what();                           \
+            throw std::runtime_error(msg);             \
+        }                                              \
+        if (a != b) {                                  \
+            std::string msg;                           \
+            msg.reserve(200);                          \
+            msg += "Values are not equal in file ";    \
+            msg += __FILE__;                           \
+            msg += " at line ";                        \
+            msg += std::to_string(__LINE__);           \
+            msg += ".";                                \
+            auto a_msg = cast_to_string(a);            \
+            if (!a_msg.empty()) {                      \
+                msg += " Expected \"" + a_msg + "\"."; \
+            }                                          \
+            auto b_msg = cast_to_string(b);            \
+            if (!a_msg.empty()) {                      \
+                msg += " Got \"" + b_msg + "\".";      \
+            }                                          \
+            throw std::runtime_error(msg);             \
+        }                                              \
     }
 
 static void test_history()
