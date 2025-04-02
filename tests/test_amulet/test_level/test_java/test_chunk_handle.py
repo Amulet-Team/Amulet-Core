@@ -12,7 +12,7 @@ from amulet.level.java import (
     JavaDimension,
     JavaChunkHandle,
 )
-from amulet.level.java.chunk import JavaChunk, JavaChunk1466
+from amulet.level.java.chunk import JavaChunk, JavaChunk1444, JavaChunk1466
 
 from tests.data.worlds_src import java_vanilla_1_13
 from tests.data.world_utils import WorldTemp
@@ -180,7 +180,7 @@ class JavaChunkHandleTestCase(TestCase):
             finally:
                 level.close()
 
-    def test_undo_redo_exists(self) -> None:
+    def test_undo_redo(self) -> None:
         with WorldTemp(java_vanilla_1_13) as world_data:
             level = JavaLevel.load(world_data.temp_path)
             level.open()
@@ -333,6 +333,93 @@ class JavaChunkHandleTestCase(TestCase):
                 self.assertEqual(1, level.get_undo_count())
                 self.assertEqual(0, level.get_redo_count())
                 validate_edited_3(chunk_handle.get_chunk())
+
+            finally:
+                level.close()
+
+    def test_history_enabled(self) -> None:
+        with WorldTemp(java_vanilla_1_13) as world_data:
+            level = JavaLevel.load(world_data.temp_path)
+            level.open()
+            try:
+                # Create a restore point.
+                level.create_restore_point()
+
+                # Get the chunk handle.
+                overworld = level.get_dimension("minecraft:overworld")
+                chunk_handle = overworld.get_chunk_handle(1, 2)
+
+                # Create and set the chunk.
+                chunk = JavaChunk1444(
+                    1444,
+                    BlockStack(
+                        Block(
+                            "java",
+                            VersionNumber(1444),
+                            "minecraft",
+                            "air"
+                        )
+                    ),
+                    Biome(
+                        "java",
+                        VersionNumber(1444),
+                        "minecraft",
+                        "plains"
+                    )
+                )
+                chunk_handle.set_chunk(chunk)
+
+                # History is enabled so the original state should have been loaded when setting.
+                level.undo()
+                chunk_2 = chunk_handle.get_chunk()
+                self.assertIsInstance(chunk_2, JavaChunk1466)
+                self.assertEqual(67, len(chunk_2.block.palette))
+
+            finally:
+                level.close()
+
+    def test_history_disabled(self) -> None:
+        with WorldTemp(java_vanilla_1_13) as world_data:
+            level = JavaLevel.load(world_data.temp_path)
+            level.open()
+            try:
+                # Create a restore point.
+                level.create_restore_point()
+
+                # Disable history.
+                # Changes from this point will overwrite the previous state.
+                # The original state won't be loaded if the chunk is set before being loaded.
+                level.history_enabled = False
+
+                # Get the chunk handle.
+                overworld = level.get_dimension("minecraft:overworld")
+                chunk_handle = overworld.get_chunk_handle(1, 2)
+
+                # Create and set the chunk.
+                chunk = JavaChunk1444(
+                    1444,
+                    BlockStack(
+                        Block(
+                            "java",
+                            VersionNumber(1444),
+                            "minecraft",
+                            "air"
+                        )
+                    ),
+                    Biome(
+                        "java",
+                        VersionNumber(1444),
+                        "minecraft",
+                        "plains"
+                    )
+                )
+                chunk_handle.set_chunk(chunk)
+
+                # This chunk wasn't loaded before it was set so this should be set as the original state.
+                level.undo()
+                chunk_2 = chunk_handle.get_chunk()
+                self.assertIsInstance(chunk_2, JavaChunk1444)
+                self.assertEqual(1, len(chunk_2.block.palette))
 
             finally:
                 level.close()
