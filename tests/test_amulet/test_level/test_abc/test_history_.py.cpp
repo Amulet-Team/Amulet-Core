@@ -433,10 +433,77 @@ static void test_set_value_enum()
     ASSERT_EQUAL(std::string, "value_true_val", layer->get_value("value_true"))
 }
 
+static void test_set_values_enum()
+{
+    // Create the history manager.
+    Amulet::HistoryManager history_manager;
+    auto layer = history_manager.new_layer<std::string>();
+
+    history_manager.create_undo_bin();
+    layer->set_initial_value("default_false_1", "default_false_1_val");
+    layer->set_initial_value("default_false_2", "default_false_2_val");
+    layer->set_initial_value("error_false_1", "error_false_1_val");
+    layer->set_initial_value("error_false_2", "error_false_2_val");
+    layer->set_initial_value("empty_false", "empty_false_val");
+    layer->set_initial_value("value_false", "value_false_val");
+
+    // Set default - all exist
+    layer->set_values({ std::make_pair("default_false_1", "default_false_1_val_2"), std::make_pair("default_false_2", "default_false_2_val_2") });
+    ASSERT_EQUAL(std::string, "default_false_1_val_2", layer->get_value("default_false_1"))
+    ASSERT_EQUAL(std::string, "default_false_2_val_2", layer->get_value("default_false_2"))
+    // Set default - half exist
+    ASSERT_RAISES(std::runtime_error, layer->set_values({ std::make_pair("default_false_1", "default_false_1_val_3"), std::make_pair("default_true", "default_true_val") }))
+    ASSERT_EQUAL(std::string, "default_false_1_val_2", layer->get_value("default_false_1"))
+    ASSERT_EQUAL(std::string, "default_false_2_val_2", layer->get_value("default_false_2"))
+    ASSERT_RAISES(std::out_of_range, layer->get_value("default_true"))
+
+    // Set Error - all exist
+    layer->set_values<Amulet::HistoryInitialisationMode::Error>({ std::make_pair("error_false_1", "error_false_1_val_2"), std::make_pair("error_false_2", "error_false_2_val_2") });
+    ASSERT_EQUAL(std::string, "error_false_1_val_2", layer->get_value("error_false_1"))
+    ASSERT_EQUAL(std::string, "error_false_2_val_2", layer->get_value("error_false_2"))
+    // Set Error - half exist
+    ASSERT_RAISES(std::runtime_error, layer->set_values<Amulet::HistoryInitialisationMode::Error>({ std::make_pair("error_false_1", "error_false_1_val_3"), std::make_pair("error_true", "error_true_val") }))
+    ASSERT_EQUAL(std::string, "error_false_1_val_2", layer->get_value("error_false_1"))
+    ASSERT_EQUAL(std::string, "error_false_2_val_2", layer->get_value("error_false_2"))
+    ASSERT_RAISES(std::out_of_range, layer->get_value("error_true"))
+
+    // Set Empty - half exist
+    layer->set_values<Amulet::HistoryInitialisationMode::Empty>({ std::make_pair("empty_false", "empty_false_val_2"), std::make_pair("empty_true", "empty_true_val") });
+    ASSERT_EQUAL(std::string, "empty_false_val_2", layer->get_value("empty_false"))
+    ASSERT_EQUAL(std::string, "empty_true_val", layer->get_value("empty_true"))
+
+    // Set Value - half exist
+    layer->set_values<Amulet::HistoryInitialisationMode::Value>({ std::make_pair("value_false", "value_false_val_2"), std::make_pair("value_true", "value_true_val") });
+    ASSERT_EQUAL(std::string, "value_false_val_2", layer->get_value("value_false"))
+    ASSERT_EQUAL(std::string, "value_true_val", layer->get_value("value_true"))
+
+    // Undo and validate original values
+    history_manager.undo();
+
+    // Validate default
+    ASSERT_EQUAL(std::string, "default_false_1_val", layer->get_value("default_false_1"))
+    ASSERT_EQUAL(std::string, "default_false_2_val", layer->get_value("default_false_2"))
+    ASSERT_RAISES(std::out_of_range, layer->get_value("default_true"))
+
+    // Validate Error
+    ASSERT_EQUAL(std::string, "error_false_1_val", layer->get_value("error_false_1"))
+    ASSERT_EQUAL(std::string, "error_false_2_val", layer->get_value("error_false_2"))
+    ASSERT_RAISES(std::out_of_range, layer->get_value("error_true"))
+
+    // Validate Empty
+    ASSERT_EQUAL(std::string, "empty_false_val", layer->get_value("empty_false"))
+    ASSERT_EQUAL(std::string, "", layer->get_value("empty_true"))
+
+    // Validate Value
+    ASSERT_EQUAL(std::string, "value_false_val", layer->get_value("value_false"))
+    ASSERT_EQUAL(std::string, "value_true_val", layer->get_value("value_true"))
+}
+
 void init_test_history(py::module m_parent)
 {
     auto m = m_parent.def_submodule("test_history_");
     m.def("test_history", &test_history);
     m.def("test_undo_overwrite", &test_undo_overwrite);
     m.def("test_set_value_enum", &test_set_value_enum);
+    m.def("test_set_values_enum", &test_set_values_enum);
 }
