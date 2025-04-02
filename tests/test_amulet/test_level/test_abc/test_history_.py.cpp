@@ -87,6 +87,35 @@ std::string cast_to_string(const T& obj)
         }                                              \
     }
 
+#define ASSERT_RAISES(EXC, A)                         \
+    {                                                 \
+        bool err_raised = false;                      \
+        try {                                         \
+            A;                                        \
+        } catch (const EXC&) {                        \
+            err_raised = true;                        \
+        } catch (...) {                               \
+            std::string msg;                          \
+            msg.reserve(200);                         \
+            msg += "Other exception raised in file "; \
+            msg += __FILE__;                          \
+            msg += " at line ";                       \
+            msg += std::to_string(__LINE__);          \
+            msg += ". ";                              \
+            throw std::runtime_error(msg);            \
+        }                                             \
+        if (!err_raised) {                            \
+            std::string msg;                          \
+            msg.reserve(200);                         \
+            msg += "Exception not raised in file ";   \
+            msg += __FILE__;                          \
+            msg += " at line ";                       \
+            msg += std::to_string(__LINE__);          \
+            msg += ". ";                              \
+            throw std::runtime_error(msg);            \
+        }                                             \
+    }
+
 static void test_history()
 {
     // Create the history manager.
