@@ -193,7 +193,7 @@ static void test_history()
         { key_1, "value_1_1_initializer_list" },
         { key_2, "value_1_2_initializer_list" },
     };
-    layer_1->set_values<std::initializer_list<std::pair<TestResourceId, std::string>>>(initializer_list_batch);
+    layer_1->set_values(initializer_list_batch);
 
     ASSERT_EQUAL(std::string, "value_1_1_initializer_list", layer_1->get_value(key_1))
     ASSERT_EQUAL(std::string, "value_1_2_initializer_list", layer_1->get_value(key_2))
@@ -204,7 +204,7 @@ static void test_history()
         { key_1, "value_1_1_list" },
         { key_2, "value_1_2_list" },
     };
-    layer_1->set_values<std::list<std::pair<TestResourceId, std::string>>>(list_batch);
+    layer_1->set_values(list_batch);
 
     ASSERT_EQUAL(std::string, "value_1_1_list", layer_1->get_value(key_1))
     ASSERT_EQUAL(std::string, "value_1_2_list", layer_1->get_value(key_2))
@@ -215,7 +215,7 @@ static void test_history()
         { key_1, "value_1_1_vector" },
         { key_2, "value_1_2_vector" },
     };
-    layer_1->set_values<std::vector<std::pair<TestResourceId, std::string>>>(vector_batch);
+    layer_1->set_values(vector_batch);
 
     ASSERT_EQUAL(std::string, "value_1_1_vector", layer_1->get_value(key_1))
     ASSERT_EQUAL(std::string, "value_1_2_vector", layer_1->get_value(key_2))
@@ -226,7 +226,7 @@ static void test_history()
         { key_1, "value_1_1_map" },
         { key_2, "value_1_2_map" },
     };
-    layer_1->set_values<>(map_batch);
+    layer_1->set_values(map_batch);
 
     ASSERT_EQUAL(std::string, "value_1_1_map", layer_1->get_value(key_1))
     ASSERT_EQUAL(std::string, "value_1_2_map", layer_1->get_value(key_2))

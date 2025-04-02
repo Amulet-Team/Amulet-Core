@@ -123,6 +123,13 @@ std::string get_resource_key(LayerId id, const ResourceIdT& resource_id, size_t 
     return key;
 }
 
+// Rule to use if the resource has not been created when setting it.
+enum class HistoryInitialisationMode {
+    Error, // Throw std::runtime_error if set_initial_value has not been called.
+    Empty, // Call set_initial_value with an empty value.
+    Value // Call set_initial_value with the given value.
+};
+
 // A group of resources in the history system.
 template <ResourceId ResourceIdT>
 class HistoryManagerLayer : public AbstractHistoryManagerLayer {
@@ -253,9 +260,10 @@ public:
     }
 
     // Set the data for the resource.
-    // If init is true and the initial value has not been set, this will initialise it with an empty string.
+    // init_mode can be set to configure what happens if set_initial_value has not been called for this resource.
     // Unique lock required.
-    void set_value(const ResourceIdT& resource_id, const std::string& value, bool init = false)
+    template <HistoryInitialisationMode init_mode = HistoryInitialisationMode::Error>
+    void set_value(const ResourceIdT& resource_id, const std::string& value)
     {
         // A change has been made. Invalidate all future undo points.
         _h->invalidate_future();
@@ -263,10 +271,16 @@ public:
         // Get the resource
         auto it = _resources.find(resource_id);
         if (it == _resources.end()) {
-            if (!init) {
+            // Resource does not exist.
+            if constexpr (init_mode == HistoryInitialisationMode::Error) {
                 throw std::runtime_error("Initial value has not been set for resource: " + std::string(resource_id));
+            } else if constexpr (init_mode == HistoryInitialisationMode::Empty) {
+                it = _set_initial_value(resource_id, "");
+            } else {
+                static_assert(init_mode == HistoryInitialisationMode::Value);
+                _set_initial_value(resource_id, value);
+                return; // There is no point setting it again.
             }
-            it = _set_initial_value(resource_id, "");
         }
         auto resource_ptr = it->second;
         auto& resource = *resource_ptr;
@@ -300,14 +314,14 @@ public:
 
     // Set the data for multiple resources.
     // Supports any range of pair-like elements. Elements must remain valid beyond the life of the iterator.
-    // If init is true and the initial value has not been set, this will initialise it with an empty string.
+    // init_mode can be set to configure what happens if set_initial_value has not been called for this resource.
     // Unique lock required.
-    template <typename T>
+    template <HistoryInitialisationMode init_mode = HistoryInitialisationMode::Error, typename T>
         requires std::ranges::forward_range<T>
         && std::convertible_to<
             std::ranges::range_value_t<T>,
             const std::pair<ResourceIdT, std::string>>
-    void set_values(const T& resources, bool init = false)
+    void set_values(const T& resources)
     {
         // A change has been made. Invalidate all future undo points.
         _h->invalidate_future();
@@ -318,12 +332,24 @@ public:
         for (const auto& [resource_id, value] : resources) {
             auto it = _resources.find(resource_id);
             if (it == _resources.end()) {
-                if (!init) {
+                // Resource does not exist.
+                if constexpr (init_mode == HistoryInitialisationMode::Error) {
                     throw std::runtime_error("Initial value has not been set for resource: " + std::string(resource_id));
+                } else if constexpr (init_mode == HistoryInitialisationMode::Empty) {
+                    resource_data.emplace_back(resource_id, value, _set_initial_value(resource_id, "")->second);
+                } else {
+                    static_assert(init_mode == HistoryInitialisationMode::Value);
+                    // Set the original state and don't add it to resource_data.
+                    _set_initial_value(resource_id, value);
                 }
-                it = _set_initial_value(resource_id, "");
+            } else {
+                resource_data.emplace_back(resource_id, value, it->second);
             }
-            resource_data.emplace_back(resource_id, value, it->second);
+        }
+
+        // skip if there are no resources to add
+        if (resource_data.empty()) {
+            return;
         }
 
         // Create the write batch
