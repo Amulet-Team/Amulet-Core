@@ -369,9 +369,74 @@ static void test_undo_overwrite()
     ASSERT_EQUAL(std::string, "val0", layer_1->get_value("key"))
 }
 
+static void test_set_value_enum()
+{
+    // Create the history manager.
+    Amulet::HistoryManager history_manager;
+    auto layer = history_manager.new_layer<std::string>();
+
+    history_manager.create_undo_bin();
+    layer->set_initial_value("default_false", "default_false_val");
+    layer->set_initial_value("error_false", "error_false_val");
+    layer->set_initial_value("empty_false", "empty_false_val");
+    layer->set_initial_value("value_false", "value_false_val");
+
+    // Set default
+    layer->set_value("default_false", "default_false_val_2");
+    ASSERT_RAISES(std::runtime_error, layer->set_value("default_true", "default_true_val"))
+
+    // Set Error
+    layer->set_value<Amulet::HistoryInitialisationMode::Error>("error_false", "error_false_val_2");
+    ASSERT_RAISES(std::runtime_error, layer->set_value<Amulet::HistoryInitialisationMode::Error>("error_true", "error_true_val"))
+
+    // Set Empty
+    layer->set_value<Amulet::HistoryInitialisationMode::Empty>("empty_false", "empty_false_val_2");
+    layer->set_value<Amulet::HistoryInitialisationMode::Empty>("empty_true", "empty_true_val");
+
+    // Set Value
+    layer->set_value<Amulet::HistoryInitialisationMode::Value>("value_false", "value_false_val_2");
+    layer->set_value<Amulet::HistoryInitialisationMode::Value>("value_true", "value_true_val");
+
+    // Validate default
+    ASSERT_EQUAL(std::string, "default_false_val_2", layer->get_value("default_false"))
+    ASSERT_RAISES(std::out_of_range, layer->get_value("default_true"))
+
+    // Validate Error
+    ASSERT_EQUAL(std::string, "error_false_val_2", layer->get_value("error_false"))
+    ASSERT_RAISES(std::out_of_range, layer->get_value("error_true"))
+
+    // Validate Empty
+    ASSERT_EQUAL(std::string, "empty_false_val_2", layer->get_value("empty_false"))
+    ASSERT_EQUAL(std::string, "empty_true_val", layer->get_value("empty_true"))
+
+    // Validate Value
+    ASSERT_EQUAL(std::string, "value_false_val_2", layer->get_value("value_false"))
+    ASSERT_EQUAL(std::string, "value_true_val", layer->get_value("value_true"))
+
+    // Undo and validate original values
+    history_manager.undo();
+
+    // Validate default
+    ASSERT_EQUAL(std::string, "default_false_val", layer->get_value("default_false"))
+    ASSERT_RAISES(std::out_of_range, layer->get_value("default_true"))
+
+    // Validate Error
+    ASSERT_EQUAL(std::string, "error_false_val", layer->get_value("error_false"))
+    ASSERT_RAISES(std::out_of_range, layer->get_value("error_true"))
+
+    // Validate Empty
+    ASSERT_EQUAL(std::string, "empty_false_val", layer->get_value("empty_false"))
+    ASSERT_EQUAL(std::string, "", layer->get_value("empty_true"))
+
+    // Validate Value
+    ASSERT_EQUAL(std::string, "value_false_val", layer->get_value("value_false"))
+    ASSERT_EQUAL(std::string, "value_true_val", layer->get_value("value_true"))
+}
+
 void init_test_history(py::module m_parent)
 {
     auto m = m_parent.def_submodule("test_history_");
     m.def("test_history", &test_history);
     m.def("test_undo_overwrite", &test_undo_overwrite);
+    m.def("test_set_value_enum", &test_set_value_enum);
 }
