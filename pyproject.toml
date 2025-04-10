@@ -1,14 +1,11 @@
 [build-system]
 requires = [
-    "setuptools >= 42",
-    "wheel",
+    "setuptools>=42",
     "versioneer",
-    "pybind11[global] == 2.13.6",
-    "Amulet_pybind11_extensions @ git+https://github.com/Amulet-Team/Amulet-pybind11-extensions.git@f781177e52f352ea0c1750e9219a1a84f4ddd92f",
-    "amulet_nbt == 4.0a14",
-    "amulet_leveldb == 2.0a5",
+    "packaging"
 ]
-build-backend = "setuptools.build_meta"
+build-backend = "build_requires"
+backend-path = [""]
 
 [project]
 name = "amulet-core"
@@ -17,21 +14,11 @@ authors = [
     {name = "Ben Gothard"},
 ]
 description = "A Python library for reading/writing Minecraft's various save formats."
-dynamic = ["version", "readme"]
+dynamic = ["version", "readme", "dependencies"]
 requires-python = ">=3.11"
 classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
-]
-dependencies = [
-    "numpy ~= 2.0",
-    "portalocker ~= 2.4",
-    "platformdirs ~= 3.1",
-    "pillow ~= 10.0",
-    "amulet_runtime_final ~= 1.1",
-    "amulet_compiler_target == 1.0",
-    "amulet_nbt == 4.0a14",
-    "amulet_leveldb ~= 2.0a5",
 ]
 
 [project.optional-dependencies]
@@ -41,15 +28,19 @@ docs = [
     "sphinx_rtd_theme>=0.3.1",
 ]
 dev = [
+    "setuptools>=42",
+    "versioneer",
+    "packaging",
+    "wheel",
+    "pybind11[global]==2.13.6",
+    "amulet_pybind11_extensions", #@git+https://github.com/Amulet-Team/Amulet-pybind11-extensions.git@f781177e52f352ea0c1750e9219a1a84f4ddd92f",
+    "pybind11_stubgen", #@git+https://github.com/Amulet-Team/pybind11-stubgen.git@c3a6ef67ec23d5a39e8cdc73b2c3cd8c1794d6f2",
     "black>=22.3",
     "pre_commit>=1.11.1",
     "isort",
     "autoflake",
     "mypy",
     "types-pyinstaller",
-    "wheel",
-    "versioneer",
-    "pybind11_stubgen" # @ git+https://github.com/Amulet-Team/pybind11-stubgen.git@c3a6ef67ec23d5a39e8cdc73b2c3cd8c1794d6f2",
 ]
 
 [project.urls]
