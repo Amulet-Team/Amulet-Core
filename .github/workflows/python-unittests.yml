@@ -52,14 +52,14 @@ jobs:
       with:
         repository: 'Amulet-Team/Amulet-Compiler-Version'
         ref: '1.0'
-        path: 'lib/Amulet-Compiler-Version'
+        path: 'build/pylib/Amulet-Compiler-Version'
 
     - name: Build Amulet-Compiler-Version
       if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
       env:
         BUILD_SPECIALISED: 1
       run: |
-        python -m build lib/Amulet-Compiler-Version
+        python -m build build/pylib/Amulet-Compiler-Version
 
     - name: Publish Amulet-Compiler-Version
       if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
@@ -67,7 +67,7 @@ jobs:
         TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
         TWINE_PASSWORD: ${{ secrets.AMULET_COMPILER_VERSION_PYPI_PASSWORD }}
       run: |
-        twine upload lib/Amulet-Compiler-Version/dist/* --skip-existing
+        twine upload build/pylib/Amulet-Compiler-Version/dist/* --skip-existing
 
     - name: Install Amulet-Compiler-Version and get __version__
       if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
