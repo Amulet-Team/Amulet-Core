@@ -87,10 +87,13 @@ jobs:
       run: |
         twine upload build/pylib/Amulet-NBT/dist/* --skip-existing
 
-    - name: Install Amulet-NBT and get __version__
+    - name: Install Amulet-NBT
       if: steps.install_amulet_nbt.outcome == 'failure'
       run: |
         python -m pip install build/pylib/Amulet-NBT/dist/amulet_nbt-*.whl
+
+    - name: Get Amulet-NBT version
+      run: |
         version=$(python -c "import amulet_nbt; print(amulet_nbt.__version__)")
         echo "AMULET_NBT_VERSION=$version" >> "$GITHUB_ENV"
 
@@ -120,10 +123,13 @@ jobs:
       run: |
         twine upload build/pylib/Amulet-LevelDB/dist/* --skip-existing
 
-    - name: Install Amulet-LevelDB and get __version__
+    - name: Install Amulet-LevelDB
       if: steps.install_amulet_leveldb.outcome == 'failure'
       run: |
         python -m pip install build/pylib/Amulet-LevelDB/dist/amulet_leveldb-*.whl
+
+    - name: Get Amulet-LevelDB version
+      run: |
         version=$(python -c "import leveldb; print(leveldb.__version__)")
         echo "AMULET_LEVELDB_VERSION=$version" >> "$GITHUB_ENV"
 
