@@ -1,7 +1,7 @@
 from unittest import TestCase
 from tempfile import TemporaryDirectory
 import os
-from datetime import datetime
+import datetime
 
 from PIL import Image
 
@@ -44,7 +44,7 @@ class JavaRawLevelTestCase(TestCase):
             self.assertIsInstance(raw_level.lock, OrderedLock)
             self.assertTrue(raw_level.is_supported())
             self.assertEqual(
-                datetime(2018, 5, 30, 3, 36, 15, 463000), raw_level.modified_time
+                datetime.datetime.fromtimestamp(1527647775.463), raw_level.modified_time
             )
             self.assertEqual("java", raw_level.platform)
             self.assertEqual(VersionNumber(1497), raw_level.data_version)
