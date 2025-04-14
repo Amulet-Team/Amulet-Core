@@ -2,26 +2,66 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-import pybind11
+import re
+import requirements
 
 from setuptools import setup, Extension, Command
 from setuptools.command.build_ext import build_ext
+from packaging.version import Version
 
 import versioneer
-import pybind11_extensions
-import amulet_nbt
-import leveldb
+
+dependencies = requirements.get_fixed_runtime_dependencies()
+setup_args = {}
+
+try:
+    import amulet_compiler_version
+    import amulet_nbt
+    import leveldb
+except ImportError:
+    dependencies.append(
+        f"amulet-compiler-version{requirements.AMULET_COMPILER_VERSION_REQUIREMENT}"
+    )
+    dependencies.append(f"amulet_nbt{requirements.AMULET_NBT_REQUIREMENT}")
+    dependencies.append(f"amulet_leveldb{requirements.AMULET_LEVELDB_REQUIREMENT}")
+else:
+    dependencies.append(
+        f"amulet-compiler-version=={amulet_compiler_version.__version__}"
+    )
+
+    def add_dependency(lib_name: str, version_str: str) -> None:
+        version = Version(version_str)
+        if version.is_prerelease:
+            # Breaking ABI changes can be made between pre-release versions.
+            # Pin to this exact release.
+            dependencies.append(f"{lib_name}=={version_str}")
+        else:
+            # Breaking ABI changes can be made in major and minor changes.
+            # Require the same major and minor version.
+            match = re.fullmatch(
+                r"(?P<major>\d+)(\.(?P<minor>\d+)(\.(?P<patch>\d+))?)?", version_str
+            )
+            if match is None:
+                raise RuntimeError(
+                    f"Unsupported version number {lib_name}=={version_str}"
+                )
+            major = match.group("major")
+            minor = match.group("minor") or 0
+            patch = match.group("patch") or 0
+            dependencies.append(f"{lib_name}~={major}.{minor}.{patch}")
+
+    add_dependency("amulet_nbt", amulet_nbt.__version__)
+    add_dependency("amulet_leveldb", leveldb.__version__)
+
+    setup_args["options"] = {
+        "bdist_wheel": {
+            "build_number": f"1.{amulet_compiler_version.compiler_id}.{amulet_compiler_version.compiler_version}"
+        }
+    }
 
 
 def fix_path(path: str) -> str:
     return os.path.realpath(path).replace(os.sep, "/")
-
-
-# https://github.com/pybind/cmake_example/blob/master/setup.py
-class CMakeExtension(Extension):
-    def __init__(self, name: str, sourcedir: str = "") -> None:
-        super().__init__(name, sources=[])
-        self.sourcedir = os.fspath(Path(sourcedir).resolve())
 
 
 cmdclass: dict[str, type[Command]] = versioneer.get_cmdclass()
@@ -29,6 +69,11 @@ cmdclass: dict[str, type[Command]] = versioneer.get_cmdclass()
 
 class CMakeBuild(cmdclass.get("build_ext", build_ext)):
     def build_extension(self, ext):
+        import pybind11
+        import pybind11_extensions
+        import amulet_nbt
+        import leveldb
+
         ext_fullpath = Path.cwd() / self.get_ext_fullpath("")
         src_dir = ext_fullpath.parent.resolve()
 
@@ -73,5 +118,7 @@ cmdclass["build_ext"] = CMakeBuild
 setup(
     version=versioneer.get_version(),
     cmdclass=cmdclass,
-    ext_modules=[CMakeExtension("amulet._amulet")],
+    ext_modules=[Extension("amulet._amulet", [])],
+    install_requires=dependencies,
+    **setup_args,
 )
