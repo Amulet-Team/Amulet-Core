@@ -51,7 +51,7 @@ else:
             dependencies.append(f"{lib_name}~={major}.{minor}.{patch}")
 
     add_dependency("amulet_nbt", amulet_nbt.__version__)
-    add_dependency("leveldb", leveldb.__version__)
+    add_dependency("amulet_leveldb", leveldb.__version__)
 
     setup_args["options"] = {
         "bdist_wheel": {
