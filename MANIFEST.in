@@ -1,4 +1,4 @@
-recursive-include src/amulet *.png *.cpp *.hpp *Config.cmake
+recursive-include src/amulet *.png *.cpp *.hpp *Config.cmake *.pkl.gz
 
 include CMakeLists.txt
 
