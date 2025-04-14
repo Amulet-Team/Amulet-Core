@@ -13,7 +13,9 @@ on:
   pull_request:
 
 jobs:
-  unittests-ubuntu:
+  unittests-first-ubuntu:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+
     strategy:
       fail-fast: false
       matrix:
@@ -41,7 +43,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install build
 
-      - name: Build Amulet-Core (extern)
+      - name: Build Amulet-Core
         run: |
           pip install -vv .[dev]
           python tests/compile.py
@@ -49,7 +51,7 @@ jobs:
       - name: Test with unittest
         run: python -m unittest discover -v -s tests
 
-  unittests-prebuilt:
+  unittests-first-windows-mac:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
 
     strategy:
@@ -190,24 +192,17 @@ jobs:
         pip install amulet_pybind11_extensions$ext_req
         python tests/compile.py
 
-    - name: Build Amulet-Core (extern)
-      run: |
-        pip install -vv .[dev]
-        ext_req=$(python -c "import requirements; print(requirements.AMULET_PYBIND11_EXTENSIONS_REQUIREMENT)")
-        pip install amulet_pybind11_extensions$ext_req
-        python tests/compile.py
-
     - name: Test with unittest
       run: python -m unittest discover -v -s tests
 
-  unittests-src:
+  unittests-third:
     if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository
 
     strategy:
       fail-fast: false
       matrix:
         python-version: [ '3.11', '3.12', '3.13' ]
-        os: [ windows-latest, macos-latest ]
+        os: [ windows-latest, macos-latest, ubuntu-latest ]
 
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
@@ -230,7 +225,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install build
 
-      - name: Build Amulet-Core (extern)
+      - name: Build Amulet-Core
         run: |
           pip install -vv .[dev]
           python tests/compile.py
