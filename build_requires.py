@@ -1,0 +1,14 @@
+from typing import Union, Mapping
+import requirements
+
+from setuptools import build_meta
+from setuptools.build_meta import *
+
+
+def get_requires_for_build_wheel(
+    config_settings: Union[Mapping[str, Union[str, list[str], None]], None] = None,
+) -> list[str]:
+    wheel_requirements = []
+    wheel_requirements.extend(build_meta.get_requires_for_build_wheel(config_settings))
+    wheel_requirements.extend(requirements.get_compile_dependencies(config_settings))
+    return wheel_requirements
