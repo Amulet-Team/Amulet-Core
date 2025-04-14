@@ -6,7 +6,7 @@ AMULET_COMPILER_VERSION_REQUIREMENT = "==1.3.0"
 AMULET_NBT_REQUIREMENT = "==4.0a18"
 # AMULET_LEVELDB_REQUIREMENT = "~=2.0"
 AMULET_LEVELDB_REQUIREMENT = "==2.0a7"
-AMULET_PYBIND11_EXTENSIONS_REQUIREMENT = "@git+https://github.com/Amulet-Team/Amulet-pybind11-extensions.git@f781177e52f352ea0c1750e9219a1a84f4ddd92f"
+AMULET_PYBIND11_EXTENSIONS_REQUIREMENT = "==1.0a0"
 
 _compile_dependencies: dict[str, str] = {
     "wheel": "",
