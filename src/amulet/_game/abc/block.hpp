@@ -6,9 +6,9 @@
 
 #include <pybind11/pybind11.h>
 
-#include <amulet/block.hpp>
-#include <amulet/block_entity.hpp>
-#include <amulet/entity.hpp>
+#include <amulet/block/block.hpp>
+#include <amulet/block_entity/block_entity.hpp>
+#include <amulet/entity/entity.hpp>
 
 namespace py = pybind11;
 

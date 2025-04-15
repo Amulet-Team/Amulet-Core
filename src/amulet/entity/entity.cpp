@@ -1,5 +1,5 @@
 #include <amulet/dll.hpp>
-#include <amulet/entity.hpp>
+#include <amulet/entity/entity.hpp>
 
 namespace Amulet {
 

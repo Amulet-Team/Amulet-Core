@@ -7,15 +7,17 @@
 #include <span>
 
 #include <pybind11_extensions/types.hpp>
+#include <pybind11_extensions/py_module.hpp>
 
-#include <amulet/block.hpp>
 #include <amulet/collections/sequence.py.hpp>
+
+#include "block.hpp"
 
 namespace py = pybind11;
 
 void init_block(py::module m_parent)
 {
-    auto m = m_parent.def_submodule("block");
+    auto m = pybind11_extensions::def_subpackage(m_parent, "block");
     py::options options;
 
     py::object PySorted = py::module::import("builtins").attr("sorted");

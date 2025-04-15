@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include <amulet/chunk.hpp>
+#include <amulet/chunk/chunk.hpp>
 #include <amulet/chunk_components/block_component.hpp>
 #include <amulet/dll.hpp>
 

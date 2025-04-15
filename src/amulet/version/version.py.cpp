@@ -5,13 +5,15 @@
 
 #include <sstream>
 
-#include <amulet/version.hpp>
+#include <pybind11_extensions/py_module.hpp>
+
+#include "version.hpp"
 
 namespace py = pybind11;
 
 void init_version(py::module m_parent)
 {
-    auto m = m_parent.def_submodule("version");
+    auto m = pybind11_extensions::def_subpackage(m_parent, "version");
     py::options options;
 
     m.attr("PlatformType") = py::module::import("builtins").attr("str");

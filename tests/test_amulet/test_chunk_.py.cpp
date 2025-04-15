@@ -2,7 +2,7 @@
 
 #include <pybind11_extensions/py_module.hpp>
 
-#include <amulet/chunk.hpp>
+#include <amulet/chunk/chunk.hpp>
 
 namespace py = pybind11;
 

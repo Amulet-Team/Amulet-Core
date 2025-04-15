@@ -5,7 +5,7 @@
 #include <amulet/dll.hpp>
 #include <amulet/io/binary_reader.hpp>
 #include <amulet/io/binary_writer.hpp>
-#include <amulet/version.hpp>
+#include <amulet/version/version.hpp>
 
 namespace Amulet {
 class Biome : public PlatformVersionContainer {

@@ -2,9 +2,9 @@
 
 #include <memory>
 
-#include <amulet/biome.hpp>
-#include <amulet/block.hpp>
-#include <amulet/chunk.hpp>
+#include <amulet/biome/biome.hpp>
+#include <amulet/block/block.hpp>
+#include <amulet/chunk/chunk.hpp>
 #include <amulet/chunk_components/block_component.hpp>
 
 #include "chunk_components/data_version_component.hpp"

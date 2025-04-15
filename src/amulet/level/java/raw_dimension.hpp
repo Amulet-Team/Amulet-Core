@@ -7,8 +7,8 @@
 
 #include <amulet_nbt/tag/named_tag.hpp>
 
-#include <amulet/biome.hpp>
-#include <amulet/block.hpp>
+#include <amulet/biome/biome.hpp>
+#include <amulet/block/block.hpp>
 #include <amulet/dll.hpp>
 #include <amulet/level/abc/dimension.hpp>
 #include <amulet/selection/group.hpp>

@@ -5,17 +5,20 @@
 
 #include <memory>
 
+#include <pybind11_extensions/py_module.hpp>
+
 #include <amulet_nbt/tag/named_tag.hpp>
 
-#include <amulet/block_entity.hpp>
 #include <amulet/collections/hash.py.hpp>
-#include <amulet/version.hpp>
+#include <amulet/version/version.hpp>
+
+#include "block_entity.hpp"
 
 namespace py = pybind11;
 
 void init_block_entity(py::module m_parent)
 {
-    auto m = m_parent.def_submodule("block_entity");
+    auto m = pybind11_extensions::def_subpackage(m_parent, "block_entity");
 
     py::class_<Amulet::BlockEntity, Amulet::PlatformVersionContainer, std::shared_ptr<Amulet::BlockEntity>> BlockEntity(m, "BlockEntity",
         "A class to contain all the data to define a BlockEntity.");

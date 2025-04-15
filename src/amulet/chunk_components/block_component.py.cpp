@@ -7,7 +7,7 @@
 #include <variant>
 
 #include <amulet/chunk_components/block_component.hpp>
-#include <amulet/version.hpp>
+#include <amulet/version/version.hpp>
 
 namespace py = pybind11;
 

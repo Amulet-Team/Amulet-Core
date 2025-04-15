@@ -1,5 +1,6 @@
-#include <amulet/chunk_components/biome_3d_component.hpp>
 #include <amulet/dll.hpp>
+
+#include "biome_3d_component.hpp"
 
 namespace Amulet {
 

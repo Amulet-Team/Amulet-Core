@@ -4,13 +4,13 @@
 #include <optional>
 #include <tuple>
 
-#include <amulet/block.hpp>
+#include <amulet/block/block.hpp>
 #include <amulet/chunk_components/section_array_map.hpp>
 #include <amulet/dll.hpp>
 #include <amulet/io/binary_reader.hpp>
 #include <amulet/io/binary_writer.hpp>
 #include <amulet/palette/block_palette.hpp>
-#include <amulet/version.hpp>
+#include <amulet/version/version.hpp>
 
 namespace Amulet {
 

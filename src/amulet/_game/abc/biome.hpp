@@ -4,7 +4,7 @@
 
 #include <memory>
 
-#include <amulet/biome.hpp>
+#include <amulet/biome/biome.hpp>
 
 namespace py = pybind11;
 

@@ -3,11 +3,11 @@
 #include <map>
 #include <stdexcept>
 
-#include <amulet/block.hpp>
+#include <amulet/block/block.hpp>
 #include <amulet/dll.hpp>
 #include <amulet/io/binary_reader.hpp>
 #include <amulet/io/binary_writer.hpp>
-#include <amulet/version.hpp>
+#include <amulet/version/version.hpp>
 
 namespace Amulet {
 

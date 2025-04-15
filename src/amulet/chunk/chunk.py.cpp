@@ -3,13 +3,15 @@
 #include <pybind11/stl.h>
 #include <pybind11/typing.h>
 
+#include <pybind11_extensions/py_module.hpp>
+
 #include "chunk.hpp"
 
 namespace py = pybind11;
 
 void init_chunk(py::module m_parent)
 {
-    auto m = m_parent.def_submodule("chunk");
+    auto m = pybind11_extensions::def_subpackage(m_parent, "chunk");
     py::class_<Amulet::Chunk, std::shared_ptr<Amulet::Chunk>> Chunk(m, "Chunk",
         "A base class for all chunk classes.");
     Chunk.def_property_readonly(

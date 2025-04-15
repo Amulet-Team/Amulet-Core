@@ -9,7 +9,7 @@
 #include <amulet/image/image.hpp>
 #include <amulet/utils/mutex.hpp>
 #include <amulet/utils/signal.hpp>
-#include <amulet/version.hpp>
+#include <amulet/version/version.hpp>
 
 #include "dimension.hpp"
 

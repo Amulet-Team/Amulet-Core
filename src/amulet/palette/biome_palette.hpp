@@ -3,8 +3,8 @@
 #include <map>
 #include <stdexcept>
 
-#include <amulet/biome.hpp>
-#include <amulet/version.hpp>
+#include <amulet/biome/biome.hpp>
+#include <amulet/version/version.hpp>
 
 namespace Amulet {
 

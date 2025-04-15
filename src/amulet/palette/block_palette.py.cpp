@@ -7,7 +7,7 @@
 #include <string>
 #include <variant>
 
-#include <amulet/block.hpp>
+#include <amulet/block/block.hpp>
 #include <amulet/collections/sequence.py.hpp>
 #include <amulet/palette/block_palette.hpp>
 

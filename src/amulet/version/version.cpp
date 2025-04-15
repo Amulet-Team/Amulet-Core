@@ -3,7 +3,8 @@
 #include <stdexcept>
 
 #include <amulet/dll.hpp>
-#include <amulet/version.hpp>
+
+#include "version.hpp"
 
 namespace Amulet {
 void VersionNumber::serialise(BinaryWriter& writer) const

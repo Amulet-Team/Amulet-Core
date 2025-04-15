@@ -4,8 +4,8 @@
 #include <string>
 #include <variant>
 
-#include <amulet/biome.hpp>
-#include <amulet/block.hpp>
+#include <amulet/biome/biome.hpp>
+#include <amulet/block/block.hpp>
 #include <amulet/selection/box.hpp>
 #include <amulet/selection/group.hpp>
 

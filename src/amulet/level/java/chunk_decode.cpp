@@ -14,9 +14,9 @@
 #include <amulet_nbt/tag/named_tag.hpp>
 
 #include <amulet/_game/game.hpp>
-#include <amulet/block.hpp>
-#include <amulet/chunk.hpp>
-#include <amulet/version.hpp>
+#include <amulet/block/block.hpp>
+#include <amulet/chunk/chunk.hpp>
+#include <amulet/version/version.hpp>
 
 #include "chunk.hpp"
 #include "long_array.hpp"
