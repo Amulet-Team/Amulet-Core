@@ -2,6 +2,7 @@
 
 #include <variant>
 #include <optional>
+#include <memory>
 
 #include <pybind11/pybind11.h>
 
@@ -15,10 +16,11 @@ namespace Amulet {
 
 class BlockData {
 protected:
-    py::object _block_data;
+    std::unique_ptr<py::object> _block_data;
 
 public:
     BlockData(py::object);
+    ~BlockData();
 
     std::variant<
         std::tuple<Block, std::optional<BlockEntity>, bool>,
