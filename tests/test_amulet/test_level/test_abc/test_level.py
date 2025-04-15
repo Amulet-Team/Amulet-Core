@@ -82,7 +82,9 @@ class LevelTestCases:
             with self.level() as level:
                 modified_time = level.modified_time
                 self.assertIsInstance(modified_time, datetime)
-                self.assertEqual(self.get_expected_modified_time(), modified_time.timestamp())
+                self.assertEqual(
+                    self.get_expected_modified_time(), modified_time.timestamp()
+                )
 
         @staticmethod
         @abstractmethod

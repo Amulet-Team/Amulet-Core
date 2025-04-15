@@ -43,9 +43,7 @@ class JavaRawLevelTestCase(TestCase):
             raw_level = JavaRawLevel.load(world_data.temp_path)
             self.assertIsInstance(raw_level.lock, OrderedLock)
             self.assertTrue(raw_level.is_supported())
-            self.assertEqual(
-                1527647775.463, raw_level.modified_time.timestamp()
-            )
+            self.assertEqual(1527647775.463, raw_level.modified_time.timestamp())
             self.assertEqual("java", raw_level.platform)
             self.assertEqual(VersionNumber(1497), raw_level.data_version)
             self.assertEqual(world_data.temp_path, raw_level.path)
