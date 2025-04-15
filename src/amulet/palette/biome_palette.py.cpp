@@ -7,7 +7,7 @@
 #include <string>
 #include <variant>
 
-#include <amulet/biome.hpp>
+#include <amulet/biome/biome.hpp>
 #include <amulet/collections/sequence.py.hpp>
 #include <amulet/palette/biome_palette.hpp>
 

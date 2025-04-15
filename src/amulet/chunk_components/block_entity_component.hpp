@@ -6,9 +6,9 @@
 #include <optional>
 #include <tuple>
 
-#include <amulet/block_entity.hpp>
+#include <amulet/block_entity/block_entity.hpp>
 #include <amulet/dll.hpp>
-#include <amulet/version.hpp>
+#include <amulet/version/version.hpp>
 
 namespace Amulet {
 typedef std::tuple<std::uint16_t, std::int64_t, std::uint16_t> BlockEntityChunkCoord;

@@ -4,7 +4,7 @@
 #include <memory>
 #include <string>
 
-#include <amulet/chunk.hpp>
+#include <amulet/chunk/chunk.hpp>
 #include <amulet/utils/mutex.hpp>
 #include <amulet/utils/signal.hpp>
 

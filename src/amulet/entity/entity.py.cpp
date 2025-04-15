@@ -5,17 +5,19 @@
 
 #include <memory>
 
+#include <pybind11_extensions/py_module.hpp>
+
 #include <amulet_nbt/tag/named_tag.hpp>
 
 #include <amulet/collections/hash.py.hpp>
-#include <amulet/entity.hpp>
-#include <amulet/version.hpp>
+#include <amulet/entity/entity.hpp>
+#include <amulet/version/version.hpp>
 
 namespace py = pybind11;
 
 void init_entity(py::module m_parent)
 {
-    auto m = m_parent.def_submodule("entity");
+    auto m = pybind11_extensions::def_subpackage(m_parent, "entity");
 
     py::class_<Amulet::Entity, Amulet::PlatformVersionContainer, std::shared_ptr<Amulet::Entity>> Entity(m, "Entity",
         "A class to contain all the data to define an Entity.");

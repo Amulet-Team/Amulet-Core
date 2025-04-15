@@ -17,7 +17,7 @@
 #include <amulet_nbt/nbt_encoding/binary.hpp>
 #include <amulet_nbt/zlib.hpp>
 
-#include <amulet/chunk.hpp>
+#include <amulet/chunk/chunk.hpp>
 #include <amulet/dll.hpp>
 #include <amulet/utils/logging.hpp>
 

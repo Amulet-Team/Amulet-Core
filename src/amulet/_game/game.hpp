@@ -3,7 +3,7 @@
 #include <string>
 #include <memory>
 
-#include <amulet/version.hpp>
+#include <amulet/version/version.hpp>
 #include "abc/version.hpp"
 #include "java/version.hpp"
 

@@ -1,7 +1,7 @@
 #include <algorithm>
 #include <mutex>
 
-#include <amulet/chunk.hpp>
+#include <amulet/chunk/chunk.hpp>
 
 #include "dimension.hpp"
 #include "region.hpp"

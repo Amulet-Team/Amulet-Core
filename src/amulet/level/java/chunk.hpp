@@ -8,9 +8,9 @@
 
 #include <amulet_nbt/tag/named_tag.hpp>
 
-#include <amulet/biome.hpp>
-#include <amulet/block.hpp>
-#include <amulet/chunk.hpp>
+#include <amulet/biome/biome.hpp>
+#include <amulet/block/block.hpp>
+#include <amulet/chunk/chunk.hpp>
 #include <amulet/chunk_components/block_component.hpp>
 #include <amulet/dll.hpp>
 

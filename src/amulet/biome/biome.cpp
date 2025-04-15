@@ -5,10 +5,11 @@
 #include <type_traits>
 #include <variant>
 
-#include <amulet/biome.hpp>
 #include <amulet/dll.hpp>
 #include <amulet_nbt/nbt_encoding/binary.hpp>
 #include <amulet_nbt/nbt_encoding/string.hpp>
+
+#include "biome.hpp"
 
 namespace Amulet {
 void Biome::serialise(BinaryWriter& writer) const

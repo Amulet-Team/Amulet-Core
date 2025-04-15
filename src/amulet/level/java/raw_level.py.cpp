@@ -6,7 +6,7 @@
 
 #include <amulet/utils/holder.py.hpp>
 #include <amulet/utils/signal.py.hpp>
-#include <amulet/version.hpp>
+#include <amulet/version/version.hpp>
 
 #include "raw_level.hpp"
 

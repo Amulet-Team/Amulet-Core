@@ -1,5 +1,6 @@
-#include <amulet/chunk_components/block_component.hpp>
 #include <amulet/dll.hpp>
+
+#include "block_component.hpp"
 
 namespace Amulet {
 

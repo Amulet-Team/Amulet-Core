@@ -5,11 +5,11 @@
 #include <optional>
 #include <tuple>
 
-#include <amulet/biome.hpp>
+#include <amulet/biome/biome.hpp>
 #include <amulet/chunk_components/section_array_map.hpp>
 #include <amulet/dll.hpp>
 #include <amulet/palette/biome_palette.hpp>
-#include <amulet/version.hpp>
+#include <amulet/version/version.hpp>
 
 namespace Amulet {
 

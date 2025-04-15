@@ -15,7 +15,7 @@
 #include <amulet/utils/lock_file.hpp>
 #include <amulet/utils/mutex.hpp>
 #include <amulet/utils/signal.hpp>
-#include <amulet/version.hpp>
+#include <amulet/version/version.hpp>
 
 #include "dimension.hpp"
 #include "raw_dimension.hpp"

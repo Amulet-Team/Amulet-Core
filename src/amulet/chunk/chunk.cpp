@@ -4,8 +4,9 @@
 #include <string>
 #include <unordered_map>
 
-#include <amulet/chunk.hpp>
 #include <amulet/dll.hpp>
+
+#include "chunk.hpp"
 
 namespace Amulet {
 namespace detail {
