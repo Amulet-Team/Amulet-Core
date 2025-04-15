@@ -44,7 +44,7 @@ class JavaRawLevelTestCase(TestCase):
             self.assertIsInstance(raw_level.lock, OrderedLock)
             self.assertTrue(raw_level.is_supported())
             self.assertEqual(
-                datetime.datetime.fromtimestamp(1527647775.463), raw_level.modified_time
+                1527647775.463, raw_level.modified_time.timestamp()
             )
             self.assertEqual("java", raw_level.platform)
             self.assertEqual(VersionNumber(1497), raw_level.data_version)

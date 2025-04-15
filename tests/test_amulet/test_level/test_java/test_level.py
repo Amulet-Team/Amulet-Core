@@ -46,8 +46,8 @@ class JavaLevelTestCase(
         return "1.13 World"
 
     @staticmethod
-    def get_expected_modified_time() -> datetime:
-        return datetime(2018, 5, 30, 3, 36, 15, 463000)
+    def get_expected_modified_time() -> float:
+        return 1527647775.463
 
     @staticmethod
     def get_expected_sub_chunk_size() -> int:

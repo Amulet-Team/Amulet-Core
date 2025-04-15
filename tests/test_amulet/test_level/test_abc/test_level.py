@@ -75,14 +75,14 @@ class LevelTestCases:
 
         @staticmethod
         @abstractmethod
-        def get_expected_modified_time() -> datetime:
+        def get_expected_modified_time() -> float:
             raise NotImplementedError
 
         def test_modified_time(self) -> None:
             with self.level() as level:
                 modified_time = level.modified_time
                 self.assertIsInstance(modified_time, datetime)
-                self.assertEqual(self.get_expected_modified_time(), modified_time)
+                self.assertEqual(self.get_expected_modified_time(), modified_time.timestamp())
 
         @staticmethod
         @abstractmethod
