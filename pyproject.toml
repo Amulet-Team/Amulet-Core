@@ -60,6 +60,7 @@ include-package-data = false
     "**/*.so",
     "**/*.dylib",
     "**/*.lib",
+    "**/*.pkl.gz"
 ]
 
 [tool.setuptools.dynamic]

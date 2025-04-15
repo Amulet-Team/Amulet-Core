@@ -8,6 +8,7 @@ import amulet.utils.lock
 import amulet.utils.signal
 import amulet.version
 import amulet_nbt
+import PIL.Image
 
 __all__ = ["JavaCreateArgsV1", "JavaRawLevel"]
 
@@ -47,25 +48,13 @@ class JavaRawLevel:
         """
         Close the level.
         closed signal will be emitted when complete.
-        External unique lock required.
+        External ReadWrite:Unique lock required.
         """
 
     def compact(self) -> None:
         """
         Compact the level.
-        External shared read lock required.
-        """
-
-    def get_biome_id_override(self) -> amulet.level.abc.registry.IdRegistry:
-        """
-        Overridden biome ids.
-        External shared read lock required.
-        """
-
-    def get_block_id_override(self) -> amulet.level.abc.registry.IdRegistry:
-        """
-        Overridden block ids.
-        External shared read lock required.
+        External Read:SharedReadWrite lock required.
         """
 
     def get_dimension(
@@ -73,39 +62,54 @@ class JavaRawLevel:
     ) -> amulet.level.java.raw_dimension.JavaRawDimension:
         """
         Get the raw dimension object for a specific dimension.
-        External shared read lock required.
+        External Read:SharedReadWrite lock required.
         """
 
     def is_open(self) -> bool:
         """
         Is the level open.
-        External shared read lock required.
+        External Read:SharedReadWrite lock required.
         """
 
-    def lock(self) -> amulet.utils.lock.OrderedLock:
+    def is_supported(self) -> bool:
         """
-        The public lock
-        Thread safe.
+        Is this level a supported version.
+        This is true for all versions we support and false for snapshots and unsupported newer versions.
+        TODO: thread safety
         """
 
     def open(self) -> None:
         """
         Open the level.
         opened signal will be emitted when complete.
-        External unique lock required.
+        External ReadWrite:Unique lock required.
         """
 
     def reload(self) -> None:
         """
         Reload the level.
         This is like closing and re-opening without releasing the session.lock file.
-        External unique lock required.
+        External ReadWrite:Unique lock required.
         """
 
     def reload_metadata(self) -> None:
         """
         Reload the metadata. This can only be called when the level is closed.
-        External unique lock required.
+        External ReadWrite:Unique lock required.
+        """
+
+    @property
+    def biome_id_override(self) -> amulet.level.abc.registry.IdRegistry:
+        """
+        Overridden biome ids.
+        External Read:SharedReadWrite lock required.
+        """
+
+    @property
+    def block_id_override(self) -> amulet.level.abc.registry.IdRegistry:
+        """
+        Overridden block ids.
+        External Read:SharedReadWrite lock required.
         """
 
     @property
@@ -115,12 +119,12 @@ class JavaRawLevel:
         """
         Getter:
         The game data version that the level was last opened in.
-        External shared read lock required.
+        External Read:SharedReadWrite lock required.
 
         Setter:
         Set the maximum game version.
-        If the game version is different this will close and re-open the level.
-        External unique lock required.
+        If the game version is different this will call :meth:`reload`.
+        External ReadWrite:SharedReadWrite lock required.
         """
 
     @data_version.setter
@@ -129,8 +133,8 @@ class JavaRawLevel:
     def dimension_ids(self) -> list[str]:
         """
         The identifiers for all dimensions in this level.
-        External shared read lock required.
-        External shared read-only lock optional.
+        External Read:SharedReadWrite lock required.
+        External Read:SharedReadOnly lock optional.
         """
 
     @property
@@ -138,11 +142,12 @@ class JavaRawLevel:
         """
         Getter:
         The NamedTag stored in the level.dat file. Returns a unique copy.
-        External shared read lock required.
+        External Read:SharedReadWrite lock required.
 
         Setter:
         Set the level.dat NamedTag
-        External unique lock required.
+        This calls :meth:`reload` if the data version changed.
+        External ReadWrite:Unique lock required.
         """
 
     @level_dat.setter
@@ -152,20 +157,27 @@ class JavaRawLevel:
         """
         Getter:
         The name of the level.
-        External shared read lock required.
+        External Read:SharedReadWrite lock required.
 
         Setter:
         Set the level name.
-        External unique lock required.
+        External ReadWrite:Unique lock required.
         """
 
     @level_name.setter
     def level_name(self, arg1: str) -> None: ...
     @property
+    def lock(self) -> amulet.utils.lock.OrderedLock:
+        """
+        The public lock
+        Thread safe.
+        """
+
+    @property
     def modified_time(self) -> datetime.datetime:
         """
         The time when the level was lasted edited.
-        External shared read lock required.
+        External Read:SharedReadWrite lock required.
         """
 
     @property
@@ -186,3 +198,9 @@ class JavaRawLevel:
 
     @property
     def reloaded(self) -> amulet.utils.signal.Signal[()]: ...
+    @property
+    def thumbnail(self) -> PIL.Image.Image:
+        """
+        Get the thumbnail for the level.
+        Thread safe.
+        """

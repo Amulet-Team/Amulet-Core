@@ -52,10 +52,10 @@ namespace Amulet {
 
 class LevelLoaderRegister {
 private:
-    std::shared_ptr<LevelLoader> loader;
+    std::shared_ptr<LevelLoader> _loader;
 
 public:
-    AMULET_CORE_EXPORT LevelLoaderRegister(const std::shared_ptr<LevelLoader>&);
+    AMULET_CORE_EXPORT LevelLoaderRegister(std::shared_ptr<LevelLoader>);
     AMULET_CORE_EXPORT ~LevelLoaderRegister();
 };
 
@@ -63,6 +63,6 @@ class NoValidLevelLoader : public std::runtime_error {
     using std::runtime_error::runtime_error;
 };
 
-AMULET_CORE_EXPORT std::shared_ptr<Level> get_level(const std::shared_ptr<LevelLoaderToken>&);
+AMULET_CORE_EXPORT std::shared_ptr<Level> get_level(std::shared_ptr<LevelLoaderToken>);
 
 } // namespace Amulet

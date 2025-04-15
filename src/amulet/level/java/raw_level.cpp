@@ -285,6 +285,21 @@ void JavaRawLevel::set_data_version(const VersionNumber& data_version)
     set_level_dat(level_dat);
 }
 
+bool JavaRawLevel::is_supported() const
+{
+    // TODO
+    return true;
+}
+
+PIL::Image::Image JavaRawLevel::get_thumbnail() const
+{
+    try {
+        return PIL::Image::open(_path / "icon.png");
+    } catch (...) {
+        return get_missing_no_icon();
+    }
+}
+
 std::chrono::system_clock::time_point JavaRawLevel::get_modified_time() const
 {
 
@@ -515,43 +530,46 @@ JavaRawLevelOpenData& JavaRawLevel::_find_dimensions()
     }
 
     // Find dimensions in "dimensions" directory
-    for (const auto& dir_entry : std::filesystem::recursive_directory_iterator { _path / "dimensions" }) {
-        if (!dir_entry.is_directory()) {
-            // Skip if it isn't a directory
-            continue;
-        }
-        auto& path = dir_entry.path();
-        if (path.filename().string() != "region") {
-            // Skip if it doesn't end with region
-            continue;
-        }
-        // Get the dimension path relative to the world
-        auto rel_dimension_path = std::filesystem::relative(path.parent_path(), _path);
+    auto dimensions_path = _path / "dimensions";
+    if (std::filesystem::is_directory(dimensions_path)) {
+        for (const auto& dir_entry : std::filesystem::recursive_directory_iterator { dimensions_path }) {
+            if (!dir_entry.is_directory()) {
+                // Skip if it isn't a directory
+                continue;
+            }
+            auto& path = dir_entry.path();
+            if (path.filename().string() != "region") {
+                // Skip if it doesn't end with region
+                continue;
+            }
+            // Get the dimension path relative to the world
+            auto rel_dimension_path = std::filesystem::relative(path.parent_path(), _path);
 
-        std::string dimension_name;
-        auto it = rel_dimension_path.begin();
+            std::string dimension_name;
+            auto it = rel_dimension_path.begin();
 
-        // Get the namespace
-        if (it == rel_dimension_path.end()) {
-            continue;
-        }
-        dimension_name += it->string();
-        dimension_name += ":";
-        it++;
-
-        // Get the base name
-        if (it == rel_dimension_path.end()) {
-            continue;
-        }
-        dimension_name += it->string();
-
-        // Get base name extension
-        for (; it == rel_dimension_path.end(); it++) {
-            dimension_name += "/";
+            // Get the namespace
+            if (it == rel_dimension_path.end()) {
+                continue;
+            }
             dimension_name += it->string();
-        }
+            dimension_name += ":";
+            it++;
 
-        _register_dimension(raw_open, rel_dimension_path.string(), dimension_name);
+            // Get the base name
+            if (it == rel_dimension_path.end()) {
+                continue;
+            }
+            dimension_name += it->string();
+
+            // Get base name extension
+            for (; it == rel_dimension_path.end(); it++) {
+                dimension_name += "/";
+                dimension_name += it->string();
+            }
+
+            _register_dimension(raw_open, rel_dimension_path.string(), dimension_name);
+        }
     }
 
     return raw_open;

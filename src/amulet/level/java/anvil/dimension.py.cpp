@@ -25,6 +25,7 @@ py::module init_anvil_dimension(py::module m_parent)
     AnvilDimensionLayer.def_property_readonly(
         "lock",
         &Amulet::AnvilDimensionLayer::get_mutex,
+        py::keep_alive<0, 1>(),
         py::doc("External lock.\n"
                 "Thread safe."));
     AnvilDimensionLayer.def_property_readonly(
@@ -164,6 +165,7 @@ py::module init_anvil_dimension(py::module m_parent)
     AnvilDimension.def_property_readonly(
         "lock",
         &Amulet::AnvilDimension::get_mutex,
+        py::keep_alive<0, 1>(),
         py::doc("External lock.\n"
                 "Thread safe."));
     AnvilDimension.def_property_readonly(

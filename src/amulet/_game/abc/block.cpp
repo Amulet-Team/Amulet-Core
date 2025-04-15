@@ -6,8 +6,14 @@
 namespace Amulet {
 
 BlockData::BlockData(py::object block_data)
-    : _block_data(block_data)
+    : _block_data(std::make_unique<py::object>(std::move(block_data)))
 {
+}
+
+BlockData::~BlockData()
+{
+    py::gil_scoped_acquire gil;
+    _block_data = nullptr;
 }
 
 std::variant<
@@ -16,7 +22,7 @@ std::variant<
 BlockData::translate(const std::string& platform, const VersionNumber& version, const Block& block)
 {
     py::gil_scoped_acquire gil;
-    py::tuple out = _block_data.attr("translate")("java", version, block);
+    py::tuple out = _block_data->attr("translate")("java", version, block);
     if (py::isinstance<Block>(out[0])) {
         return out.cast<std::tuple<Block, std::optional<BlockEntity>, bool>>();
     } else {

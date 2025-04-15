@@ -85,10 +85,12 @@ endforeach()
 
 # Add python extension
 pybind11_add_module(_amulet)
+target_link_libraries( _amulet PRIVATE pybind11_extensions )
 target_link_libraries( _amulet PRIVATE amulet_nbt )
 target_link_libraries( _amulet PRIVATE leveldb_mcpe )
 target_link_libraries( _amulet PRIVATE amulet_core )
-target_link_libraries( _amulet PRIVATE pybind11_extensions )
+target_link_libraries( _amulet PRIVATE leveldb_mcpe )
+target_link_libraries( _amulet PRIVATE leveldb_mcpe_interface )
 target_compile_definitions(_amulet PRIVATE PYBIND11_DETAILED_ERROR_MESSAGES)
 target_compile_definitions(_amulet PRIVATE PYBIND11_VERSION="${pybind11_VERSION}")
 target_compile_definitions(_amulet PRIVATE COMPILER_ID="${CMAKE_CXX_COMPILER_ID}")

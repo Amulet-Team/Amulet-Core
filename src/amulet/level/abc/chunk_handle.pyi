@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import amulet.chunk
+import amulet.utils.lock
+import amulet.utils.signal
 
 __all__ = ["ChunkHandle"]
 
@@ -9,9 +11,6 @@ class ChunkHandle:
         """
         Delete the chunk from the level.
         You must acquire the chunk lock before deleting.
-
-        :raises:
-            LockNotAcquired: If the chunk is already locked by another thread.
         """
 
     def exists(self) -> bool:
@@ -43,8 +42,12 @@ class ChunkHandle:
         If you want to edit the chunk, use :meth:`edit` instead.
 
         :param chunk: The chunk data to set.
-        :raises:
-            LockNotAcquired: If the chunk is already locked by another thread.
+        """
+
+    @property
+    def changed(self) -> amulet.utils.signal.Signal[()]:
+        """
+        Signal emitted when the chunk data changes.
         """
 
     @property
@@ -63,4 +66,11 @@ class ChunkHandle:
     def dimension_id(self) -> str:
         """
         The dimension identifier this chunk is from.
+        """
+
+    @property
+    def lock(self) -> amulet.utils.lock.OrderedLock:
+        """
+        The public lock.
+        Thread safe.
         """

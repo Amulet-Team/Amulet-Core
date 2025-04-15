@@ -206,6 +206,8 @@ public:
         return _resources.contains(resource_id);
     }
 
+    // Get the HistoryResource instance for this resource.
+    // External shared lock required.
     const HistoryResource& get_resource(const ResourceIdT& resource_id) const
     {
         return *_resources.at(resource_id);
