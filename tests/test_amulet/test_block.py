@@ -3,7 +3,7 @@ from amulet.block import Block, BlockStack
 
 from amulet.version import VersionNumber
 
-from amulet_nbt import (
+from amulet.nbt import (
     ByteTag,
     ShortTag,
     IntTag,

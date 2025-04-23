@@ -1,4 +1,4 @@
-#include <amulet/dll.hpp>
+#include <amulet/core/dll.hpp>
 #include <amulet/entity/entity.hpp>
 
 namespace Amulet {
@@ -11,9 +11,9 @@ const std::string& Entity::get_base_name() const { return _base_name; }
 
 void Entity::set_base_name(const std::string& base_name) { _base_name = base_name; }
 
-std::shared_ptr<AmuletNBT::NamedTag> Entity::get_nbt() const { return _nbt; }
+std::shared_ptr<Amulet::NBT::NamedTag> Entity::get_nbt() const { return _nbt; }
 
-void Entity::set_nbt(std::shared_ptr<AmuletNBT::NamedTag> nbt) { _nbt = nbt; }
+void Entity::set_nbt(std::shared_ptr<Amulet::NBT::NamedTag> nbt) { _nbt = nbt; }
 
 double Entity::get_x() const { return _x; }
 
@@ -35,7 +35,7 @@ Entity::Entity(
     double x,
     double y,
     double z,
-    std::shared_ptr<AmuletNBT::NamedTag> nbt)
+    std::shared_ptr<Amulet::NBT::NamedTag> nbt)
     : PlatformVersionContainer(std::move(platform), std::move(version))
     , _namespace(std::move(namespace_))
     , _base_name(std::move(base_name))
@@ -66,7 +66,7 @@ bool Entity::operator==(const Entity& other) const
         && _x == other._x
         && _y == other._y
         && _z == other._z
-        && AmuletNBT::NBTTag_eq(*_nbt, *other._nbt));
+        && Amulet::NBT::NBTTag_eq(*_nbt, *other._nbt));
 }
 
 } // namespace Amulet

@@ -8,7 +8,7 @@
 #include <string>
 #include <unordered_map>
 
-#include <amulet/dll.hpp>
+#include <amulet/core/dll.hpp>
 
 // Requirements:
 // Split chunk data into components that are orthogonal to each other.

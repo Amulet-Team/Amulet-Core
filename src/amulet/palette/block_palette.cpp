@@ -1,24 +1,24 @@
 #include "block_palette.hpp"
-#include <amulet/dll.hpp>
+#include <amulet/core/dll.hpp>
 
 namespace Amulet {
 void BlockPalette::serialise(BinaryWriter& writer) const
 {
-    writer.writeNumeric<std::uint8_t>(1);
+    writer.write_numeric<std::uint8_t>(1);
     get_version_range().serialise(writer);
     const auto& blocks = get_blocks();
-    writer.writeNumeric<std::uint64_t>(blocks.size());
+    writer.write_numeric<std::uint64_t>(blocks.size());
     for (const auto& block : blocks) {
         block.serialise(writer);
     }
 }
 BlockPalette BlockPalette::deserialise(BinaryReader& reader)
 {
-    auto version = reader.readNumeric<std::uint8_t>();
+    auto version = reader.read_numeric<std::uint8_t>();
     switch (version) {
     case 1: {
         auto version_range = VersionRange::deserialise(reader);
-        auto count = reader.readNumeric<std::uint64_t>();
+        auto count = reader.read_numeric<std::uint64_t>();
         BlockPalette palette(version_range);
         for (auto i = 0; i < count; i++) {
             if (palette.size() != palette.block_stack_to_index(BlockStack::deserialise(reader))) {

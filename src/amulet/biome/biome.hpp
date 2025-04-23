@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include <amulet/dll.hpp>
+#include <amulet/core/dll.hpp>
 #include <amulet/io/binary_reader.hpp>
 #include <amulet/io/binary_writer.hpp>
 #include <amulet/version/version.hpp>

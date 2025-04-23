@@ -5,9 +5,9 @@ namespace py = pybind11;
 void init_block_palette(py::module);
 void init_biome_palette(py::module);
 
-void init_palette(py::module m_parent)
+void init_palette()
 {
-    auto m = m_parent.def_submodule("palette");
+    auto m = py::module::import("amulet.palette");
 
     auto block_palette_module = m.def_submodule("block_palette");
     init_block_palette(block_palette_module);

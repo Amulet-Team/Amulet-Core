@@ -4,20 +4,20 @@
 #include <string>
 #include <variant>
 
-#include <amulet/dll.hpp>
+#include <amulet/core/dll.hpp>
 #include <amulet/io/binary_reader.hpp>
 #include <amulet/io/binary_writer.hpp>
 #include <amulet/version/version.hpp>
-#include <amulet_nbt/tag/int.hpp>
-#include <amulet_nbt/tag/string.hpp>
+#include <amulet/nbt/tag/int.hpp>
+#include <amulet/nbt/tag/string.hpp>
 
 namespace Amulet {
 typedef std::variant<
-    AmuletNBT::ByteTag,
-    AmuletNBT::ShortTag,
-    AmuletNBT::IntTag,
-    AmuletNBT::LongTag,
-    AmuletNBT::StringTag>
+    Amulet::NBT::ByteTag,
+    Amulet::NBT::ShortTag,
+    Amulet::NBT::IntTag,
+    Amulet::NBT::LongTag,
+    Amulet::NBT::StringTag>
     PropertyValueType;
 
 typedef std::map<std::string, PropertyValueType> BlockProperites;

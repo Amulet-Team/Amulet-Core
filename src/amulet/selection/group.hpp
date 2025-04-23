@@ -5,7 +5,7 @@
 #include <ranges>
 #include <set>
 
-#include <amulet/dll.hpp>
+#include <amulet/core/dll.hpp>
 #include <amulet/selection/box.hpp>
 
 namespace Amulet {

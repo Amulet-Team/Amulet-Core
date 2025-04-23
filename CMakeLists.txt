@@ -53,8 +53,8 @@ find_package(pybind11 CONFIG REQUIRED)
 find_package(pybind11_extensions CONFIG REQUIRED)
 
 # Add Amulet NBT
+find_package(amulet_io CONFIG REQUIRED)
 find_package(amulet_nbt CONFIG REQUIRED)
-find_package(leveldb_mcpe CONFIG REQUIRED)
 
 # Find C++ files
 file(REAL_PATH src SOURCE_PATH)
@@ -67,12 +67,10 @@ list(REMOVE_ITEM AMULET_HEADERS ${AMULET_EXTENSION_HEADERS})
 
 # Add implementation
 add_library(amulet_core SHARED)
-target_link_libraries( amulet_core PRIVATE pybind11::module ) # TODO: remove this when it doesn't depend on pybind11
 target_link_libraries( amulet_core PRIVATE zlibstatic )
 target_link_libraries( amulet_core PRIVATE lz4_static )
+target_link_libraries( amulet_core PRIVATE amulet_io )
 target_link_libraries( amulet_core PRIVATE amulet_nbt )
-target_link_libraries( amulet_core PRIVATE leveldb_mcpe )
-target_link_libraries( amulet_core PRIVATE leveldb_mcpe_interface )
 target_compile_definitions(amulet_core PRIVATE ExportAmuletCore)
 target_include_directories(amulet_core PUBLIC ${SOURCE_PATH})
 target_sources(amulet_core PRIVATE ${AMULET_SOURCES} ${AMULET_HEADERS})
@@ -86,11 +84,9 @@ endforeach()
 # Add python extension
 pybind11_add_module(_amulet)
 target_link_libraries( _amulet PRIVATE pybind11_extensions )
+target_link_libraries( _amulet PRIVATE amulet_io )
 target_link_libraries( _amulet PRIVATE amulet_nbt )
-target_link_libraries( _amulet PRIVATE leveldb_mcpe )
 target_link_libraries( _amulet PRIVATE amulet_core )
-target_link_libraries( _amulet PRIVATE leveldb_mcpe )
-target_link_libraries( _amulet PRIVATE leveldb_mcpe_interface )
 target_compile_definitions(_amulet PRIVATE PYBIND11_DETAILED_ERROR_MESSAGES)
 target_compile_definitions(_amulet PRIVATE PYBIND11_VERSION="${pybind11_VERSION}")
 target_compile_definitions(_amulet PRIVATE COMPILER_ID="${CMAKE_CXX_COMPILER_ID}")

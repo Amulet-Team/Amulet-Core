@@ -54,13 +54,11 @@ include-package-data = false
 [tool.setuptools.package-data]
 "*" = [
     "*Config.cmake",
-    "**/*.png",
     "**/*.hpp",
     "**/*.dll",
     "**/*.so",
     "**/*.dylib",
     "**/*.lib",
-    "**/*.pkl.gz"
 ]
 
 [tool.setuptools.dynamic]
@@ -72,7 +70,7 @@ hook-dirs = "amulet.__pyinstaller:get_hook_dirs"
 [tool.versioneer]
 VCS = "git"
 style = "pep440"
-versionfile_source = "src/amulet/_version.py"
-versionfile_build = "amulet/_version.py"
+versionfile_source = "src/amulet/core/_version.py"
+versionfile_build = "amulet/core/_version.py"
 tag_prefix = ""
 parentdir_prefix = "amulet-"

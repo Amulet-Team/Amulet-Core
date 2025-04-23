@@ -4,7 +4,7 @@
 #include <string>
 #include <unordered_map>
 
-#include <amulet/dll.hpp>
+#include <amulet/core/dll.hpp>
 
 #include "chunk.hpp"
 

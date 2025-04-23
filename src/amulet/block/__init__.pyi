@@ -5,7 +5,7 @@ import types
 import typing
 
 import amulet.version
-import amulet_nbt
+import amulet.nbt
 
 __all__ = ["Block", "BlockStack", "PropertyValueType"]
 
@@ -84,11 +84,11 @@ class Block(amulet.version.PlatformVersionContainer):
         base_name: str,
         properties: dict[
             str,
-            amulet_nbt.ByteTag
-            | amulet_nbt.ShortTag
-            | amulet_nbt.IntTag
-            | amulet_nbt.LongTag
-            | amulet_nbt.StringTag,
+            amulet.nbt.ByteTag
+            | amulet.nbt.ShortTag
+            | amulet.nbt.IntTag
+            | amulet.nbt.LongTag
+            | amulet.nbt.StringTag,
         ] = {},
     ) -> None: ...
     def __le__(self, arg0: Block) -> bool: ...
@@ -170,11 +170,11 @@ class Block(amulet.version.PlatformVersionContainer):
         self,
     ) -> dict[
         str,
-        amulet_nbt.ByteTag
-        | amulet_nbt.ShortTag
-        | amulet_nbt.IntTag
-        | amulet_nbt.LongTag
-        | amulet_nbt.StringTag,
+        amulet.nbt.ByteTag
+        | amulet.nbt.ShortTag
+        | amulet.nbt.IntTag
+        | amulet.nbt.LongTag
+        | amulet.nbt.StringTag,
     ]:
         """
         The properties of the blockstate represented by the :class:`Block` object as a dictionary.
@@ -263,9 +263,9 @@ class BlockStack:
         """
 
 PropertyValueType: typing.TypeAlias = (
-    amulet_nbt.ByteTag
-    | amulet_nbt.ShortTag
-    | amulet_nbt.IntTag
-    | amulet_nbt.LongTag
-    | amulet_nbt.StringTag
+    amulet.nbt.ByteTag
+    | amulet.nbt.ShortTag
+    | amulet.nbt.IntTag
+    | amulet.nbt.LongTag
+    | amulet.nbt.StringTag
 )

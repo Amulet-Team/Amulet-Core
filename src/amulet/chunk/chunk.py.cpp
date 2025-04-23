@@ -9,9 +9,9 @@
 
 namespace py = pybind11;
 
-void init_chunk(py::module m_parent)
+void init_chunk()
 {
-    auto m = pybind11_extensions::def_subpackage(m_parent, "chunk");
+    auto m = py::module::import("amulet.chunk");
     py::class_<Amulet::Chunk, std::shared_ptr<Amulet::Chunk>> Chunk(m, "Chunk",
         "A base class for all chunk classes.");
     Chunk.def_property_readonly(

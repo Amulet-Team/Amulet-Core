@@ -1,4 +1,4 @@
-#include <amulet/dll.hpp>
+#include <amulet/core/dll.hpp>
 
 #include "block_component.hpp"
 
@@ -25,18 +25,18 @@ BlockComponentData::BlockComponentData(
 
 void BlockComponentData::serialise(BinaryWriter& writer) const
 {
-    writer.writeNumeric<std::uint8_t>(1);
+    writer.write_numeric<std::uint8_t>(1);
     get_palette()->serialise(writer);
     get_sections()->serialise(writer);
 }
 
 BlockComponentData BlockComponentData::deserialise(BinaryReader& reader)
 {
-    auto version = reader.readNumeric<std::uint8_t>();
+    auto version = reader.read_numeric<std::uint8_t>();
     switch (version) {
     case 1: {
-        auto palette = Amulet::deserialise_shared<BlockPalette>(reader);
-        auto sections = Amulet::deserialise_shared<SectionArrayMap>(reader);
+        auto palette = std::make_shared<BlockPalette>(Amulet::deserialise<BlockPalette>(reader));
+        auto sections = std::make_shared<SectionArrayMap>(Amulet::deserialise<SectionArrayMap>(reader));
         return { palette, sections };
     }
     default:
@@ -75,7 +75,7 @@ std::optional<std::string> BlockComponent::serialise() const
 void BlockComponent::deserialise(std::optional<std::string> data)
 {
     if (data) {
-        _value = Amulet::deserialise_shared<BlockComponentData>(*data);
+        _value = std::make_shared<BlockComponentData>(Amulet::deserialise<BlockComponentData>(*data));
     } else {
         _value = std::nullopt;
     }

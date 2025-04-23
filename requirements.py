@@ -3,9 +3,7 @@ import os
 
 AMULET_COMPILER_VERSION_REQUIREMENT = "==1.3.0"
 # AMULET_NBT_REQUIREMENT = "~=4.0"
-AMULET_NBT_REQUIREMENT = "==4.0a18"
-# AMULET_LEVELDB_REQUIREMENT = "~=2.0"
-AMULET_LEVELDB_REQUIREMENT = "==2.0a7"
+AMULET_NBT_REQUIREMENT = "==4.0a19"
 AMULET_PYBIND11_EXTENSIONS_REQUIREMENT = "==1.0a0"
 
 _compile_dependencies: dict[str, str] = {
@@ -13,7 +11,6 @@ _compile_dependencies: dict[str, str] = {
     "pybind11[global]": "==2.13.6",
     "amulet_pybind11_extensions": AMULET_PYBIND11_EXTENSIONS_REQUIREMENT,
     "amulet_nbt": AMULET_NBT_REQUIREMENT,
-    "amulet_leveldb": AMULET_LEVELDB_REQUIREMENT,
 }
 
 fixed_runtime_dependencies_data: dict[str, str] = {

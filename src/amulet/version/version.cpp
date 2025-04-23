@@ -2,29 +2,29 @@
 #include <cstdint>
 #include <stdexcept>
 
-#include <amulet/dll.hpp>
+#include <amulet/core/dll.hpp>
 
 #include "version.hpp"
 
 namespace Amulet {
 void VersionNumber::serialise(BinaryWriter& writer) const
 {
-    writer.writeNumeric<std::uint8_t>(1);
-    writer.writeNumeric<std::uint64_t>(vec.size());
+    writer.write_numeric<std::uint8_t>(1);
+    writer.write_numeric<std::uint64_t>(vec.size());
     for (const std::int64_t& v : vec) {
-        writer.writeNumeric<std::int64_t>(v);
+        writer.write_numeric<std::int64_t>(v);
     }
 }
 VersionNumber VersionNumber::deserialise(BinaryReader& reader)
 {
-    auto version_number = reader.readNumeric<std::uint8_t>();
+    auto version_number = reader.read_numeric<std::uint8_t>();
     switch (version_number) {
     case 1: {
         std::uint64_t count;
-        reader.readNumericInto(count);
+        reader.read_numeric_into(count);
         std::vector<std::int64_t> vec(count);
         for (size_t i = 0; i < count; i++) {
-            reader.readNumericInto<std::int64_t>(vec[i]);
+            reader.read_numeric_into<std::int64_t>(vec[i]);
         }
         return vec;
     }
@@ -80,16 +80,16 @@ std::vector<std::int64_t> VersionNumber::padded_version(size_t len) const
 
 void PlatformVersionContainer::serialise(BinaryWriter& writer) const
 {
-    writer.writeNumeric<std::uint8_t>(1);
-    writer.writeSizeAndBytes(platform);
+    writer.write_numeric<std::uint8_t>(1);
+    writer.write_size_and_bytes(platform);
     version.serialise(writer);
 }
 PlatformVersionContainer PlatformVersionContainer::deserialise(BinaryReader& reader)
 {
-    auto version_number = reader.readNumeric<std::uint8_t>();
+    auto version_number = reader.read_numeric<std::uint8_t>();
     switch (version_number) {
     case 1: {
-        std::string platform = reader.readSizeAndBytes();
+        std::string platform { reader.read_size_and_bytes() };
         auto version = VersionNumber::deserialise(reader);
         return { platform, version };
     }
@@ -100,17 +100,17 @@ PlatformVersionContainer PlatformVersionContainer::deserialise(BinaryReader& rea
 
 void VersionRange::serialise(BinaryWriter& writer) const
 {
-    writer.writeNumeric<std::uint8_t>(1);
-    writer.writeSizeAndBytes(platform);
+    writer.write_numeric<std::uint8_t>(1);
+    writer.write_size_and_bytes(platform);
     min_version.serialise(writer);
     max_version.serialise(writer);
 }
 VersionRange VersionRange::deserialise(BinaryReader& reader)
 {
-    auto version_number = reader.readNumeric<std::uint8_t>();
+    auto version_number = reader.read_numeric<std::uint8_t>();
     switch (version_number) {
     case 1: {
-        std::string platform = reader.readSizeAndBytes();
+        std::string platform { reader.read_size_and_bytes() };
         auto min_version = VersionNumber::deserialise(reader);
         auto max_version = VersionNumber::deserialise(reader);
         return { platform, min_version, max_version };
@@ -132,12 +132,12 @@ bool VersionRange::operator==(const VersionRange& other) const
 
 void VersionRangeContainer::serialise(BinaryWriter& writer) const
 {
-    writer.writeNumeric<std::uint8_t>(1);
+    writer.write_numeric<std::uint8_t>(1);
     version_range.serialise(writer);
 }
 VersionRangeContainer VersionRangeContainer::deserialise(BinaryReader& reader)
 {
-    auto version_number = reader.readNumeric<std::uint8_t>();
+    auto version_number = reader.read_numeric<std::uint8_t>();
     switch (version_number) {
     case 1: {
         return VersionRange::deserialise(reader);

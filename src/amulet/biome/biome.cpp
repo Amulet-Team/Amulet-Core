@@ -5,30 +5,30 @@
 #include <type_traits>
 #include <variant>
 
-#include <amulet/dll.hpp>
-#include <amulet_nbt/nbt_encoding/binary.hpp>
-#include <amulet_nbt/nbt_encoding/string.hpp>
+#include <amulet/core/dll.hpp>
+#include <amulet/nbt/nbt_encoding/binary.hpp>
+#include <amulet/nbt/nbt_encoding/string.hpp>
 
 #include "biome.hpp"
 
 namespace Amulet {
 void Biome::serialise(BinaryWriter& writer) const
 {
-    writer.writeNumeric<std::uint8_t>(1);
-    writer.writeSizeAndBytes(get_platform());
+    writer.write_numeric<std::uint8_t>(1);
+    writer.write_size_and_bytes(get_platform());
     get_version().serialise(writer);
-    writer.writeSizeAndBytes(namespace_);
-    writer.writeSizeAndBytes(base_name);
+    writer.write_size_and_bytes(namespace_);
+    writer.write_size_and_bytes(base_name);
 }
 Biome Biome::deserialise(BinaryReader& reader)
 {
-    auto version_number = reader.readNumeric<std::uint8_t>();
+    auto version_number = reader.read_numeric<std::uint8_t>();
     switch (version_number) {
     case 1: {
-        std::string platform = reader.readSizeAndBytes();
+        std::string platform { reader.read_size_and_bytes() };
         VersionNumber version = VersionNumber::deserialise(reader);
-        std::string namespace_ = reader.readSizeAndBytes();
-        std::string base_name = reader.readSizeAndBytes();
+        std::string namespace_ { reader.read_size_and_bytes() };
+        std::string base_name { reader.read_size_and_bytes() };
         return { platform, version, namespace_, base_name };
     }
     default:

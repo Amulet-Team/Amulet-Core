@@ -1,4 +1,4 @@
-#include <amulet/dll.hpp>
+#include <amulet/core/dll.hpp>
 
 #include "block_entity_component.hpp"
 

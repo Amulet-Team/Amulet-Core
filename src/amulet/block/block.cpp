@@ -5,49 +5,49 @@
 #include <type_traits>
 #include <variant>
 
-#include <amulet/dll.hpp>
-#include <amulet_nbt/nbt_encoding/binary.hpp>
-#include <amulet_nbt/nbt_encoding/string.hpp>
+#include <amulet/core/dll.hpp>
+#include <amulet/nbt/nbt_encoding/binary.hpp>
+#include <amulet/nbt/nbt_encoding/string.hpp>
 
 #include "block.hpp"
 
 namespace Amulet {
 void Block::serialise(BinaryWriter& writer) const
 {
-    writer.writeNumeric<std::uint8_t>(1);
-    writer.writeSizeAndBytes(get_platform());
+    writer.write_numeric<std::uint8_t>(1);
+    writer.write_size_and_bytes(get_platform());
     get_version().serialise(writer);
-    writer.writeSizeAndBytes(namespace_);
-    writer.writeSizeAndBytes(base_name);
+    writer.write_size_and_bytes(namespace_);
+    writer.write_size_and_bytes(base_name);
 
-    writer.writeNumeric<std::uint64_t>(properties.size());
+    writer.write_numeric<std::uint64_t>(properties.size());
     for (auto const& [key, val] : properties) {
-        writer.writeSizeAndBytes(key);
+        writer.write_size_and_bytes(key);
         std::visit([&writer](auto&& tag) {
-            AmuletNBT::encode_nbt(writer, "", tag);
+            Amulet::NBT::encode_nbt(writer, "", tag);
         },
             val);
     }
 }
 Block Block::deserialise(BinaryReader& reader)
 {
-    auto version_number = reader.readNumeric<std::uint8_t>();
+    auto version_number = reader.read_numeric<std::uint8_t>();
     switch (version_number) {
     case 1: {
-        std::string platform = reader.readSizeAndBytes();
+        std::string platform { reader.read_size_and_bytes() };
         VersionNumber version = VersionNumber::deserialise(reader);
-        std::string namespace_ = reader.readSizeAndBytes();
-        std::string base_name = reader.readSizeAndBytes();
+        std::string namespace_ { reader.read_size_and_bytes() };
+        std::string base_name { reader.read_size_and_bytes() };
         std::uint64_t property_count;
         BlockProperites properties;
-        reader.readNumericInto<std::uint64_t>(property_count);
+        reader.read_numeric_into<std::uint64_t>(property_count);
         for (std::uint64_t i = 0; i < property_count; i++) {
-            std::string name = reader.readSizeAndBytes();
-            AmuletNBT::NamedTag named_tag = AmuletNBT::decode_nbt(reader);
+            std::string name { reader.read_size_and_bytes() };
+            Amulet::NBT::NamedTag named_tag = Amulet::NBT::decode_nbt(reader);
             properties[name] = std::visit([](auto&& tag) -> PropertyValueType {
                 using T = std::decay_t<decltype(tag)>;
                 if constexpr (
-                    std::is_same_v<T, AmuletNBT::ByteTag> || std::is_same_v<T, AmuletNBT::ShortTag> || std::is_same_v<T, AmuletNBT::IntTag> || std::is_same_v<T, AmuletNBT::LongTag> || std::is_same_v<T, AmuletNBT::StringTag>) {
+                    std::is_same_v<T, Amulet::NBT::ByteTag> || std::is_same_v<T, Amulet::NBT::ShortTag> || std::is_same_v<T, Amulet::NBT::IntTag> || std::is_same_v<T, Amulet::NBT::LongTag> || std::is_same_v<T, Amulet::NBT::StringTag>) {
                     return tag;
                 } else {
                     throw std::invalid_argument("Property tag must be Byte, Short, Int, Long or String");
@@ -90,7 +90,7 @@ std::string Block::java_blockstate() const
             std::visit(
                 [&is_first, &blockstate, &key](auto&& tag) {
                     using T = std::decay_t<decltype(tag)>;
-                    if constexpr (std::is_same_v<T, AmuletNBT::StringTag>) {
+                    if constexpr (std::is_same_v<T, Amulet::NBT::StringTag>) {
                         if (is_first) {
                             is_first = false;
                         } else {
@@ -131,20 +131,20 @@ std::string Block::bedrock_blockstate() const
                     blockstate += key;
                     blockstate += "\"=";
                     using T = std::decay_t<decltype(tag)>;
-                    if constexpr (std::is_same_v<T, AmuletNBT::ByteTag>) {
+                    if constexpr (std::is_same_v<T, Amulet::NBT::ByteTag>) {
                         if (tag == 0) {
                             blockstate += "false";
                         } else if (tag == 1) {
                             blockstate += "true";
                         } else {
-                            blockstate += AmuletNBT::encode_snbt(tag);
+                            blockstate += Amulet::NBT::encode_snbt(tag);
                         }
-                    } else if constexpr (std::is_same_v<T, AmuletNBT::StringTag>) {
+                    } else if constexpr (std::is_same_v<T, Amulet::NBT::StringTag>) {
                         blockstate += "\"";
                         blockstate += tag;
                         blockstate += "\"";
                     } else {
-                        blockstate += AmuletNBT::encode_snbt(tag);
+                        blockstate += Amulet::NBT::encode_snbt(tag);
                     }
                 },
                 it->second);
@@ -295,7 +295,7 @@ inline PropertyValueType capture_java_blockstate_property_value(const std::strin
     if (value_start == offset) {
         throw std::invalid_argument("Expected a value at position " + std::to_string(offset));
     }
-    return AmuletNBT::StringTag(blockstate.begin() + value_start, blockstate.begin() + offset);
+    return Amulet::NBT::StringTag(blockstate.begin() + value_start, blockstate.begin() + offset);
 }
 
 // I think Bedrock resource identifiers are not limited to a-z0-9_-.
@@ -360,9 +360,9 @@ inline PropertyValueType capture_bedrock_blockstate_property_value(const std::st
         throw std::invalid_argument("Expected , or ] after position " + std::to_string(offset));
     }
     offset = value_end;
-    AmuletNBT::TagNode node;
+    Amulet::NBT::TagNode node;
     try {
-        node = AmuletNBT::decode_snbt(std::string(blockstate.begin() + value_start, blockstate.begin() + value_end));
+        node = Amulet::NBT::decode_snbt(std::string(blockstate.begin() + value_start, blockstate.begin() + value_end));
     } catch (const std::exception& e) {
         throw std::invalid_argument("Failed parsing SNBT at position " + std::to_string(value_start) + ". " + e.what());
     }
@@ -370,7 +370,7 @@ inline PropertyValueType capture_bedrock_blockstate_property_value(const std::st
         [](auto&& tag) -> PropertyValueType {
             using T = std::decay_t<decltype(tag)>;
             if constexpr (
-                std::is_same_v<T, AmuletNBT::ByteTag> || std::is_same_v<T, AmuletNBT::ShortTag> || std::is_same_v<T, AmuletNBT::IntTag> || std::is_same_v<T, AmuletNBT::LongTag> || std::is_same_v<T, AmuletNBT::StringTag>) {
+                std::is_same_v<T, Amulet::NBT::ByteTag> || std::is_same_v<T, Amulet::NBT::ShortTag> || std::is_same_v<T, Amulet::NBT::IntTag> || std::is_same_v<T, Amulet::NBT::LongTag> || std::is_same_v<T, Amulet::NBT::StringTag>) {
                 return tag;
             } else {
                 throw std::invalid_argument("Values must be byte, short, int, long or string tags.");
@@ -404,19 +404,19 @@ Block Block::from_bedrock_blockstate(const PlatformType& platform, const Version
 
 void BlockStack::serialise(BinaryWriter& writer) const
 {
-    writer.writeNumeric<std::uint8_t>(1);
-    writer.writeNumeric<std::uint64_t>(get_blocks().size());
+    writer.write_numeric<std::uint8_t>(1);
+    writer.write_numeric<std::uint64_t>(get_blocks().size());
     for (const auto& block : get_blocks()) {
         block.serialise(writer);
     }
 }
 BlockStack BlockStack::deserialise(BinaryReader& reader)
 {
-    auto version_number = reader.readNumeric<std::uint8_t>();
+    auto version_number = reader.read_numeric<std::uint8_t>();
     switch (version_number) {
     case 1: {
         std::vector<Block> blocks;
-        auto count = reader.readNumeric<std::uint64_t>();
+        auto count = reader.read_numeric<std::uint64_t>();
         blocks.reserve(count);
         for (auto i = 0; i < count; i++) {
             blocks.push_back(Block::deserialise(reader));

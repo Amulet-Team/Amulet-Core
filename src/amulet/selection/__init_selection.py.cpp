@@ -571,9 +571,9 @@ void init_selection_group(py::class_<Amulet::SelectionGroup> SelectionGroup)
         py::doc("The number of :class:`SelectionBox` classes in the group."));
 }
 
-void init_selection(py::module m_parent)
+void init_selection()
 {
-    auto m = m_parent.def_submodule("selection");
+    auto m = py::module::import("amulet.selection");
 
     auto selection_box_module = m.def_submodule("box");
     auto selection_group_module = m.def_submodule("group");

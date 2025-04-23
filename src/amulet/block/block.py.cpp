@@ -15,15 +15,15 @@
 
 namespace py = pybind11;
 
-void init_block(py::module m_parent)
+void init_block()
 {
-    auto m = pybind11_extensions::def_subpackage(m_parent, "block");
+    auto m = py::module::import("amulet.block");
     py::options options;
 
     py::object PySorted = py::module::import("builtins").attr("sorted");
 
     // Required for docstrings
-    py::object amulet_nbt = py::module::import("amulet_nbt");
+    py::object amulet_nbt = py::module::import("amulet.nbt");
     py::object ByteTag = amulet_nbt.attr("ByteTag");
     py::object ShortTag = amulet_nbt.attr("ShortTag");
     py::object IntTag = amulet_nbt.attr("IntTag");

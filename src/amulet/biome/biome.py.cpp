@@ -12,9 +12,9 @@
 
 namespace py = pybind11;
 
-void init_biome(py::module m_parent)
+void init_biome()
 {
-    auto m = pybind11_extensions::def_subpackage(m_parent, "biome");
+    auto m = py::module::import("amulet.biome");
     py::class_<Amulet::Biome, Amulet::PlatformVersionContainer, std::shared_ptr<Amulet::Biome>> Biome(m, "Biome",
         "A class to manage the state of a biome.\n"
         "\n"

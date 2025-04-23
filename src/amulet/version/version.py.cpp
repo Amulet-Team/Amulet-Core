@@ -11,9 +11,9 @@
 
 namespace py = pybind11;
 
-void init_version(py::module m_parent)
+void init_version()
 {
-    auto m = pybind11_extensions::def_subpackage(m_parent, "version");
+    auto m = py::module::import("amulet.version");
     py::options options;
 
     m.attr("PlatformType") = py::module::import("builtins").attr("str");

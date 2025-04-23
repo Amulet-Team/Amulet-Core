@@ -1,4 +1,4 @@
-#include <amulet/dll.hpp>
+#include <amulet/core/dll.hpp>
 
 #include "biome_3d_component.hpp"
 

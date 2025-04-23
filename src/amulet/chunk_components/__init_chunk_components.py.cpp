@@ -7,9 +7,9 @@ namespace py = pybind11;
 void init_section_array_map(py::module);
 void init_block_component(py::module);
 
-void init_chunk_components(py::module m_parent)
+void init_chunk_components()
 {
-    auto m = pybind11_extensions::def_subpackage(m_parent, "chunk_components");
+    auto m = py::module::import("amulet.chunk_components");
     init_section_array_map(m);
     init_block_component(m);
 }

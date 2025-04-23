@@ -4,7 +4,7 @@ import types
 import typing
 
 import amulet.version
-import amulet_nbt
+import amulet.nbt
 
 __all__ = ["BlockEntity"]
 
@@ -24,7 +24,7 @@ class BlockEntity(amulet.version.PlatformVersionContainer):
         version: amulet.version.VersionNumber,
         namespace: str,
         base_name: str,
-        nbt: amulet_nbt.NamedTag,
+        nbt: amulet.nbt.NamedTag,
     ) -> None: ...
     def __repr__(self) -> str: ...
     @property
@@ -65,7 +65,7 @@ class BlockEntity(amulet.version.PlatformVersionContainer):
         """
 
     @property
-    def nbt(self) -> amulet_nbt.NamedTag:
+    def nbt(self) -> amulet.nbt.NamedTag:
         """
         The nbt data for the block entity.
         >>> block_entity: BlockEntity
@@ -75,4 +75,4 @@ class BlockEntity(amulet.version.PlatformVersionContainer):
         """
 
     @nbt.setter
-    def nbt(self, arg1: amulet_nbt.NamedTag) -> None: ...
+    def nbt(self, arg1: amulet.nbt.NamedTag) -> None: ...

@@ -1,1 +1,1 @@
-src/amulet/_version.py export-subst
+src/amulet/core/_version.py export-subst

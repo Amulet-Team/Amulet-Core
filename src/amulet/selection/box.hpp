@@ -2,7 +2,7 @@
 #include <array>
 #include <cstdint>
 
-#include <amulet/dll.hpp>
+#include <amulet/core/dll.hpp>
 #include <amulet/selection/group.hpp>
 
 namespace Amulet {

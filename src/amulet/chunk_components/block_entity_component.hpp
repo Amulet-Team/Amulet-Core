@@ -7,7 +7,7 @@
 #include <tuple>
 
 #include <amulet/block_entity/block_entity.hpp>
-#include <amulet/dll.hpp>
+#include <amulet/core/dll.hpp>
 #include <amulet/version/version.hpp>
 
 namespace Amulet {

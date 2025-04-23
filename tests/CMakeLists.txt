@@ -21,7 +21,6 @@ endif()
 find_package(pybind11 CONFIG REQUIRED)
 find_package(pybind11_extensions CONFIG REQUIRED)
 find_package(amulet_nbt CONFIG REQUIRED)
-find_package(leveldb_mcpe CONFIG REQUIRED)
 find_package(amulet_core CONFIG REQUIRED)
 
 # Find sources
@@ -34,8 +33,6 @@ target_compile_definitions(_test_amulet PRIVATE COMPILER_ID="${CMAKE_CXX_COMPILE
 target_compile_definitions(_test_amulet PRIVATE COMPILER_VERSION="${CMAKE_CXX_COMPILER_VERSION}")
 target_link_libraries(_test_amulet PRIVATE pybind11_extensions)
 target_link_libraries(_test_amulet PRIVATE amulet_nbt)
-target_link_libraries(_test_amulet PRIVATE leveldb_mcpe)
-target_link_libraries(_test_amulet PRIVATE leveldb_mcpe_interface)
 target_link_libraries(_test_amulet PRIVATE amulet_core)
 target_sources(_test_amulet PRIVATE ${TEST_AMULET_SOURCES})
 foreach(FILE ${TEST_AMULET_SOURCES})

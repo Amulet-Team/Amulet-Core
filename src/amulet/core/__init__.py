@@ -35,8 +35,7 @@ def _init() -> None:
         raise RuntimeError(f"Unsupported platform {sys.platform}")
 
     # Import dependencies
-    import amulet_nbt
-    import leveldb
+    import amulet.nbt
 
     # Load the shared library
     ctypes.cdll.LoadLibrary(lib_path)

@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from sys import getsizeof
 import re
-import amulet_nbt
+import amulet.nbt
 
 from .errors import BlockException
 ```

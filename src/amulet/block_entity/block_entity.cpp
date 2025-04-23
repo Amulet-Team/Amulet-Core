@@ -1,4 +1,4 @@
-#include <amulet/dll.hpp>
+#include <amulet/core/dll.hpp>
 
 #include "block_entity.hpp"
 
@@ -12,16 +12,16 @@ const std::string& BlockEntity::get_base_name() const { return _base_name; }
 
 void BlockEntity::set_base_name(const std::string& base_name) { _base_name = base_name; }
 
-std::shared_ptr<AmuletNBT::NamedTag> BlockEntity::get_nbt() const { return _nbt; }
+std::shared_ptr<Amulet::NBT::NamedTag> BlockEntity::get_nbt() const { return _nbt; }
 
-void BlockEntity::set_nbt(std::shared_ptr<AmuletNBT::NamedTag> nbt) { _nbt = nbt; }
+void BlockEntity::set_nbt(std::shared_ptr<Amulet::NBT::NamedTag> nbt) { _nbt = nbt; }
 
 BlockEntity::BlockEntity(
     const PlatformType& platform,
     const VersionNumber& version,
     const std::string& namespace_,
     const std::string& base_name,
-    std::shared_ptr<AmuletNBT::NamedTag> nbt)
+    std::shared_ptr<Amulet::NBT::NamedTag> nbt)
     : PlatformVersionContainer(platform, version)
     , _namespace(namespace_)
     , _base_name(base_name)
@@ -45,7 +45,7 @@ bool BlockEntity::operator==(const BlockEntity& other) const
         PlatformVersionContainer::operator==(other)
         && _namespace == other._namespace
         && _base_name == other._base_name
-        && AmuletNBT::NBTTag_eq(*_nbt, *other._nbt));
+        && Amulet::NBT::NBTTag_eq(*_nbt, *other._nbt));
 }
 
 }

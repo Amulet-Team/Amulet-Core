@@ -1,6 +1,6 @@
 import unittest
 
-from amulet_nbt import NamedTag, CompoundTag, IntTag, StringTag
+from amulet.nbt import NamedTag, CompoundTag, IntTag, StringTag
 
 from amulet.entity import Entity
 from amulet.version import VersionNumber
