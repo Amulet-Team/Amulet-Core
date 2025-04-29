@@ -50,9 +50,9 @@ add_subdirectory(${lz4_SOURCE_DIR}/build/cmake)
 
 # Add pybind11
 find_package(pybind11 CONFIG REQUIRED)
-find_package(pybind11_extensions CONFIG REQUIRED)
 
-# Add Amulet NBT
+# Add Amulet libraries
+find_package(amulet_pybind11_extensions CONFIG REQUIRED)
 find_package(amulet_io CONFIG REQUIRED)
 find_package(amulet_nbt CONFIG REQUIRED)
 
@@ -83,7 +83,7 @@ endforeach()
 
 # Add python extension
 pybind11_add_module(_amulet)
-target_link_libraries( _amulet PRIVATE pybind11_extensions )
+target_link_libraries( _amulet PRIVATE amulet_pybind11_extensions )
 target_link_libraries( _amulet PRIVATE amulet_io )
 target_link_libraries( _amulet PRIVATE amulet_nbt )
 target_link_libraries( _amulet PRIVATE amulet_core )

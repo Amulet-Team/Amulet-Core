@@ -44,7 +44,7 @@ def main() -> None:
             *platform_args,
             f"-DPYTHON_EXECUTABLE={sys.executable}",
             f"-Dpybind11_DIR={pybind11.get_cmake_dir().replace(os.sep, '/')}",
-            f"-Dpybind11_extensions_DIR={get_package_path('pybind11_extensions')}",
+            f"-Damulet_pybind11_extensions_DIR={get_package_path('amulet.pybind11_extensions')}",
             f"-Damulet_io_DIR={get_package_path("amulet.io")}",
             f"-Damulet_nbt_DIR={get_package_path('amulet.nbt')}",
             f"-Damulet_core_DIR={get_package_path('amulet')}",

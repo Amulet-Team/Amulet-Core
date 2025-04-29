@@ -19,7 +19,7 @@ endif()
 
 # Find dependencies
 find_package(pybind11 CONFIG REQUIRED)
-find_package(pybind11_extensions CONFIG REQUIRED)
+find_package(amulet_pybind11_extensions CONFIG REQUIRED)
 find_package(amulet_nbt CONFIG REQUIRED)
 find_package(amulet_core CONFIG REQUIRED)
 
@@ -31,7 +31,7 @@ target_compile_definitions(_test_amulet PRIVATE PYBIND11_DETAILED_ERROR_MESSAGES
 target_compile_definitions(_test_amulet PRIVATE PYBIND11_VERSION="${pybind11_VERSION}")
 target_compile_definitions(_test_amulet PRIVATE COMPILER_ID="${CMAKE_CXX_COMPILER_ID}")
 target_compile_definitions(_test_amulet PRIVATE COMPILER_VERSION="${CMAKE_CXX_COMPILER_VERSION}")
-target_link_libraries(_test_amulet PRIVATE pybind11_extensions)
+target_link_libraries(_test_amulet PRIVATE amulet_pybind11_extensions)
 target_link_libraries(_test_amulet PRIVATE amulet_nbt)
 target_link_libraries(_test_amulet PRIVATE amulet_core)
 target_sources(_test_amulet PRIVATE ${TEST_AMULET_SOURCES})
