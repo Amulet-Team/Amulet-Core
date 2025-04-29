@@ -5,12 +5,14 @@ AMULET_COMPILER_VERSION_REQUIREMENT = "==1.3.0"
 # AMULET_NBT_REQUIREMENT = "~=4.0"
 AMULET_NBT_REQUIREMENT = "==4.0a19"
 AMULET_PYBIND11_EXTENSIONS_REQUIREMENT = "==1.0a0"
+AMULET_IO_VERSION_REQUIREMENT = "==1.0a1"
 
 _compile_dependencies: dict[str, str] = {
     "wheel": "",
     "pybind11[global]": "==2.13.6",
     "amulet_pybind11_extensions": AMULET_PYBIND11_EXTENSIONS_REQUIREMENT,
     "amulet_nbt": AMULET_NBT_REQUIREMENT,
+    "amulet_io": AMULET_IO_VERSION_REQUIREMENT
 }
 
 fixed_runtime_dependencies_data: dict[str, str] = {
