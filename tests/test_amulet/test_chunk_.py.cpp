@@ -1,7 +1,5 @@
 #include <pybind11/pybind11.h>
 
-#include <pybind11_extensions/py_module.hpp>
-
 #include <amulet/chunk/chunk.hpp>
 
 namespace py = pybind11;

@@ -8,14 +8,15 @@
 #include <span>
 #include <variant>
 
-#include <pybind11_extensions/numpy.hpp>
+#include <amulet/pybind11_extensions/numpy.hpp>
 
 #include <amulet/chunk_components/section_array_map.hpp>
-#include <amulet/collections/iterator.py.hpp>
-#include <amulet/collections/mapping.py.hpp>
-#include <amulet/collections/mutable_mapping.py.hpp>
+#include <amulet/pybind11_extensions/iterator.hpp>
+#include <amulet/pybind11_extensions/mapping.hpp>
+#include <amulet/pybind11_extensions/mutable_mapping.hpp>
 
 namespace py = pybind11;
+namespace pyext = Amulet::pybind11_extensions;
 
 void init_section_array_map(py::module section_array_map_module)
 {
@@ -198,7 +199,7 @@ void init_section_array_map(py::module section_array_map_module)
         &Amulet::SectionArrayMap::del_section);
     SectionArrayMap.def(
         "__getitem__",
-        [asarray](const Amulet::SectionArrayMap& self, std::int64_t cy) -> pybind11_extensions::numpy::array_t<std::uint32_t> {
+        [asarray](const Amulet::SectionArrayMap& self, std::int64_t cy) -> pyext::numpy::array_t<std::uint32_t> {
             try {
                 return asarray(py::cast(self.get_section(cy)));
             } catch (const std::out_of_range&) {
@@ -210,24 +211,22 @@ void init_section_array_map(py::module section_array_map_module)
         &Amulet::SectionArrayMap::get_size);
     SectionArrayMap.def(
         "__iter__",
-        [](const Amulet::SectionArrayMap& self) -> pybind11_extensions::collections::abc::Iterator<std::int64_t> {
-            return Amulet::collections::make_map_iterator<
-                std::unordered_map<std::int64_t, std::shared_ptr<Amulet::IndexArray3D>>>(
-                self.get_arrays());
+        [](const Amulet::SectionArrayMap& self) -> pyext::collections::Iterator<std::int64_t> {
+            return pyext::make_iterator(pyext::detail::MapIterator(self.get_arrays()));
         },
         py::keep_alive<0, 1>());
     SectionArrayMap.def(
         "__contains__",
         &Amulet::SectionArrayMap::contains_section);
-    Amulet::collections::PyMapping_keys<std::int64_t>(SectionArrayMap);
-    Amulet::collections::PyMapping_values<pybind11_extensions::numpy::array_t<std::uint32_t>>(SectionArrayMap);
-    Amulet::collections::PyMapping_items<std::int64_t, pybind11_extensions::numpy::array_t<std::uint32_t>>(SectionArrayMap);
-    Amulet::collections::PyMapping_get<std::int64_t, pybind11_extensions::numpy::array_t<std::uint32_t>>(SectionArrayMap);
-    Amulet::collections::PyMapping_eq(SectionArrayMap);
-    Amulet::collections::PyMapping_hash(SectionArrayMap);
-    Amulet::collections::PyMutableMapping_pop<std::int64_t, pybind11_extensions::numpy::array_t<std::uint32_t>>(SectionArrayMap);
-    Amulet::collections::PyMutableMapping_popitem<std::int64_t, pybind11_extensions::numpy::array_t<std::uint32_t>>(SectionArrayMap);
-    Amulet::collections::PyMutableMapping_update(SectionArrayMap);
-    Amulet::collections::PyMutableMapping_setdefault<std::int64_t, pybind11_extensions::numpy::array_t<std::uint32_t>>(SectionArrayMap);
-    Amulet::collections::PyMutableMapping_register(SectionArrayMap);
+    pyext::collections::def_Mapping_keys<std::int64_t>(SectionArrayMap);
+    pyext::collections::def_Mapping_values<pyext::numpy::array_t<std::uint32_t>>(SectionArrayMap);
+    pyext::collections::def_Mapping_items<std::int64_t, pyext::numpy::array_t<std::uint32_t>>(SectionArrayMap);
+    pyext::collections::def_Mapping_get<std::int64_t, pyext::numpy::array_t<std::uint32_t>>(SectionArrayMap);
+    pyext::collections::def_Mapping_eq(SectionArrayMap);
+    pyext::collections::def_Mapping_hash(SectionArrayMap);
+    pyext::collections::def_MutableMapping_pop<std::int64_t, pyext::numpy::array_t<std::uint32_t>>(SectionArrayMap);
+    pyext::collections::def_MutableMapping_popitem<std::int64_t, pyext::numpy::array_t<std::uint32_t>>(SectionArrayMap);
+    pyext::collections::def_MutableMapping_update(SectionArrayMap);
+    pyext::collections::def_MutableMapping_setdefault<std::int64_t, pyext::numpy::array_t<std::uint32_t>>(SectionArrayMap);
+    pyext::collections::register_MutableMapping(SectionArrayMap);
 }

@@ -5,7 +5,7 @@
 
 #include <sstream>
 
-#include <pybind11_extensions/py_module.hpp>
+#include <amulet/pybind11_extensions/py_module.hpp>
 
 #include "version.hpp"
 

@@ -1,9 +1,10 @@
 #include <pybind11/pybind11.h>
 
-#include <pybind11_extensions/compatibility.hpp>
-#include <pybind11_extensions/py_module.hpp>
+#include <amulet/pybind11_extensions/compatibility.hpp>
+#include <amulet/pybind11_extensions/py_module.hpp>
 
 namespace py = pybind11;
+namespace pyext = Amulet::pybind11_extensions;
 
 void init_version();
 void init_selection();
@@ -19,8 +20,8 @@ void init_module(py::module m)
 {
     auto amulet_nbt = py::module::import("amulet.nbt");
 
-    pybind11_extensions::init_compiler_config(m);
-    pybind11_extensions::check_compatibility(amulet_nbt, m);
+    pyext::init_compiler_config(m);
+    pyext::check_compatibility(amulet_nbt, m);
 
     // Submodules
     init_version();

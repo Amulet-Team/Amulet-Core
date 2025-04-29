@@ -8,9 +8,10 @@
 
 #include <amulet/selection/box.hpp>
 #include <amulet/selection/group.hpp>
-#include <pybind11_extensions/collections.hpp>
+#include <amulet/pybind11_extensions/collections.hpp>
 
 namespace py = pybind11;
+namespace pyext = Amulet::pybind11_extensions;
 
 template <typename T, std::size_t N, typename... Ts>
 struct PyTuple : PyTuple<T, N - 1, T, Ts...> { };
@@ -317,11 +318,11 @@ void init_selection_group(py::class_<Amulet::SelectionGroup> SelectionGroup)
             "Create a SelectionGroup containing the given box.\n"
             "\n"
             ">>> SelectionGroup(SelectionBox(0, 0, 0, 1, 1, 1))"));
-    static_assert(std::ranges::input_range<pybind11_extensions::Iterable<Amulet::SelectionBox>>);
-    static_assert(std::convertible_to<std::ranges::range_value_t<pybind11_extensions::Iterable<Amulet::SelectionBox>>, const Amulet::SelectionBox&>);
+    static_assert(std::ranges::input_range<pyext::collections::Iterable<Amulet::SelectionBox>>);
+    static_assert(std::convertible_to<std::ranges::range_value_t<pyext::collections::Iterable<Amulet::SelectionBox>>, const Amulet::SelectionBox&>);
     SelectionGroup.def(
         py::init(
-            [](pybind11_extensions::Iterable<Amulet::SelectionBox> boxes) {
+            [](pyext::collections::Iterable<Amulet::SelectionBox> boxes) {
                 return Amulet::SelectionGroup(boxes);
             }),
         py::arg("boxes"),

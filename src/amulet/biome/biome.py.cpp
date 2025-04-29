@@ -3,7 +3,7 @@
 #include <pybind11/stl.h>
 #include <pybind11/typing.h>
 
-#include <pybind11_extensions/py_module.hpp>
+#include <amulet/pybind11_extensions/py_module.hpp>
 
 #include <memory>
 #include <span>

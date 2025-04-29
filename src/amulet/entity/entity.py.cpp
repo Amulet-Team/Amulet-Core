@@ -5,15 +5,16 @@
 
 #include <memory>
 
-#include <pybind11_extensions/py_module.hpp>
+#include <amulet/pybind11_extensions/py_module.hpp>
 
 #include <amulet/nbt/tag/named_tag.hpp>
 
-#include <amulet/collections/hash.py.hpp>
+#include <amulet/pybind11_extensions/hash.hpp>
 #include <amulet/entity/entity.hpp>
 #include <amulet/version/version.hpp>
 
 namespace py = pybind11;
+namespace pyext = Amulet::pybind11_extensions;
 
 void init_entity()
 {
@@ -121,5 +122,5 @@ void init_entity()
             }));
 
     Entity.def(py::self == py::self);
-    hash_default(Entity);
+    pyext::def_hash_identity(Entity);
 }

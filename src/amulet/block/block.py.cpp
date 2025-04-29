@@ -6,14 +6,15 @@
 #include <memory>
 #include <span>
 
-#include <pybind11_extensions/types.hpp>
-#include <pybind11_extensions/py_module.hpp>
+#include <amulet/pybind11_extensions/types.hpp>
+#include <amulet/pybind11_extensions/py_module.hpp>
 
-#include <amulet/collections/sequence.py.hpp>
+#include <amulet/pybind11_extensions/sequence.hpp>
 
 #include "block.hpp"
 
 namespace py = pybind11;
+namespace pyext = Amulet::pybind11_extensions;
 
 void init_block()
 {
@@ -291,7 +292,13 @@ void init_block()
                 py::tuple(py::cast(self.get_blocks())));
         });
 
-    Amulet::collections::Sequence<Amulet::Block>(BlockStack);
+    pyext::collections::def_Sequence_getitem_slice(BlockStack);
+    pyext::collections::def_Sequence_contains(BlockStack);
+    pyext::collections::def_Sequence_iter<Amulet::Block>(BlockStack);
+    pyext::collections::def_Sequence_reversed<Amulet::Block>(BlockStack);
+    pyext::collections::def_Sequence_index(BlockStack);
+    pyext::collections::def_Sequence_count(BlockStack);
+    pyext::collections::register_Sequence(BlockStack);
 
     BlockStack.def(py::self == py::self);
     BlockStack.def(py::self > py::self);

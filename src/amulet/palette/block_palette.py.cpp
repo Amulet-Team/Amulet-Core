@@ -8,10 +8,11 @@
 #include <variant>
 
 #include <amulet/block/block.hpp>
-#include <amulet/collections/sequence.py.hpp>
+#include <amulet/pybind11_extensions/sequence.hpp>
 #include <amulet/palette/block_palette.hpp>
 
 namespace py = pybind11;
+namespace pyext = Amulet::pybind11_extensions;
 
 inline void bounds_check(const size_t& size, Py_ssize_t& index)
 {
@@ -45,7 +46,7 @@ void init_block_palette(py::module block_palette_module)
             bounds_check(self.size(), index);
             return self.index_to_block_stack(index);
         });
-    Amulet::collections::Sequence_getitem_slice(BlockPalette);
+    pyext::collections::def_Sequence_getitem_slice(BlockPalette);
     BlockPalette.def(
         "__contains__",
         [](const Amulet::BlockPalette& self, Py_ssize_t index) {
@@ -54,11 +55,11 @@ void init_block_palette(py::module block_palette_module)
     BlockPalette.def(
         "__contains__",
         &Amulet::BlockPalette::contains_block);
-    Amulet::collections::Sequence_iter<Amulet::BlockStack>(BlockPalette);
-    Amulet::collections::Sequence_reversed<Amulet::BlockStack>(BlockPalette);
-    Amulet::collections::Sequence_index(BlockPalette);
-    Amulet::collections::Sequence_count(BlockPalette);
-    Amulet::collections::Sequence_register(BlockPalette);
+    pyext::collections::def_Sequence_iter<Amulet::BlockStack>(BlockPalette);
+    pyext::collections::def_Sequence_reversed<Amulet::BlockStack>(BlockPalette);
+    pyext::collections::def_Sequence_index(BlockPalette);
+    pyext::collections::def_Sequence_count(BlockPalette);
+    pyext::collections::register_Sequence(BlockPalette);
 
     BlockPalette.def(
         "index_to_block_stack",

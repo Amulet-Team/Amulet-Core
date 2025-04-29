@@ -100,5 +100,5 @@ foreach(FILE ${AMULET_EXTENSION_SOURCES} ${AMULET_EXTENSION_HEADERS})
 endforeach()
 
 # Install
-install(TARGETS amulet_core DESTINATION "${SRC_INSTALL_DIR}/amulet")
-install(TARGETS _amulet DESTINATION "${SRC_INSTALL_DIR}/amulet")
+install(TARGETS amulet_core DESTINATION "${SRC_INSTALL_DIR}/amulet/core")
+install(TARGETS _amulet DESTINATION "${SRC_INSTALL_DIR}/amulet/core")
