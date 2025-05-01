@@ -1,10 +1,7 @@
 import os
 import copy
 import numpy
-from typing import (
-    Optional, Tuple, Iterable, TYPE_CHECKING,
-    BinaryIO, Dict, List, Union
-)
+from typing import Optional, Tuple, Iterable, TYPE_CHECKING, BinaryIO, Dict, List, Union
 
 from amulet_nbt import (
     ShortTag,
