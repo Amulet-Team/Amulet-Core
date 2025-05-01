@@ -1,7 +1,10 @@
 import os
-from typing import Optional, Tuple, Iterable, TYPE_CHECKING, BinaryIO, Dict, List, Union
-import numpy
 import copy
+import numpy
+from typing import (
+    Optional, Tuple, Iterable, TYPE_CHECKING,
+    BinaryIO, Dict, List, Union
+)
 
 from amulet_nbt import (
     ShortTag,
@@ -22,6 +25,7 @@ from amulet.api.data_types import (
     Dimension,
     PlatformType,
 )
+
 from amulet.api.wrapper import StructureFormatWrapper
 from amulet.api.chunk import Chunk
 from amulet.api.selection import SelectionGroup, SelectionBox
@@ -47,15 +51,68 @@ class SpongeSchemWriteError(ObjectWriteError):
 
 sponge_schem_interface = SpongeSchemInterface()
 
-max_schem_version = 2
+max_schem_version = 3
 
 
-def _is_sponge(path: str):
-    """Check if a file is actually a sponge schematic file."""
+def _is_sponge(path: str) -> bool:
+    """
+    Check if a file is actually a sponge schematic file.
+    """
+
     try:
-        return "BlockData" in load_nbt(path).compound
-    except:
+        root = load_nbt(path).compound
+    except Exception as e:
         return False
+
+    inner = root.get("Schematic")
+    if isinstance(inner, CompoundTag):
+        root = inner
+
+    bd = root.get("BlockData")
+    if isinstance(bd, ByteArrayTag):
+        return True
+
+    blocks = root.get("Blocks")
+    if isinstance(blocks, CompoundTag):
+        data_tag = blocks.get("Data")
+
+        has_data = isinstance(data_tag, (ByteArrayTag, IntArrayTag))
+        pal_tag = blocks.get("BlockPalette") or blocks.get("Palette")
+        has_palette = isinstance(pal_tag, CompoundTag)
+        if has_data and has_palette:
+            return True
+        else:
+            return False
+    return False
+
+
+def _detect_sponge_version(root: CompoundTag) -> int:
+    """
+    Return the detected Sponge schematic version (2 or 3), using:
+      1) 'Version' IntTag if present and valid
+      2) root-level 'BlockData' ByteArrayTag → v2
+      3) nested 'Blocks' CompoundTag with 'Data' + 'BlockPalette'/'Palette' → v3
+    """
+
+    ver_tag = root.get("Version")
+    if isinstance(ver_tag, IntTag):
+        v = ver_tag.py_int
+        if v in (2, 3):
+            return v
+
+    if isinstance(root.get("BlockData"), ByteArrayTag):
+        return 2
+
+    blocks = root.get("Blocks")
+    if isinstance(blocks, CompoundTag):
+        data_tag = blocks.get("Data")
+        palette_tag = blocks.get("BlockPalette") or blocks.get("Palette")
+        if isinstance(data_tag, (ByteArrayTag, IntArrayTag)) and isinstance(
+            palette_tag, CompoundTag
+        ):
+            return 3
+
+    raise SpongeSchemReadError("Could not detect Sponge schematic format")
 
 
 class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
@@ -97,191 +154,117 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
         self._has_lock = True
 
     def open_from(self, f: BinaryIO):
+
         sponge_schem = load_nbt(f).compound
-        version_tag = sponge_schem.get("Version")
-        if not isinstance(version_tag, IntTag):
-            raise SpongeSchemReadError("Version key must exist and be an integer.")
-        version = version_tag.py_int
+        wrapper = sponge_schem.get("Schematic")
+        if isinstance(wrapper, CompoundTag):
+            sponge_schem = wrapper
+
+        version = _detect_sponge_version(sponge_schem)
         if version == 1:
-            raise SpongeSchemReadError(
-                "Sponge Schematic Version 1 is not supported currently."
-            )
-        elif version == 2:
-            offset = sponge_schem.get("Offset")
-            if isinstance(offset, IntArrayTag) and len(offset) == 3:
-                min_point = numpy.array(offset)
-            else:
-                min_point = numpy.array([0, 0, 0], dtype=numpy.int32)
+            raise SpongeSchemReadError("Unsupported Sponge schematic version 1")
 
-            size = []
-            for key in ("Width", "Height", "Length"):
-                val = sponge_schem.get(key)
-                if not isinstance(val, ShortTag):
-                    raise SpongeSchemReadError(
-                        f"Key {key} must exist and be a ShortTag."
-                    )
-                # convert to an unsigned short
-                val = val.py_int
-                if val < 0:
-                    val += 2**16
-                size.append(val)
-
-            max_point = min_point + size
-            selection = SelectionBox(min_point, max_point)
-            self._bounds[self.dimensions[0]] = SelectionGroup(selection)
-            data_version = sponge_schem.get("DataVersion")
-            if not isinstance(data_version, IntTag):
-                raise SpongeSchemReadError("DataVersion must be a IntTag.")
-            translator_version = self.translation_manager.get_version(
-                "java", int(data_version)
-            )
-            self._platform = translator_version.platform
-            self._version = translator_version.data_version
-
-            packed_block_data = sponge_schem.get("BlockData")
-            if not isinstance(packed_block_data, ByteArrayTag):
-                raise SpongeSchemReadError("BlockData must be a ByteArrayTag")
-
-            unpacked_block_data = decode_byte_array(
-                numpy.array(packed_block_data, dtype=numpy.uint8)
-            )
-            if len(unpacked_block_data) != numpy.prod(size):
-                raise SpongeSchemReadError(
-                    "The data contained in BlockData does not match the size of the schematic."
-                )
-            dx, dy, dz = selection.shape
-            blocks_array: numpy.ndarray = numpy.transpose(
-                numpy.array(
-                    unpacked_block_data,
-                    dtype=numpy.uint32,
-                ).reshape((dy, dz, dx)),
-                (2, 0, 1),  # YZX => XYZ
-            )
-
-            if "Palette" not in sponge_schem:
-                raise SpongeSchemReadError(
-                    "Amulet is not able to read Sponge Schem files with no block palette."
-                )
-
-            palette_data = sponge_schem.get("Palette")
-            if not isinstance(palette_data, CompoundTag):
-                raise SpongeSchemReadError("Palette must be a CompoundTag.")
-
-            block_palette: Dict[int, Block] = {}
-            for blockstate, index_tag in palette_data.items():
-                index = index_tag.py_int
-                if index in block_palette:
-                    raise SpongeSchemReadError(
-                        f"Duplicate block index {index} found in the palette."
-                    )
-                block_palette[index] = Block.from_string_blockstate(blockstate)
-
-            if not numpy.all(numpy.isin(blocks_array, list(block_palette))):
-                raise SpongeSchemReadError(
-                    "Some values in BlockData were not present in Palette"
-                )
-
-            for cx, cz in selection.chunk_locations():
-                chunk_box = SelectionBox.create_chunk_box(cx, cz).intersection(
-                    selection
-                )
-                array_slice = chunk_box.create_moved_box(
-                    selection.min, subtract=True
-                ).slice
-                chunk_blocks_: numpy.ndarray = blocks_array[array_slice]
-                chunk_palette_indexes, chunk_blocks = numpy.unique(
-                    chunk_blocks_,
-                    return_inverse=True,
-                )
-                chunk_blocks = chunk_blocks.reshape(chunk_blocks_.shape)
-
-                chunk_palette = numpy.empty(len(chunk_palette_indexes), dtype=object)
-                for palette_index, index in enumerate(chunk_palette_indexes):
-                    chunk_palette[palette_index] = block_palette[index]
-
-                self._chunks[(cx, cz)] = SpongeSchemChunk(
-                    chunk_box,
-                    chunk_blocks,
-                    chunk_palette,
-                    [],
-                    [],
-                )
-
-            if "BlockEntities" in sponge_schem:
-                block_entities = sponge_schem["BlockEntities"]
-                if not (
-                    isinstance(block_entities, ListTag)
-                    and (
-                        len(block_entities) == 0 or block_entities.list_data_type == 10
-                    )  # CompoundTag.tag_id
-                ):
-                    raise SpongeSchemReadError(
-                        "BlockEntities must be a ListTag of compound tags."
-                    )
-
-                for block_entity in block_entities:
-                    if "Pos" not in block_entity:
-                        continue
-
-                    pos_tag = block_entity["Pos"]
-                    if not (isinstance(pos_tag, IntArrayTag) and len(pos_tag) == 3):
-                        continue
-
-                    pos = pos_tag.np_array + min_point
-                    x, y, z = pos
-                    block_entity["Pos"] = IntArrayTag(pos)
-                    cx, cz = x >> 4, z >> 4
-                    if (cx, cz) in self._chunks and (x, y, z) in self._chunks[
-                        (cx, cz)
-                    ].selection:
-                        self._chunks[(cx, cz)].block_entities.append(block_entity)
-
-            if "Entities" in sponge_schem:
-                entities = sponge_schem["Entities"]
-                if not (
-                    isinstance(entities, ListTag)
-                    and (
-                        len(entities) == 0 or entities.list_data_type == 10
-                    )  # CompoundTag.tag_id
-                ):
-                    raise SpongeSchemReadError(
-                        "Entities must be a ListTag of compound tags."
-                    )
-
-                for entity in entities:
-                    if "Pos" not in entity:
-                        continue
-
-                    pos = entity["Pos"]
-                    if not (
-                        isinstance(pos, ListTag)
-                        and len(pos) == 3
-                        and pos.list_data_type == 6
-                    ):  # DoubleTag.tag_id:
-                        continue
-
-                    x, y, z = (
-                        pos[0].py_float + offset[0],
-                        pos[1].py_float + offset[0],
-                        pos[2].py_float + offset[0],
-                    )
-                    entity["Pos"] = ListTag(
-                        [
-                            IntTag(x),
-                            IntTag(y),
-                            IntTag(z),
-                        ]
-                    )
-                    cx, cz = numpy.floor([x, z]).astype(int) >> 4
-                    if (cx, cz) in self._chunks and (x, y, z) in self._chunks[
-                        (cx, cz)
-                    ].selection:
-                        self._chunks[(cx, cz)].entities.append(entity)
-
+        offset_tag = sponge_schem.get("Offset")
+        if isinstance(offset_tag, IntArrayTag) and len(offset_tag) == 3:
+            min_point = numpy.array(offset_tag, dtype=numpy.int32)
         else:
-            raise SpongeSchemReadError(
-                f"Sponge Schematic Version {version} is not supported currently."
-            )
+            min_point = numpy.array([0, 0, 0], dtype=numpy.int32)
+
+        size = []
+        for key in ("Width", "Height", "Length"):
+            tag = sponge_schem.get(key)
+            if not isinstance(tag, ShortTag):
+                raise SpongeSchemReadError(f"Missing or invalid '{key}' tag")
+            size.append(tag.py_int & 0xFFFF)
+        max_point = min_point + size
+
+        selection = SelectionBox(min_point, max_point)
+        self._bounds[self.dimensions[0]] = SelectionGroup(selection)
+
+        dv = sponge_schem.get("DataVersion")
+        if not isinstance(dv, IntTag):
+            raise SpongeSchemReadError("Missing or invalid 'DataVersion' tag")
+        tv = self.translation_manager.get_version("java", dv.py_int)
+        self._platform, self._version = tv.platform, tv.data_version
+
+        if version == 2:
+            blk_ctn = sponge_schem
+            palette_tag = blk_ctn.get("Palette")
+            data_tag = blk_ctn.get("BlockData")
+            block_entities_tag = blk_ctn.get("BlockEntities")
+        else:
+            blk_ctn = sponge_schem.get("Blocks")
+            if not isinstance(blk_ctn, CompoundTag):
+                raise SpongeSchemReadError(
+                    "Missing or invalid 'Blocks' container for v3 schema"
+                )
+            palette_tag = blk_ctn.get("BlockPalette") or blk_ctn.get("Palette")
+            data_tag = blk_ctn.get("Data")
+            block_entities_tag = blk_ctn.get("BlockEntities")
+
+        if not isinstance(palette_tag, CompoundTag):
+            raise SpongeSchemReadError("Missing or invalid palette tag")
+        if not isinstance(data_tag, (ByteArrayTag, IntArrayTag)):
+            raise SpongeSchemReadError("Missing or invalid 'Data' tag")
+
+        block_palette = {
+            idx.py_int: Block.from_string_blockstate(state)
+            for state, idx in palette_tag.items()
+        }
+
+        if isinstance(data_tag, IntArrayTag):
+            unpacked = data_tag.np_array.tolist()
+        else:
+            raw = numpy.array(data_tag, dtype=numpy.uint8)
+            unpacked = decode_byte_array(raw)
+
+        expected = size[0] * size[1] * size[2]
+        if len(unpacked) != expected:
+            raise SpongeSchemReadError("Block data length does not match dimensions")
+
+        dy, dz, dx = size[1], size[2], size[0]
+        blocks_array = (
+            numpy.array(unpacked, dtype=numpy.uint32)
+            .reshape((dy, dz, dx))
+            .transpose((2, 0, 1))
+        )
+
+        for cx, cz in selection.chunk_locations():
+            cbox = SelectionBox.create_chunk_box(cx, cz).intersection(selection)
+            sl = cbox.create_moved_box(selection.min, subtract=True).slice
+            sub = blocks_array[sl]
+            ids, remap = numpy.unique(sub, return_inverse=True)
+            remap = remap.reshape(sub.shape)
+
+            pal = numpy.empty(len(ids), dtype=object)
+            for i, orig in enumerate(ids):
+                pal[i] = block_palette[orig]
+
+            self._chunks[(cx, cz)] = SpongeSchemChunk(cbox, remap, pal, [], [])
+
+        if isinstance(block_entities_tag, ListTag):
+            for be in block_entities_tag:
+                pos = be.get("Pos")
+                if isinstance(pos, IntArrayTag) and len(pos) == 3:
+                    world_pos = pos.np_array + min_point
+                    x, y, z = world_pos
+                    be["Pos"] = IntArrayTag(world_pos)
+                    key = (x >> 4, z >> 4)
+                    if key in self._chunks and (x, y, z) in self._chunks[key].selection:
+                        self._chunks[key].block_entities.append(be)
+
+        entities = sponge_schem.get("Entities")
+        if isinstance(entities, ListTag):
+            for ent in entities:
+                pos = ent.get("Pos")
+                if isinstance(pos, ListTag) and len(pos) == 3:
+                    x = int(pos[0].py_float + min_point[0])
+                    y = int(pos[1].py_float + min_point[1])
+                    z = int(pos[2].py_float + min_point[2])
+                    ent["Pos"] = ListTag([IntTag(x), IntTag(y), IntTag(z)])
+                    key = (x >> 4, z >> 4)
+                    if key in self._chunks and (x, y, z) in self._chunks[key].selection:
+                        self._chunks[key].entities.append(ent)
 
     @staticmethod
     def is_valid(path: str) -> bool:
@@ -375,7 +358,7 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
             compact_palette, lut = brute_sort_objects_no_hash(
                 numpy.concatenate(palette)
             )
-            blocks = numpy.transpose(lut[blocks], (1, 2, 0)).ravel()  # XYZ => YZX
+            blocks = numpy.transpose(lut[blocks], (1, 2, 0)).ravel()
             block_palette = []
             for index, block in enumerate(compact_palette):
                 block: Block
