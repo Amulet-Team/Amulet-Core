@@ -46,7 +46,7 @@ jobs:
       - name: Build Amulet-Core
         run: |
           pip install -vv .[dev]
-          python tests/compile.py
+          python tools/compile_tests.py
 
       - name: Test with unittest
         run: python -m unittest discover -v -s tests
@@ -154,7 +154,7 @@ jobs:
         pip install -vv .[dev]
         ext_req=$(python -c "import requirements; print(requirements.AMULET_PYBIND11_EXTENSIONS_REQUIREMENT)")
         pip install amulet_pybind11_extensions$ext_req
-        python tests/compile.py
+        python tools/compile_tests.py
 
     - name: Test with unittest
       run: python -m unittest discover -v -s tests
@@ -192,7 +192,7 @@ jobs:
       - name: Build Amulet-Core
         run: |
           pip install -vv .[dev]
-          python tests/compile.py
+          python tools/compile_tests.py
 
       - name: Test with unittest
         run: python -m unittest discover -v -s tests

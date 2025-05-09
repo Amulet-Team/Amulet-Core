@@ -40,7 +40,7 @@ def _init() -> None:
     # Load the shared library
     ctypes.cdll.LoadLibrary(lib_path)
 
-    from ._amulet import init
+    from ._amulet_core import init
 
     init(sys.modules[__name__])
 
