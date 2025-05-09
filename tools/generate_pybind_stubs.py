@@ -153,8 +153,8 @@ def patch_stubgen():
 
 
 def main() -> None:
-    amulet_path = get_package_dir("amulet")
-    src_path = os.path.dirname(amulet_path)
+    amulet_path = get_package_dir("amulet.core")
+    src_path = os.path.dirname(os.path.dirname(amulet_path))
 
     # Remove all existing stub files
     print("Removing stub files...")
@@ -171,13 +171,13 @@ def main() -> None:
     sys.argv = [
         "pybind11_stubgen",
         f"--output-dir={src_path}",
-        "amulet",
+        "amulet.core",
     ]
     pybind11_stubgen.main()
     # If pybind11_stubgen adds args to main
     # pybind11_stubgen.main([
     #     f"--output-dir={src_path}",
-    #     "amulet",
+    #     "amulet.core",
     # ])
 
     # Run normal stubgen on the python files

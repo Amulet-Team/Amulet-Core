@@ -1,7 +1,7 @@
 import unittest
-from amulet.block import Block, BlockStack
+from amulet.core.block import Block, BlockStack
 
-from amulet.version import VersionNumber
+from amulet.core.version import VersionNumber
 
 from amulet.nbt import (
     ByteTag,

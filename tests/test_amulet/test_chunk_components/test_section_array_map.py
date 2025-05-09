@@ -2,7 +2,7 @@ import unittest
 from weakref import ref
 import numpy
 import numpy.testing
-from amulet.chunk_components import IndexArray3D, SectionArrayMap
+from amulet.core.chunk_components import IndexArray3D, SectionArrayMap
 import faulthandler
 import gc
 

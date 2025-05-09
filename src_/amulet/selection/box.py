@@ -4,7 +4,7 @@ import itertools
 import numpy
 import math
 
-from typing import Iterable, Iterator, TYPE_CHECKING, Any, TypeAlias, overload
+from typing import Iterable, Iterator, TYPE_CHECKING, TypeAlias, overload
 
 from amulet.data_types import (
     BlockCoordinates,
@@ -24,7 +24,7 @@ from amulet.utils.matrix import (
     displacement_matrix,
 )
 from .abstract_selection import AbstractBaseSelection
-from amulet import selection
+from amulet.core import selection
 
 if TYPE_CHECKING:
     from .group import SelectionGroup

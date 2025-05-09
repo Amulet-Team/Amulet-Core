@@ -6,36 +6,34 @@
 namespace py = pybind11;
 namespace pyext = Amulet::pybind11_extensions;
 
-void init_version();
-void init_selection();
-void init_block();
-void init_block_entity();
-void init_entity();
-void init_biome();
-void init_palette();
-void init_chunk();
-void init_chunk_components();
+void init_version(py::module);
+void init_selection(py::module);
+void init_block(py::module);
+void init_block_entity(py::module);
+void init_entity(py::module);
+void init_biome(py::module);
+void init_palette(py::module);
+void init_chunk(py::module);
+void init_chunk_components(py::module);
 
 void init_module(py::module m)
 {
-    auto amulet_nbt = py::module::import("amulet.nbt");
-
     pyext::init_compiler_config(m);
-    pyext::check_compatibility(amulet_nbt, m);
+    pyext::check_compatibility(py::module::import("amulet.nbt"), m);
 
     // Submodules
-    init_version();
-    init_selection();
-    init_block();
-    init_block_entity();
-    init_entity();
-    init_biome();
-    init_palette();
-    init_chunk();
-    init_chunk_components();
+    init_version(m);
+    init_selection(m);
+    init_block(m);
+    init_block_entity(m);
+    init_entity(m);
+    init_biome(m);
+    init_palette(m);
+    init_chunk(m);
+    init_chunk_components(m);
 }
 
-PYBIND11_MODULE(_amulet, m)
+PYBIND11_MODULE(_amulet_core, m)
 {
     py::options options;
     options.disable_function_signatures();

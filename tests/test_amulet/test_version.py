@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 import pickle
 
-from amulet.version import (
+from amulet.core.version import (
     VersionNumber,
     VersionRange,
 )

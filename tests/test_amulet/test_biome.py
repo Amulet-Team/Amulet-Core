@@ -1,7 +1,7 @@
 import unittest
 
-from amulet.biome import Biome
-from amulet.version import VersionNumber
+from amulet.core.biome import Biome
+from amulet.core.version import VersionNumber
 
 
 def get_test_biome() -> Biome:

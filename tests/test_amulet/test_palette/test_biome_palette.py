@@ -1,7 +1,7 @@
 import unittest
-from amulet.biome import Biome
-from amulet.palette import BiomePalette
-from amulet.version import VersionNumber, VersionRange
+from amulet.core.biome import Biome
+from amulet.core.palette import BiomePalette
+from amulet.core.version import VersionNumber, VersionRange
 
 
 plains = Biome("java", VersionNumber(3578), "minecraft", "plains")

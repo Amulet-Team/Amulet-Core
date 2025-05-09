@@ -2,7 +2,7 @@ import unittest
 import weakref
 import gc
 
-from amulet.selection import SelectionGroup, SelectionBox
+from amulet.core.selection import SelectionGroup, SelectionBox
 
 
 class SelectionBoxTestCase(unittest.TestCase):

@@ -2,8 +2,8 @@ import unittest
 
 from amulet.nbt import NamedTag, CompoundTag, IntTag, StringTag
 
-from amulet.block_entity import BlockEntity
-from amulet.version import VersionNumber
+from amulet.core.block_entity import BlockEntity
+from amulet.core.version import VersionNumber
 
 
 def get_test_block_entity() -> BlockEntity:

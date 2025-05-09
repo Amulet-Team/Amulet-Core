@@ -1,7 +1,7 @@
 import unittest
-from amulet.block import Block, BlockStack
-from amulet.palette import BlockPalette
-from amulet.version import VersionNumber, VersionRange
+from amulet.core.block import Block, BlockStack
+from amulet.core.palette import BlockPalette
+from amulet.core.version import VersionNumber, VersionRange
 
 
 dirt = Block.from_java_blockstate("java", VersionNumber(3578), "minecraft:dirt")
