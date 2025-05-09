@@ -4,30 +4,11 @@ import collections.abc
 import types
 import typing
 
-import amulet.core.block
-import amulet.core.palette.block_palette
-import amulet.core.version
 import numpy
 import numpy.typing
 import typing_extensions
 
-__all__ = ["BlockComponent", "BlockComponentData", "IndexArray3D", "SectionArrayMap"]
-
-class BlockComponent:
-    ComponentID: typing.ClassVar[str] = "Amulet::BlockComponent"
-    block: BlockComponentData
-
-class BlockComponentData:
-    def __init__(
-        self,
-        version_range: amulet.core.version.VersionRange,
-        array_shape: tuple[int, int, int],
-        default_block: amulet.core.block.BlockStack,
-    ) -> None: ...
-    @property
-    def palette(self) -> amulet.core.palette.block_palette.BlockPalette: ...
-    @property
-    def sections(self) -> SectionArrayMap: ...
+__all__ = ["IndexArray3D", "SectionArrayMap"]
 
 class IndexArray3D:
     """

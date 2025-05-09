@@ -1,6 +1,14 @@
 from __future__ import annotations
 
-__all__ = ["Chunk", "ChunkDoesNotExist", "ChunkLoadError", "get_null_chunk"]
+from . import component
+
+__all__ = [
+    "Chunk",
+    "ChunkDoesNotExist",
+    "ChunkLoadError",
+    "component",
+    "get_null_chunk",
+]
 
 class Chunk:
     """
