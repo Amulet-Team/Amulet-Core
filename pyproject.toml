@@ -33,7 +33,7 @@ dev = [
     "packaging",
     "wheel",
     "pybind11[global]==2.13.6",
-    "amulet_pybind11_extensions==1.0a0",
+    "amulet_pybind11_extensions~=1.0",
     "pybind11_stubgen", #@git+https://github.com/Amulet-Team/pybind11-stubgen.git@c3a6ef67ec23d5a39e8cdc73b2c3cd8c1794d6f2",
     "black>=22.3",
     "pre_commit>=1.11.1",
@@ -41,6 +41,7 @@ dev = [
     "autoflake",
     "mypy",
     "types-pyinstaller",
+    "amulet-utils~=1.0"
 ]
 
 [project.urls]

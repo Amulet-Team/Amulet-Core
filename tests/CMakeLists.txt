@@ -43,4 +43,4 @@ foreach(FILE ${SOURCES})
 endforeach()
 
 # Install
-install(TARGETS _test_amulet_core DESTINATION "${CMAKE_CURRENT_LIST_DIR}/test_amulet")
+install(TARGETS _test_amulet_core DESTINATION "${CMAKE_CURRENT_LIST_DIR}/test_amulet_core")

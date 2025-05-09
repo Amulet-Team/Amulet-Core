@@ -1,6 +1,6 @@
-if __name__ != "test_amulet":
+if __name__ != "test_amulet_core":
     raise RuntimeError(
-        f"Module name is incorrect. Expected: 'test_amulet' got '{__name__}'"
+        f"Module name is incorrect. Expected: 'test_amulet_core' got '{__name__}'"
     )
 
 
@@ -14,14 +14,14 @@ def _init() -> None:
 
     # Import dependencies
     import amulet
-    from amulet.utils.logging import set_default_log_level
+    from amulet.utils.logging import set_min_log_level
 
     # Enable debug logging when running tests.
-    set_default_log_level(0)
+    set_min_log_level(0)
 
     # This needs to be an absolute path otherwise it may get called twice
     # on different module objects and crash when the interpreter shuts down.
-    from test_amulet._test_amulet import init
+    from test_amulet_core._test_amulet_core import init
 
     init(sys.modules[__name__])
 

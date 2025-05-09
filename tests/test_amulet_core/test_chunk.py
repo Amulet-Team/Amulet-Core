@@ -1,7 +1,7 @@
 import unittest
 
 from amulet.core.chunk import ChunkLoadError, ChunkDoesNotExist
-from test_amulet.test_chunk_ import (
+from test_amulet_core.test_chunk_ import (
     throw_chunk_load_error,
     throw_chunk_does_not_exist,
 )
