@@ -6,10 +6,11 @@
 #include <tuple>
 
 #include <amulet/core/biome/biome.hpp>
-#include <amulet/core/chunk_components/section_array_map.hpp>
 #include <amulet/core/dll.hpp>
 #include <amulet/core/palette/biome_palette.hpp>
 #include <amulet/core/version/version.hpp>
+
+#include "section_array_map.hpp"
 
 namespace Amulet {
 

@@ -10,7 +10,7 @@ void init_block_component(py::module);
 
 void init_chunk_components(py::module m_parent)
 {
-    auto m = pyext::def_subpackage(m_parent, "chunk_components");
+    auto m = pyext::def_subpackage(m_parent, "component");
     init_section_array_map(m);
     init_block_component(m);
 }

@@ -14,7 +14,6 @@ void init_entity(py::module);
 void init_biome(py::module);
 void init_palette(py::module);
 void init_chunk(py::module);
-void init_chunk_components(py::module);
 
 void init_module(py::module m)
 {
@@ -30,7 +29,6 @@ void init_module(py::module m)
     init_biome(m);
     init_palette(m);
     init_chunk(m);
-    init_chunk_components(m);
 }
 
 PYBIND11_MODULE(_amulet_core, m)

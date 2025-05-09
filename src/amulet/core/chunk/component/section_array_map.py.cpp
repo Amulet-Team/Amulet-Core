@@ -19,12 +19,15 @@
 namespace py = pybind11;
 namespace pyext = Amulet::pybind11_extensions;
 
-void init_section_array_map(py::module section_array_map_module)
+void init_section_array_map(py::module m_parent)
 {
+    auto m = m_parent.def_submodule("section_array_map");
+
     // 3D index array
     py::class_<Amulet::IndexArray3D, std::shared_ptr<Amulet::IndexArray3D>>
-        IndexArray3D(section_array_map_module, "IndexArray3D", py::buffer_protocol(),
+        IndexArray3D(m, "IndexArray3D", py::buffer_protocol(),
             "A 3D index array.");
+    m.attr("IndexArray3D") = IndexArray3D;
     // Constructors
     IndexArray3D.def(
         py::init<const Amulet::SectionShape&>(),
@@ -113,8 +116,9 @@ void init_section_array_map(py::module section_array_map_module)
 
     // Section Array Map
     py::class_<Amulet::SectionArrayMap, std::shared_ptr<Amulet::SectionArrayMap>>
-        SectionArrayMap(section_array_map_module, "SectionArrayMap",
+        SectionArrayMap(m, "SectionArrayMap",
             "A container of sub-chunk arrays.");
+    m.attr("SectionArrayMap") = SectionArrayMap;
     SectionArrayMap.def(
         py::init(
             [&index_array_from_buffer](
