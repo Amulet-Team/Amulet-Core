@@ -106,6 +106,6 @@ endif()
 install(TARGETS amulet_core DESTINATION ${amulet_core_DIR})
 install(TARGETS _amulet_core DESTINATION ${AMULET_CORE_EXT_DIR})
 
-if (BUILD_AMULET_CORE_TESTS)
+if (DEFINED BUILD_AMULET_CORE_TESTS)
     add_subdirectory(tests)
 endif()
