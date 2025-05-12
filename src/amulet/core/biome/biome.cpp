@@ -12,6 +12,7 @@
 #include "biome.hpp"
 
 namespace Amulet {
+
 void Biome::serialise(BinaryWriter& writer) const
 {
     writer.write_numeric<std::uint8_t>(1);
@@ -20,6 +21,7 @@ void Biome::serialise(BinaryWriter& writer) const
     writer.write_size_and_bytes(namespace_);
     writer.write_size_and_bytes(base_name);
 }
+
 Biome Biome::deserialise(BinaryReader& reader)
 {
     auto version_number = reader.read_numeric<std::uint8_t>();

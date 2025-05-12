@@ -12,6 +12,7 @@
 #include "block.hpp"
 
 namespace Amulet {
+
 void Block::serialise(BinaryWriter& writer) const
 {
     writer.write_numeric<std::uint8_t>(1);
@@ -29,6 +30,7 @@ void Block::serialise(BinaryWriter& writer) const
             val);
     }
 }
+
 Block Block::deserialise(BinaryReader& reader)
 {
     auto version_number = reader.read_numeric<std::uint8_t>();
@@ -107,6 +109,7 @@ std::string Block::java_blockstate() const
     }
     return blockstate;
 }
+
 std::string Block::bedrock_blockstate() const
 {
     std::string blockstate;
@@ -257,6 +260,7 @@ inline void validate_java_namespace(const size_t& offset, const std::string& nam
         }
     }
 }
+
 inline void validate_java_base_name(const size_t& offset, const std::string& base_name)
 {
     for (size_t i = 0; i < base_name.size(); i++) {
@@ -266,6 +270,7 @@ inline void validate_java_base_name(const size_t& offset, const std::string& bas
         }
     }
 }
+
 // key=str
 inline std::string capture_java_blockstate_property_key(const std::string& blockstate, size_t& offset)
 {
@@ -282,6 +287,7 @@ inline std::string capture_java_blockstate_property_key(const std::string& block
     }
     return std::string(blockstate.begin() + key_start, blockstate.begin() + offset);
 }
+
 inline Block::PropertyValue capture_java_blockstate_property_value(const std::string& blockstate, size_t& offset)
 {
     size_t value_start = offset;
@@ -317,6 +323,7 @@ inline void validate_bedrock_base_name(const size_t& offset, const std::string& 
         }
     }
 }
+
 // "key"=false
 // "key"=true
 // "key"=nbt
@@ -350,6 +357,7 @@ inline std::string capture_bedrock_blockstate_property_key(const std::string& bl
 
     return std::string(blockstate.begin() + key_start, blockstate.begin() + key_end);
 }
+
 inline Block::PropertyValue capture_bedrock_blockstate_property_value(const std::string& blockstate, size_t& offset)
 {
     size_t value_start = offset;
@@ -390,6 +398,7 @@ Block Block::from_java_blockstate(const PlatformType& platform, const VersionNum
         version,
         blockstate);
 }
+
 Block Block::from_bedrock_blockstate(const PlatformType& platform, const VersionNumber& version, const std::string& blockstate)
 {
     return parse_blockstate<
@@ -410,6 +419,7 @@ void BlockStack::serialise(BinaryWriter& writer) const
         block.serialise(writer);
     }
 }
+
 BlockStack BlockStack::deserialise(BinaryReader& reader)
 {
     auto version_number = reader.read_numeric<std::uint8_t>();
@@ -427,4 +437,5 @@ BlockStack BlockStack::deserialise(BinaryReader& reader)
         throw std::invalid_argument("Unsupported BlockStack version " + std::to_string(version_number));
     }
 }
-}
+
+} // namespace Amulet

@@ -34,10 +34,7 @@ private:
 public:
     const std::string& get_namespace() const { return namespace_; }
     const std::string& get_base_name() const { return base_name; }
-    const PropertyMap& get_properties() const
-    {
-        return properties;
-    }
+    const PropertyMap& get_properties() const { return properties; }
 
     Block(
         const PlatformType& platform,
@@ -145,4 +142,5 @@ public:
     size_t size() const { return _blocks.size(); }
     const Block& operator[](size_t index) const { return _blocks[index]; }
 };
-}
+
+} // namespace Amulet
