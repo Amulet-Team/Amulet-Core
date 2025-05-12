@@ -29,17 +29,20 @@ private:
 public:
     AMULET_CORE_EXPORT IndexArray3D(const SectionShape& shape);
     AMULET_CORE_EXPORT IndexArray3D(const SectionShape& shape, std::uint32_t value);
+    
     AMULET_CORE_EXPORT IndexArray3D(const IndexArray3D& other);
     AMULET_CORE_EXPORT IndexArray3D(IndexArray3D&& other) noexcept;
     AMULET_CORE_EXPORT IndexArray3D& operator=(const IndexArray3D& other);
     AMULET_CORE_EXPORT IndexArray3D& operator=(IndexArray3D&& other) noexcept;
+    
     AMULET_CORE_EXPORT ~IndexArray3D();
+    
     AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
     AMULET_CORE_EXPORT static IndexArray3D deserialise(BinaryReader&);
 
-    AMULET_CORE_EXPORT const SectionShape& get_shape() const;
-    AMULET_CORE_EXPORT const size_t& get_size() const;
-    AMULET_CORE_EXPORT std::uint32_t* get_buffer() const;
+    const SectionShape& get_shape() const { return _shape; }
+    const size_t& get_size() const { return _size; }
+    std::uint32_t* get_buffer() const { return _buffer; }
 };
 
 class SectionArrayMap {

@@ -127,13 +127,6 @@ IndexArray3D IndexArray3D::deserialise(BinaryReader& reader)
     }
 }
 
-const SectionShape& IndexArray3D::get_shape() const
-{
-    return _shape;
-}
-const size_t& IndexArray3D::get_size() const { return _size; }
-std::uint32_t* IndexArray3D::get_buffer() const { return _buffer; }
-
 static inline void validate_array_shape(
     const IndexArray3D& default_array,
     const SectionShape& array_shape)
