@@ -2,7 +2,6 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-import re
 import requirements
 
 from setuptools import setup, Extension, Command
