@@ -1,7 +1,7 @@
 import amulet
 from amulet.block import Block
 from amulet.utils.world_utils import block_coords_to_chunk_coords
-from amulet_nbt import StringTag, IntTag
+from amulet.nbt import StringTag, IntTag
 
 # load the level
 level = amulet.load_level("level")

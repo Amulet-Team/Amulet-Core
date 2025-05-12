@@ -3,26 +3,21 @@ import os
 
 AMULET_COMPILER_VERSION_REQUIREMENT = "==1.3.0"
 # AMULET_NBT_REQUIREMENT = "~=4.0"
-AMULET_NBT_REQUIREMENT = "==4.0a18"
-# AMULET_LEVELDB_REQUIREMENT = "~=2.0"
-AMULET_LEVELDB_REQUIREMENT = "==2.0a7"
-AMULET_PYBIND11_EXTENSIONS_REQUIREMENT = "==1.0a0"
+AMULET_NBT_REQUIREMENT = "==4.0a20"
+AMULET_PYBIND11_EXTENSIONS_REQUIREMENT = "~=1.0"
+AMULET_IO_REQUIREMENT = "~=1.0"
 
 _compile_dependencies: dict[str, str] = {
     "wheel": "",
-    "pybind11[global]": "==2.13.6",
+    "pybind11": "==2.13.6",
     "amulet_pybind11_extensions": AMULET_PYBIND11_EXTENSIONS_REQUIREMENT,
     "amulet_nbt": AMULET_NBT_REQUIREMENT,
-    "amulet_leveldb": AMULET_LEVELDB_REQUIREMENT,
+    "amulet_io": AMULET_IO_REQUIREMENT,
 }
 
 fixed_runtime_dependencies_data: dict[str, str] = {
     "amulet-compiler-target": "==1.0",
     "numpy": "~=2.0",
-    "portalocker": "~=2.4",
-    "platformdirs": "~=3.1",
-    "pillow": "~=10.0",
-    "amulet_runtime_final": "~=1.1",
 }
 
 

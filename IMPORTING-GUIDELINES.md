@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from sys import getsizeof
 import re
-import amulet_nbt
+import amulet.nbt
 
 from .errors import BlockException
 ```
@@ -25,7 +25,7 @@ Absolute imports are to be used when a module will be imported dynamically at ru
 ```python
 from __future__ import annotations
 
-from amulet.block import Block
+from amulet.core.block import Block
 
 from amulet.utils.format_utils import check_all_exist
 ```
@@ -37,7 +37,7 @@ Example Usage:
 ```python
 from amulet.api import paths
 
-from amulet.block import Block
+from amulet.core.block import Block
 from amulet import level
 
 ...

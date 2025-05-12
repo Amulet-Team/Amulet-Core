@@ -18,6 +18,16 @@ def union_sub_func(match: re.Match) -> str:
     return f'{match.group("variable")}: typing.TypeAlias = {match.group("value")}'
 
 
+ClassVarUnionPattern = re.compile(
+    r"(?P<variable>[a-zA-Z_][a-zA-Z0-9_]*): typing\.ClassVar\[types\.UnionType]\s*#\s*value = (?P<value>.*)$",
+    flags=re.MULTILINE,
+)
+
+
+def class_var_union_sub_func(match: re.Match) -> str:
+    return f'{match.group("variable")}: typing.ClassVar[typing.TypeAlias] = {match.group("value")}'
+
+
 VersionPattern = re.compile(r"(?P<var>[a-zA-Z0-9_].*): str = '.*?'")
 
 
@@ -153,8 +163,8 @@ def patch_stubgen():
 
 
 def main() -> None:
-    amulet_path = get_package_dir("amulet")
-    src_path = os.path.dirname(amulet_path)
+    amulet_path = get_package_dir("amulet.core")
+    src_path = os.path.dirname(os.path.dirname(amulet_path))
 
     # Remove all existing stub files
     print("Removing stub files...")
@@ -171,13 +181,13 @@ def main() -> None:
     sys.argv = [
         "pybind11_stubgen",
         f"--output-dir={src_path}",
-        "amulet",
+        "amulet.core",
     ]
     pybind11_stubgen.main()
     # If pybind11_stubgen adds args to main
     # pybind11_stubgen.main([
     #     f"--output-dir={src_path}",
-    #     "amulet",
+    #     "amulet.core",
     # ])
 
     # Run normal stubgen on the python files
@@ -207,6 +217,7 @@ def main() -> None:
         with open(stub_path, encoding="utf-8") as f:
             pyi = f.read()
         pyi = UnionPattern.sub(union_sub_func, pyi)
+        pyi = ClassVarUnionPattern.sub(class_var_union_sub_func, pyi)
         pyi = VersionPattern.sub(str_sub_func, pyi)
         pyi = GenericAliasPattern.sub(generic_alias_sub_func, pyi)
         pyi = pyi.replace(
@@ -216,7 +227,7 @@ def main() -> None:
         pyi = EqPattern.sub(eq_sub_func, pyi)
         pyi = pyi.replace("**kwargs)", "**kwargs: typing.Any)")
         pyi_split = [l.rstrip("\r") for l in pyi.split("\n")]
-        for hidden_import in ["amulet_nbt"]:
+        for hidden_import in ["amulet.nbt"]:
             if hidden_import in pyi and f"import {hidden_import}" not in pyi_split:
                 pyi_split.insert(2, f"import {hidden_import}")
         if "import typing" not in pyi_split:

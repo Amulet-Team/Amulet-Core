@@ -33,7 +33,7 @@ dev = [
     "packaging",
     "wheel",
     "pybind11[global]==2.13.6",
-    "amulet_pybind11_extensions==1.0a0",
+    "amulet_pybind11_extensions~=1.0",
     "pybind11_stubgen", #@git+https://github.com/Amulet-Team/pybind11-stubgen.git@c3a6ef67ec23d5a39e8cdc73b2c3cd8c1794d6f2",
     "black>=22.3",
     "pre_commit>=1.11.1",
@@ -54,13 +54,11 @@ include-package-data = false
 [tool.setuptools.package-data]
 "*" = [
     "*Config.cmake",
-    "**/*.png",
     "**/*.hpp",
     "**/*.dll",
     "**/*.so",
     "**/*.dylib",
     "**/*.lib",
-    "**/*.pkl.gz"
 ]
 
 [tool.setuptools.dynamic]
@@ -72,7 +70,7 @@ hook-dirs = "amulet.__pyinstaller:get_hook_dirs"
 [tool.versioneer]
 VCS = "git"
 style = "pep440"
-versionfile_source = "src/amulet/_version.py"
-versionfile_build = "amulet/_version.py"
+versionfile_source = "src/amulet/core/_version.py"
+versionfile_build = "amulet/core/_version.py"
 tag_prefix = ""
 parentdir_prefix = "amulet-"
