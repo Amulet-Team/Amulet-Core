@@ -21,21 +21,55 @@ private:
     std::shared_ptr<Amulet::NBT::NamedTag> _nbt;
 
 public:
-    AMULET_CORE_EXPORT const std::string& get_namespace() const;
-    AMULET_CORE_EXPORT void set_namespace(const std::string& namespace_);
+    const std::string& get_namespace() const
+    {
+        return _namespace;
+    }
 
-    AMULET_CORE_EXPORT const std::string& get_base_name() const;
-    AMULET_CORE_EXPORT void set_base_name(const std::string& base_name);
+    template <typename NamespaceT>
+    void set_namespace(NamespaceT&& namespace_)
+    {
+        _namespace = std::forward<NamespaceT>(namespace_);
+    }
 
-    AMULET_CORE_EXPORT std::shared_ptr<Amulet::NBT::NamedTag> get_nbt() const;
-    AMULET_CORE_EXPORT void set_nbt(std::shared_ptr<Amulet::NBT::NamedTag> nbt);
+    const std::string& get_base_name() const
+    {
+        return _base_name;
+    }
 
-    AMULET_CORE_EXPORT BlockEntity(
-        const PlatformType& platform,
-        const VersionNumber& version,
-        const std::string& namespace_,
-        const std::string& base_name,
-        std::shared_ptr<Amulet::NBT::NamedTag> nbt);
+    template <typename BaseNameT>
+    void set_base_name(BaseNameT&& base_name)
+    {
+        _base_name = std::forward<BaseNameT>(base_name);
+    }
+
+    std::shared_ptr<Amulet::NBT::NamedTag> get_nbt() const
+    {
+        return _nbt;
+    }
+
+    void set_nbt(std::shared_ptr<Amulet::NBT::NamedTag> nbt)
+    {
+        _nbt = std::move(nbt);
+    }
+
+    template <
+        typename PlatformT,
+        typename VersionNumberT,
+        typename NamespaceT,
+        typename BaseNameT>
+    BlockEntity(
+        PlatformT&& platform,
+        VersionNumberT&& version,
+        NamespaceT&& namespace_,
+        BaseNameT&& base_name,
+        std::shared_ptr<Amulet::NBT::NamedTag> nbt)
+        : PlatformVersionContainer(std::forward<PlatformT>(platform), std::forward<VersionNumberT>(version))
+        , _namespace(std::forward<NamespaceT>(namespace_))
+        , _base_name(std::forward<BaseNameT>(base_name))
+        , _nbt(std::move(nbt))
+    {
+    }
 
     AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
     AMULET_CORE_EXPORT static BlockEntity deserialise(BinaryReader&);

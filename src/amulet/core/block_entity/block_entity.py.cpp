@@ -50,7 +50,7 @@ void init_block_entity(py::module m_parent)
     BlockEntity.def_property(
         "namespace",
         &Amulet::BlockEntity::get_namespace,
-        &Amulet::BlockEntity::set_namespace,
+        &Amulet::BlockEntity::set_namespace<std::string>,
         py::doc(
             "The namespace of the block entity represented by the :class:`BlockEntity` object.\n"
             "\n"
@@ -61,7 +61,7 @@ void init_block_entity(py::module m_parent)
     BlockEntity.def_property(
         "base_name",
         &Amulet::BlockEntity::get_base_name,
-        &Amulet::BlockEntity::set_base_name,
+        &Amulet::BlockEntity::set_base_name<std::string>,
         py::doc(
             "The base name of the block entity represented by the :class:`BlockEntity` object.\n"
             "\n"
