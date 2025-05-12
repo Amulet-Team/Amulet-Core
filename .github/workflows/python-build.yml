@@ -94,7 +94,7 @@ jobs:
 
     - name: Get Amulet-NBT version
       run: |
-        version=$(python -c "import amulet_nbt; print(amulet.nbt.__version__)")
+        version=$(python -c "import amulet.nbt; print(amulet.nbt.__version__)")
         echo "AMULET_NBT_VERSION=$version" >> "$GITHUB_ENV"
 
     - name: Build Amulet-Core
