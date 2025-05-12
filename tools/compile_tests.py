@@ -8,6 +8,7 @@ import pybind11
 import amulet.pybind11_extensions
 import amulet.io
 import amulet.nbt
+import amulet.core
 
 
 def fix_path(path: str) -> str:
