@@ -13,7 +13,7 @@ def _init() -> None:
     import sys
 
     # Import dependencies
-    import amulet
+    import amulet.core
 
     # This needs to be an absolute path otherwise it may get called twice
     # on different module objects and crash when the interpreter shuts down.
