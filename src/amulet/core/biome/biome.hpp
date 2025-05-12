@@ -18,14 +18,15 @@ public:
     const std::string& get_namespace() const { return namespace_; }
     const std::string& get_base_name() const { return base_name; }
 
+    template <typename PlatformT, typename VersionT, typename NamespaceT, typename BaseNameT>
     Biome(
-        const PlatformType& platform,
-        const VersionNumber& version,
-        const std::string& namespace_,
-        const std::string& base_name)
-        : PlatformVersionContainer(platform, version)
-        , namespace_(namespace_)
-        , base_name(base_name)
+        PlatformT&& platform,
+        VersionT&& version,
+        NamespaceT&& namespace_,
+        BaseNameT&& base_name)
+        : PlatformVersionContainer(std::forward<PlatformT>(platform), std::forward<VersionT>(version))
+        , namespace_(std::forward<NamespaceT>(namespace_))
+        , base_name(std::forward<BaseNameT>(base_name))
     {
     }
 
