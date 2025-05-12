@@ -11,11 +11,14 @@ from packaging.version import Version
 
 import versioneer
 
+
 def fix_path(path: str) -> str:
     return os.path.realpath(path).replace(os.sep, "/")
 
+
 dependencies = requirements.get_fixed_runtime_dependencies()
 setup_args = {}
+
 
 def add_dependency(lib_name: str, version_str: str) -> None:
     version = Version(version_str)
@@ -80,9 +83,9 @@ class CMakeBuild(cmdclass.get("build_ext", build_ext)):
         import amulet.nbt
 
         ext_dir = (
-                (Path.cwd() / self.get_ext_fullpath("")).parent.resolve()
-                / "amulet"
-                / "core"
+            (Path.cwd() / self.get_ext_fullpath("")).parent.resolve()
+            / "amulet"
+            / "core"
         )
         core_src_dir = (
             Path.cwd() / "src" / "amulet" / "core" if self.editable_mode else ext_dir

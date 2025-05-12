@@ -18,6 +18,8 @@ def get_requires_for_build_editable(
     config_settings: Union[Mapping[str, Union[str, list[str], None]], None] = None,
 ) -> list[str]:
     editable_requirements = []
-    editable_requirements.extend(build_meta.get_requires_for_build_editable(config_settings))
+    editable_requirements.extend(
+        build_meta.get_requires_for_build_editable(config_settings)
+    )
     editable_requirements.extend(requirements.get_compile_dependencies(config_settings))
     return editable_requirements

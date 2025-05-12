@@ -1,6 +1,10 @@
 from unittest import TestCase
 from amulet.core.chunk import Chunk
-from amulet.core.chunk.component import BlockComponent, BlockComponentData, SectionArrayMap
+from amulet.core.chunk.component import (
+    BlockComponent,
+    BlockComponentData,
+    SectionArrayMap,
+)
 from amulet.core.palette import BlockPalette
 from test_amulet_core.test_chunk_components.test_component import test_component
 

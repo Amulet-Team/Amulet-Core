@@ -22,7 +22,7 @@ def main() -> None:
     platform_args = []
     if sys.platform == "win32":
         platform_args.extend(["-G", "Visual Studio 17 2022"])
-        if sys.maxsize > 2 ** 32:
+        if sys.maxsize > 2**32:
             platform_args.extend(["-A", "x64"])
         else:
             platform_args.extend(["-A", "Win32"])
