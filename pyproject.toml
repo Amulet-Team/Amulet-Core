@@ -41,7 +41,6 @@ dev = [
     "autoflake",
     "mypy",
     "types-pyinstaller",
-    "amulet-utils~=1.0"
 ]
 
 [project.urls]
