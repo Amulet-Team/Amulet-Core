@@ -7,7 +7,7 @@ import typing
 import amulet.core.version
 import amulet.nbt
 
-__all__ = ["Block", "BlockStack", "PropertyValueType"]
+__all__ = ["Block", "BlockStack"]
 
 class Block(amulet.core.version.PlatformVersionContainer):
     """
@@ -37,6 +37,13 @@ class Block(amulet.core.version.PlatformVersionContainer):
     >>> )
     """
 
+    PropertyValue: typing.ClassVar[typing.TypeAlias] = (
+        amulet.nbt.ByteTag
+        | amulet.nbt.ShortTag
+        | amulet.nbt.IntTag
+        | amulet.nbt.LongTag
+        | amulet.nbt.StringTag
+    )
     @staticmethod
     def from_bedrock_blockstate(
         platform: str, version: amulet.core.version.VersionNumber, blockstate: str
@@ -261,11 +268,3 @@ class BlockStack:
 
         :return: A tuple of :class:`Block` objects
         """
-
-PropertyValueType: typing.TypeAlias = (
-    amulet.nbt.ByteTag
-    | amulet.nbt.ShortTag
-    | amulet.nbt.IntTag
-    | amulet.nbt.LongTag
-    | amulet.nbt.StringTag
-)

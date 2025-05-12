@@ -31,8 +31,6 @@ void init_block(py::module m_parent)
     py::object LongTag = amulet_nbt.attr("LongTag");
     py::object StringTag = amulet_nbt.attr("StringTag");
 
-    m.attr("PropertyValueType") = ByteTag | ShortTag | IntTag | LongTag | StringTag;
-
     py::class_<Amulet::Block, Amulet::PlatformVersionContainer, std::shared_ptr<Amulet::Block>> Block(m, "Block",
         "A class to manage the state of a block.\n"
         "\n"
@@ -58,13 +56,14 @@ void init_block(py::module m_parent)
         ">>>         \"level\": StringTag(\"0\")  # define a property `level` with a string value `0`\n"
         ">>>     }\n"
         ">>> )");
+    Block.attr("PropertyValue") = ByteTag | ShortTag | IntTag | LongTag | StringTag;
     Block.def(
         py::init<
             const Amulet::PlatformType&,
             const Amulet::VersionNumber&,
             const std::string&,
             const std::string&,
-            const std::map<std::string, Amulet::PropertyValueType>&>(),
+            const std::map<std::string, Amulet::Block::PropertyValue>&>(),
         py::arg("platform"),
         py::arg("version"),
         py::arg("namespace"),

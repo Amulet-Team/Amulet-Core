@@ -14,26 +14,27 @@
 #include <amulet/core/version/version.hpp>
 
 namespace Amulet {
-typedef std::variant<
-    Amulet::NBT::ByteTag,
-    Amulet::NBT::ShortTag,
-    Amulet::NBT::IntTag,
-    Amulet::NBT::LongTag,
-    Amulet::NBT::StringTag>
-    PropertyValueType;
-
-typedef std::map<std::string, PropertyValueType> BlockProperites;
 
 class Block : public PlatformVersionContainer {
+public:
+    using PropertyValue = std::variant<
+        Amulet::NBT::ByteTag,
+        Amulet::NBT::ShortTag,
+        Amulet::NBT::IntTag,
+        Amulet::NBT::LongTag,
+        Amulet::NBT::StringTag>;
+
+    using PropertyMap = std::map<std::string, PropertyValue>;
+
 private:
     std::string namespace_;
     std::string base_name;
-    BlockProperites properties;
+    PropertyMap properties;
 
 public:
     const std::string& get_namespace() const { return namespace_; }
     const std::string& get_base_name() const { return base_name; }
-    const BlockProperites& get_properties() const
+    const PropertyMap& get_properties() const
     {
         return properties;
     }

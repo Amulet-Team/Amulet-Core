@@ -39,12 +39,12 @@ Block Block::deserialise(BinaryReader& reader)
         std::string namespace_ { reader.read_size_and_bytes() };
         std::string base_name { reader.read_size_and_bytes() };
         std::uint64_t property_count;
-        BlockProperites properties;
+        Block::PropertyMap properties;
         reader.read_numeric_into<std::uint64_t>(property_count);
         for (std::uint64_t i = 0; i < property_count; i++) {
             std::string name { reader.read_size_and_bytes() };
             Amulet::NBT::NamedTag named_tag = Amulet::NBT::decode_nbt(reader);
-            properties[name] = std::visit([](auto&& tag) -> PropertyValueType {
+            properties[name] = std::visit([](auto&& tag) -> Block::PropertyValue {
                 using T = std::decay_t<decltype(tag)>;
                 if constexpr (
                     std::is_same_v<T, Amulet::NBT::ByteTag> || std::is_same_v<T, Amulet::NBT::ShortTag> || std::is_same_v<T, Amulet::NBT::IntTag> || std::is_same_v<T, Amulet::NBT::LongTag> || std::is_same_v<T, Amulet::NBT::StringTag>) {
@@ -158,7 +158,7 @@ template <
     void (*namespace_validator)(const size_t&, const std::string&),
     void (*base_name_validator)(const size_t&, const std::string&),
     std::string (*capture_key)(const std::string&, size_t&),
-    PropertyValueType (*capture_value)(const std::string&, size_t&)>
+    Block::PropertyValue (*capture_value)(const std::string&, size_t&)>
 Block parse_blockstate(
     const PlatformType& platform,
     const VersionNumber& version,
@@ -200,7 +200,7 @@ Block parse_blockstate(
 
     if (property_start < blockstate.size()) {
         // has properties
-        BlockProperites properties;
+        Block::PropertyMap properties;
         size_t property_pos = property_start + 1;
         if (property_pos < blockstate.size() && blockstate[property_pos] == ']') {
             // []
@@ -282,7 +282,7 @@ inline std::string capture_java_blockstate_property_key(const std::string& block
     }
     return std::string(blockstate.begin() + key_start, blockstate.begin() + offset);
 }
-inline PropertyValueType capture_java_blockstate_property_value(const std::string& blockstate, size_t& offset)
+inline Block::PropertyValue capture_java_blockstate_property_value(const std::string& blockstate, size_t& offset)
 {
     size_t value_start = offset;
     while (offset < blockstate.size()) {
@@ -350,7 +350,7 @@ inline std::string capture_bedrock_blockstate_property_key(const std::string& bl
 
     return std::string(blockstate.begin() + key_start, blockstate.begin() + key_end);
 }
-inline PropertyValueType capture_bedrock_blockstate_property_value(const std::string& blockstate, size_t& offset)
+inline Block::PropertyValue capture_bedrock_blockstate_property_value(const std::string& blockstate, size_t& offset)
 {
     size_t value_start = offset;
     size_t value_end = std::min(
@@ -367,7 +367,7 @@ inline PropertyValueType capture_bedrock_blockstate_property_value(const std::st
         throw std::invalid_argument("Failed parsing SNBT at position " + std::to_string(value_start) + ". " + e.what());
     }
     return std::visit(
-        [](auto&& tag) -> PropertyValueType {
+        [](auto&& tag) -> Block::PropertyValue {
             using T = std::decay_t<decltype(tag)>;
             if constexpr (
                 std::is_same_v<T, Amulet::NBT::ByteTag> || std::is_same_v<T, Amulet::NBT::ShortTag> || std::is_same_v<T, Amulet::NBT::IntTag> || std::is_same_v<T, Amulet::NBT::LongTag> || std::is_same_v<T, Amulet::NBT::StringTag>) {
