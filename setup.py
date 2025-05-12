@@ -36,14 +36,14 @@ def add_dependency(lib_name: str, version_str: str) -> None:
         dependencies.append(f"{lib_name}~={major}.{minor}.{patch}.0")
 
 
-if os.environ.get("AMULET_FREEZE_COMPILER", None):
-    try:
-        import amulet_compiler_version
-    except ImportError:
-        dependencies.append(
-            f"amulet-compiler-version{requirements.AMULET_COMPILER_VERSION_REQUIREMENT}"
-        )
-    else:
+try:
+    import amulet_compiler_version
+except ImportError:
+    dependencies.append(
+        f"amulet-compiler-version{requirements.AMULET_COMPILER_VERSION_REQUIREMENT}"
+    )
+else:
+    if os.environ.get("AMULET_FREEZE_COMPILER", None):
         dependencies.append(
             f"amulet-compiler-version=={amulet_compiler_version.__version__}"
         )
@@ -52,10 +52,19 @@ if os.environ.get("AMULET_FREEZE_COMPILER", None):
                 "build_number": f"1.{amulet_compiler_version.compiler_id}.{amulet_compiler_version.compiler_version}"
             }
         }
-else:
+    else:
+        dependencies.append(
+            f"amulet-compiler-version{requirements.AMULET_COMPILER_VERSION_REQUIREMENT}"
+        )
+
+try:
+    import amulet.pybind11_extensions
+except ImportError:
     dependencies.append(
-        f"amulet-compiler-version{requirements.AMULET_COMPILER_VERSION_REQUIREMENT}"
+        f"amulet_pybind11_extensions{requirements.AMULET_PYBIND11_EXTENSIONS_REQUIREMENT}"
     )
+else:
+    add_dependency("amulet_pybind11_extensions", amulet.pybind11_extensions.__version__)
 
 try:
     import amulet.io
