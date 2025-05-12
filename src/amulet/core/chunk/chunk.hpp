@@ -21,7 +21,7 @@
 // serialise loaded components.
 
 namespace Amulet {
-typedef std::unordered_map<std::string, std::optional<std::string>> SerialisedComponents;
+typedef std::unordered_map<std::string, std::optional<std::string>> SerialisedChunkComponents;
 
 // The abstract chunk class
 class Chunk {
@@ -31,8 +31,8 @@ public:
     virtual std::set<std::string> get_component_ids() const = 0;
     // private:
     //  These are public but may become private one day
-    virtual SerialisedComponents serialise_chunk() const = 0;
-    virtual void reconstruct_chunk(SerialisedComponents) = 0;
+    virtual SerialisedChunkComponents serialise_chunk() const = 0;
+    virtual void reconstruct_chunk(SerialisedChunkComponents) = 0;
 };
 
 namespace detail {
@@ -84,9 +84,9 @@ public:
     }
     // private:
     //  Serialiser
-    SerialisedComponents serialise_chunk() const override
+    SerialisedChunkComponents serialise_chunk() const override
     {
-        SerialisedComponents component_data;
+        SerialisedChunkComponents component_data;
         (
             [&] {
                 component_data[Components::ComponentID] = Components::serialise();
@@ -95,7 +95,7 @@ public:
         return component_data;
     }
     // Deserialiser
-    void reconstruct_chunk(SerialisedComponents component_data) override
+    void reconstruct_chunk(SerialisedChunkComponents component_data) override
     {
         (
             [&] {
