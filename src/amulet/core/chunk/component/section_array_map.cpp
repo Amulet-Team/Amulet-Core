@@ -36,15 +36,43 @@ IndexArray3D::IndexArray3D(const SectionShape& shape, std::uint32_t value)
 IndexArray3D::IndexArray3D(const IndexArray3D& other)
     : IndexArray3D(other.get_shape())
 {
-    std::memcpy(_buffer, other._buffer, sizeof(std::uint32_t) * other.get_size());
+    std::memcpy(_buffer, other._buffer, sizeof(std::uint32_t) * _size);
 }
 
-IndexArray3D::IndexArray3D(IndexArray3D&& other)
+IndexArray3D::IndexArray3D(IndexArray3D&& other) noexcept
+    : _shape(other._shape)
+    , _size(other._size)
+    , _buffer(other._buffer)
 {
+    other._buffer = nullptr;
+}
+
+IndexArray3D& IndexArray3D::operator=(const IndexArray3D& other)
+{
+    if (_buffer == nullptr) {
+        // Buffer was freed. Create a new one.
+        _buffer = new_buffer<std::uint32_t>(other.get_size());
+    } else if (_size != other.get_size()) {
+        // Buffer size has changed. Free and create a new one.
+        free(_buffer);
+        _buffer = new_buffer<std::uint32_t>(other.get_size());
+    }
+    _shape = other._shape;
+    _size = other._size;
+    std::memcpy(_buffer, other._buffer, sizeof(std::uint32_t) * _size);
+    return *this;
+}
+
+IndexArray3D& IndexArray3D::operator=(IndexArray3D&& other) noexcept
+{
+    if (_buffer != nullptr) {
+        free(_buffer);
+    }
     _shape = other._shape;
     _size = other._size;
     _buffer = other._buffer;
     other._buffer = nullptr;
+    return *this;
 }
 
 IndexArray3D::~IndexArray3D()
