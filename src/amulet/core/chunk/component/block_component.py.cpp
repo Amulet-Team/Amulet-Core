@@ -12,13 +12,12 @@
 
 namespace py = pybind11;
 
-void init_block_component(py::module m_parent)
+py::module init_block_component(py::module m_parent)
 {
     auto m = m_parent.def_submodule("block_component");
 
     py::class_<Amulet::BlockComponentData, std::shared_ptr<Amulet::BlockComponentData>>
         BlockComponentData(m, "BlockComponentData");
-
     BlockComponentData.def(
         py::init<
             const Amulet::VersionRange&,
@@ -43,4 +42,6 @@ void init_block_component(py::module m_parent)
         "block",
         &Amulet::BlockComponent::get_block,
         &Amulet::BlockComponent::set_block);
+
+    return m;
 }

@@ -19,7 +19,7 @@
 namespace py = pybind11;
 namespace pyext = Amulet::pybind11_extensions;
 
-void init_section_array_map(py::module m_parent)
+py::module init_section_array_map(py::module m_parent)
 {
     auto m = m_parent.def_submodule("section_array_map");
 
@@ -27,7 +27,6 @@ void init_section_array_map(py::module m_parent)
     py::class_<Amulet::IndexArray3D, std::shared_ptr<Amulet::IndexArray3D>>
         IndexArray3D(m, "IndexArray3D", py::buffer_protocol(),
             "A 3D index array.");
-    m.attr("IndexArray3D") = IndexArray3D;
     // Constructors
     IndexArray3D.def(
         py::init<const Amulet::SectionShape&>(),
@@ -118,7 +117,6 @@ void init_section_array_map(py::module m_parent)
     py::class_<Amulet::SectionArrayMap, std::shared_ptr<Amulet::SectionArrayMap>>
         SectionArrayMap(m, "SectionArrayMap",
             "A container of sub-chunk arrays.");
-    m.attr("SectionArrayMap") = SectionArrayMap;
     SectionArrayMap.def(
         py::init(
             [&index_array_from_buffer](
@@ -234,4 +232,6 @@ void init_section_array_map(py::module m_parent)
     pyext::collections::def_MutableMapping_update(SectionArrayMap);
     pyext::collections::def_MutableMapping_setdefault<std::int64_t, pyext::numpy::array_t<std::uint32_t>>(SectionArrayMap);
     pyext::collections::register_MutableMapping(SectionArrayMap);
+
+    return m;
 }
