@@ -18,10 +18,6 @@ _compile_dependencies: dict[str, str] = {
 fixed_runtime_dependencies_data: dict[str, str] = {
     "amulet-compiler-target": "==1.0",
     "numpy": "~=2.0",
-    "portalocker": "~=2.4",
-    "platformdirs": "~=3.1",
-    "pillow": "~=10.0",
-    "amulet_runtime_final": "~=1.1",
 }
 
 

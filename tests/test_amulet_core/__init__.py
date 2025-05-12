@@ -14,10 +14,6 @@ def _init() -> None:
 
     # Import dependencies
     import amulet
-    from amulet.utils.logging import set_min_log_level
-
-    # Enable debug logging when running tests.
-    set_min_log_level(0)
 
     # This needs to be an absolute path otherwise it may get called twice
     # on different module objects and crash when the interpreter shuts down.
