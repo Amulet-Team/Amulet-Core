@@ -27,38 +27,48 @@ public:
     using PropertyMap = std::map<std::string, PropertyValue>;
 
 private:
-    std::string namespace_;
-    std::string base_name;
-    PropertyMap properties;
+    std::string _namespace;
+    std::string _base_name;
+    PropertyMap _properties;
 
 public:
-    const std::string& get_namespace() const { return namespace_; }
-    const std::string& get_base_name() const { return base_name; }
-    const PropertyMap& get_properties() const { return properties; }
+    const std::string& get_namespace() const { return _namespace; }
+    const std::string& get_base_name() const { return _base_name; }
+    const PropertyMap& get_properties() const { return _properties; }
 
+    template <
+        typename PlatformT,
+        typename VersionT,
+        typename NamespaceT,
+        typename BaseNameT>
     Block(
-        const PlatformType& platform,
-        const VersionNumber& version,
-        const std::string& namespace_,
-        const std::string& base_name)
-        : PlatformVersionContainer(platform, version)
-        , namespace_(namespace_)
-        , base_name(base_name)
-        , properties()
+        PlatformT&& platform,
+        VersionT&& version,
+        NamespaceT&& namespace_,
+        BaseNameT&& base_name)
+        : PlatformVersionContainer(std::forward<PlatformT>(platform), std::forward<VersionT>(version))
+        , _namespace(std::forward<NamespaceT>(namespace_))
+        , _base_name(std::forward<BaseNameT>(base_name))
+        , _properties()
     {
     }
 
-    template <typename propertiesT>
+    template <
+        typename PlatformT,
+        typename VersionT,
+        typename NamespaceT,
+        typename BaseNameT,
+        typename PropertiesT>
     Block(
-        const PlatformType& platform,
-        const VersionNumber& version,
-        const std::string& namespace_,
-        const std::string& base_name,
-        const propertiesT& properties)
-        : PlatformVersionContainer(platform, version)
-        , namespace_(namespace_)
-        , base_name(base_name)
-        , properties(properties)
+        PlatformT&& platform,
+        VersionT&& version,
+        NamespaceT&& namespace_,
+        BaseNameT&& base_name,
+        PropertiesT&& properties)
+        : PlatformVersionContainer(std::forward<PlatformT>(platform), std::forward<VersionT>(version))
+        , _namespace(std::forward<NamespaceT>(namespace_))
+        , _base_name(std::forward<BaseNameT>(base_name))
+        , _properties(std::forward<PropertiesT>(properties))
     {
     }
 
@@ -71,15 +81,15 @@ public:
         if (cmp != 0) {
             return cmp;
         }
-        cmp = namespace_ <=> other.namespace_;
+        cmp = _namespace <=> other._namespace;
         if (cmp != 0) {
             return cmp;
         }
-        cmp = base_name <=> other.base_name;
+        cmp = _base_name <=> other._base_name;
         if (cmp != 0) {
             return cmp;
         }
-        return properties <=> other.properties;
+        return _properties <=> other._properties;
     }
     bool operator==(const Block& other) const
     {

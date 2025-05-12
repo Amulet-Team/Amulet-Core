@@ -18,11 +18,11 @@ void Block::serialise(BinaryWriter& writer) const
     writer.write_numeric<std::uint8_t>(1);
     writer.write_size_and_bytes(get_platform());
     get_version().serialise(writer);
-    writer.write_size_and_bytes(namespace_);
-    writer.write_size_and_bytes(base_name);
+    writer.write_size_and_bytes(_namespace);
+    writer.write_size_and_bytes(_base_name);
 
-    writer.write_numeric<std::uint64_t>(properties.size());
-    for (auto const& [key, val] : properties) {
+    writer.write_numeric<std::uint64_t>(_properties.size());
+    for (auto const& [key, val] : _properties) {
         writer.write_size_and_bytes(key);
         std::visit([&writer](auto&& tag) {
             Amulet::NBT::encode_nbt(writer, "", tag);
