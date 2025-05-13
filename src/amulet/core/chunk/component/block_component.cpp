@@ -8,8 +8,8 @@ namespace Amulet {
 void BlockComponentData::serialise(BinaryWriter& writer) const
 {
     writer.write_numeric<std::uint8_t>(1);
-    get_palette()->serialise(writer);
-    get_sections()->serialise(writer);
+    get_palette().serialise(writer);
+    get_sections().serialise(writer);
 }
 
 BlockComponentData BlockComponentData::deserialise(BinaryReader& reader)
@@ -58,10 +58,11 @@ std::shared_ptr<BlockComponentData> BlockComponent::get_block()
 void BlockComponent::set_block(std::shared_ptr<BlockComponentData> component)
 {
     if (_value) {
-        if ((*_value)->get_sections()->get_array_shape() != component->get_sections()->get_array_shape()) {
+        auto& old_data = **_value;
+        if (old_data.get_sections().get_array_shape() != component->get_sections().get_array_shape()) {
             throw std::invalid_argument("New block array shape does not match old array shape.");
         }
-        if ((*_value)->get_palette()->get_version_range() != component->get_palette()->get_version_range()) {
+        if (old_data.get_palette().get_version_range() != component->get_palette().get_version_range()) {
             throw std::invalid_argument("New block version range does not match old version range.");
         }
         _value = component;

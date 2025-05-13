@@ -46,8 +46,10 @@ public:
     AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
     AMULET_CORE_EXPORT static BlockComponentData deserialise(BinaryReader&);
 
-    std::shared_ptr<BlockPalette> get_palette() const { return _palette; }
-    std::shared_ptr<SectionArrayMap> get_sections() const { return _sections; }
+    BlockPalette& get_palette() const { return *_palette; }
+    std::shared_ptr<BlockPalette> get_palette_ptr() const { return _palette; }
+    SectionArrayMap& get_sections() const { return *_sections; }
+    std::shared_ptr<SectionArrayMap> get_sections_ptr() const { return _sections; }
 };
 
 class BlockComponent {

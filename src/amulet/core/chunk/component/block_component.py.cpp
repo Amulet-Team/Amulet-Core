@@ -28,10 +28,10 @@ py::module init_block_component(py::module m_parent)
         py::arg("default_block"));
     BlockComponentData.def_property_readonly(
         "palette",
-        &Amulet::BlockComponentData::get_palette);
+        &Amulet::BlockComponentData::get_palette_ptr);
     BlockComponentData.def_property_readonly(
         "sections",
-        &Amulet::BlockComponentData::get_sections);
+        &Amulet::BlockComponentData::get_sections_ptr);
 
     py::class_<Amulet::BlockComponent, std::shared_ptr<Amulet::BlockComponent>>
         BlockComponent(m, "BlockComponent");
