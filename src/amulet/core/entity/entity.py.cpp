@@ -56,7 +56,7 @@ void init_entity(py::module m_parent)
     Entity.def_property(
         "namespace",
         &Amulet::Entity::get_namespace,
-        &Amulet::Entity::set_namespace,
+        &Amulet::Entity::set_namespace<std::string&>,
         py::doc(
             "The namespace of the entity represented by the :class:`Entity` object.\n"
             "\n"
@@ -67,7 +67,7 @@ void init_entity(py::module m_parent)
     Entity.def_property(
         "base_name",
         &Amulet::Entity::get_base_name,
-        &Amulet::Entity::set_base_name,
+        &Amulet::Entity::set_base_name<std::string&>,
         py::doc(
             "The base name of the entity represented by the :class:`Entity` object.\n"
             "\n"

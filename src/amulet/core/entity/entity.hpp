@@ -27,11 +27,13 @@ private:
 public:
     const std::string& get_namespace() const { return _namespace; }
 
-    void set_namespace(const std::string& namespace_) { _namespace = namespace_; }
+    template <typename NamespaceT>
+    void set_namespace(NamespaceT&& namespace_) { _namespace = std::forward<NamespaceT>(namespace_); }
 
     const std::string& get_base_name() const { return _base_name; }
 
-    void set_base_name(const std::string& base_name) { _base_name = base_name; }
+    template <typename BaseNameT>
+    void set_base_name(BaseNameT&& base_name) { _base_name = std::forward<BaseNameT>(base_name); }
 
     std::shared_ptr<Amulet::NBT::NamedTag> get_nbt() const { return _nbt; }
 
