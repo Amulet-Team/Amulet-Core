@@ -39,7 +39,7 @@ public:
 
     const BlockStack& index_to_block_stack(size_t index) const
     {
-        return _index_to_block[index];
+        return _index_to_block.at(index);
     }
 
     size_t block_stack_to_index(const BlockStack& block_stack)
