@@ -12,7 +12,7 @@
 
 namespace Amulet {
 typedef std::tuple<std::uint16_t, std::int64_t, std::uint16_t> BlockEntityChunkCoord;
-class BlockEntityComponentData : public VersionRangeContainer {
+class BlockEntityMap : public VersionRangeContainer {
 private:
     std::uint16_t _x_size;
     std::uint16_t _z_size;
@@ -23,7 +23,7 @@ private:
 
 public:
     template <typename VersionRangeT>
-    BlockEntityComponentData(
+    BlockEntityMap(
         VersionRangeT&& version_range,
         std::uint16_t x_size,
         std::uint16_t z_size)
@@ -35,7 +35,7 @@ public:
     }
 
     AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
-    AMULET_CORE_EXPORT static BlockEntityComponentData deserialise(BinaryReader&);
+    AMULET_CORE_EXPORT static BlockEntityMap deserialise(BinaryReader&);
 
     std::uint16_t get_x_size() const { return _x_size; }
     std::uint16_t get_z_size() const { return _z_size; }
@@ -72,7 +72,7 @@ public:
 
 class BlockEntityComponent {
 private:
-    std::optional<std::shared_ptr<BlockEntityComponentData>> _value;
+    std::optional<std::shared_ptr<BlockEntityMap>> _value;
 
 protected:
     // Null constructor
@@ -90,7 +90,7 @@ protected:
 
 public:
     AMULET_CORE_EXPORT static const std::string ComponentID;
-    AMULET_CORE_EXPORT std::shared_ptr<BlockEntityComponentData> get_block_entity();
-    AMULET_CORE_EXPORT void set_block_entity(std::shared_ptr<BlockEntityComponentData> component);
+    AMULET_CORE_EXPORT std::shared_ptr<BlockEntityMap> get_block_entity();
+    AMULET_CORE_EXPORT void set_block_entity(std::shared_ptr<BlockEntityMap> component);
 };
 }
