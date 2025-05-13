@@ -60,9 +60,32 @@ public:
         return _block_entities.at(coord);
     }
 
-    AMULET_CORE_EXPORT void set(
+    template <typename BlockEntityT>
+    void set(
         const BlockEntityChunkCoord& coord,
-        std::shared_ptr<BlockEntity> block_entity);
+        BlockEntityT&& block_entity)
+    {
+        std::shared_ptr<BlockEntity> block_entity_ptr;
+        if constexpr (std::is_same_v<std::shared_ptr<BlockEntity>, std::decay_t<BlockEntityT>>) {
+            block_entity_ptr = std::forward<BlockEntityT>(block_entity);
+        } else {
+            block_entity_ptr = std::make_shared<BlockEntity>(block_entity);
+        }
+
+        if (
+            std::get<0>(coord) < 0 || std::get<2>(coord) < 0 || _x_size <= std::get<0>(coord) || _z_size <= std::get<2>(coord)) {
+            throw std::invalid_argument(
+                "Coord must be 0 <= " + std::to_string(std::get<0>(coord)) + " < " + std::to_string(_x_size) + "and 0 <= " + std::to_string(std::get<1>(coord)) + " < " + std::to_string(_z_size));
+        }
+        if (!(
+                get_version_range().contains(
+                    block_entity->get_platform(),
+                    block_entity->get_version()))) {
+            throw std::invalid_argument(
+                "BlockEntity is incompatible with VersionRange.");
+        }
+        _block_entities.insert_or_assign(coord, std::move(block_entity));
+    }
 
     void del(const BlockEntityChunkCoord& coord)
     {
