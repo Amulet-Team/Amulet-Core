@@ -4,39 +4,14 @@
 
 namespace Amulet {
 
-const std::string& BlockEntity::get_namespace() const { return _namespace; }
-
-void BlockEntity::set_namespace(const std::string& namespace_) { _namespace = namespace_; }
-
-const std::string& BlockEntity::get_base_name() const { return _base_name; }
-
-void BlockEntity::set_base_name(const std::string& base_name) { _base_name = base_name; }
-
-std::shared_ptr<Amulet::NBT::NamedTag> BlockEntity::get_nbt() const { return _nbt; }
-
-void BlockEntity::set_nbt(std::shared_ptr<Amulet::NBT::NamedTag> nbt) { _nbt = nbt; }
-
-BlockEntity::BlockEntity(
-    const PlatformType& platform,
-    const VersionNumber& version,
-    const std::string& namespace_,
-    const std::string& base_name,
-    std::shared_ptr<Amulet::NBT::NamedTag> nbt)
-    : PlatformVersionContainer(platform, version)
-    , _namespace(namespace_)
-    , _base_name(base_name)
-    , _nbt(nbt)
-{
-}
-
 void BlockEntity::serialise(BinaryWriter&) const
 {
-    throw std::runtime_error("NotImplemented");
+    throw std::runtime_error("NotImplementedError");
 }
 
 BlockEntity BlockEntity::deserialise(BinaryReader&)
 {
-    throw std::runtime_error("NotImplemented");
+    throw std::runtime_error("NotImplementedError");
 }
 
 bool BlockEntity::operator==(const BlockEntity& other) const

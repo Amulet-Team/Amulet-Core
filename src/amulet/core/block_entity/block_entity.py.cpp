@@ -5,8 +5,9 @@
 
 #include <memory>
 
-#include <amulet/pybind11_extensions/py_module.hpp>
+#include <amulet/pybind11_extensions/builtins.hpp>
 #include <amulet/pybind11_extensions/hash.hpp>
+#include <amulet/pybind11_extensions/py_module.hpp>
 
 #include <amulet/nbt/tag/named_tag.hpp>
 
@@ -50,7 +51,7 @@ void init_block_entity(py::module m_parent)
     BlockEntity.def_property(
         "namespace",
         &Amulet::BlockEntity::get_namespace,
-        &Amulet::BlockEntity::set_namespace,
+        &Amulet::BlockEntity::set_namespace<std::string>,
         py::doc(
             "The namespace of the block entity represented by the :class:`BlockEntity` object.\n"
             "\n"
@@ -61,7 +62,7 @@ void init_block_entity(py::module m_parent)
     BlockEntity.def_property(
         "base_name",
         &Amulet::BlockEntity::get_base_name,
-        &Amulet::BlockEntity::set_base_name,
+        &Amulet::BlockEntity::set_base_name<std::string>,
         py::doc(
             "The base name of the block entity represented by the :class:`BlockEntity` object.\n"
             "\n"
@@ -72,7 +73,15 @@ void init_block_entity(py::module m_parent)
     BlockEntity.def_property(
         "nbt",
         &Amulet::BlockEntity::get_nbt,
-        &Amulet::BlockEntity::set_nbt,
+        [](Amulet::BlockEntity& self, pyext::PyObjectCpp<Amulet::NBT::NamedTag> tag) {
+            std::shared_ptr<Amulet::NBT::NamedTag> tag_ptr;
+            try {
+                tag_ptr = tag.cast<std::shared_ptr<Amulet::NBT::NamedTag>>();
+            } catch (const std::runtime_error&) {
+                tag_ptr = std::make_shared<Amulet::NBT::NamedTag>(tag.cast<Amulet::NBT::NamedTag&>());
+            }
+            self.set_nbt(std::move(tag_ptr));
+        },
         py::doc(
             "The nbt data for the block entity.\n"
             ">>> block_entity: BlockEntity\n"
@@ -83,10 +92,10 @@ void init_block_entity(py::module m_parent)
         "__repr__",
         [](const Amulet::BlockEntity& self) {
             return "BlockEntity("
-                + py::repr(py::cast(self.get_platform())).cast<std::string>() + ", " 
-                + py::repr(py::cast(self.get_version(), py::return_value_policy::reference)).cast<std::string>() + ", " 
-                + py::repr(py::cast(self.get_namespace())).cast<std::string>() + ", " 
-                + py::repr(py::cast(self.get_base_name())).cast<std::string>() + ", " 
+                + py::repr(py::cast(self.get_platform())).cast<std::string>() + ", "
+                + py::repr(py::cast(self.get_version(), py::return_value_policy::reference)).cast<std::string>() + ", "
+                + py::repr(py::cast(self.get_namespace())).cast<std::string>() + ", "
+                + py::repr(py::cast(self.get_base_name())).cast<std::string>() + ", "
                 + py::repr(py::cast(self.get_nbt())).cast<std::string>() + ")";
         });
     BlockEntity.def(

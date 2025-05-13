@@ -4,8 +4,6 @@
 
 #include <amulet/core/dll.hpp>
 
-#include "group.hpp"
-
 namespace Amulet {
 
 class SelectionGroup;
@@ -21,33 +19,50 @@ private:
     std::uint64_t _size_z;
 
 public:
-    AMULET_CORE_EXPORT SelectionBox(
+    SelectionBox(
         std::int64_t min_x,
         std::int64_t min_y,
         std::int64_t min_z,
         std::uint64_t size_x,
         std::uint64_t size_y,
-        std::uint64_t size_z);
-    AMULET_CORE_EXPORT SelectionBox(
+        std::uint64_t size_z)
+        : _min_x(min_x)
+        , _min_y(min_y)
+        , _min_z(min_z)
+        , _size_x(size_x)
+        , _size_y(size_y)
+        , _size_z(size_z)
+    {
+    }
+
+    SelectionBox(
         std::array<std::int64_t, 3> point_1,
-        std::array<std::int64_t, 3> point_2);
+        std::array<std::int64_t, 3> point_2)
+    {
+        _min_x = std::min(point_1[0], point_2[0]);
+        _min_y = std::min(point_1[1], point_2[1]);
+        _min_z = std::min(point_1[2], point_2[2]);
+        _size_x = std::max(point_1[0], point_2[0]) - _min_x;
+        _size_y = std::max(point_1[1], point_2[1]) - _min_y;
+        _size_z = std::max(point_1[2], point_2[2]) - _min_z;
+    }
 
     // Accessors
-    AMULET_CORE_EXPORT std::int64_t min_x() const;
-    AMULET_CORE_EXPORT std::int64_t min_y() const;
-    AMULET_CORE_EXPORT std::int64_t min_z() const;
-    AMULET_CORE_EXPORT std::int64_t max_x() const;
-    AMULET_CORE_EXPORT std::int64_t max_y() const;
-    AMULET_CORE_EXPORT std::int64_t max_z() const;
-    AMULET_CORE_EXPORT std::array<std::int64_t, 3> min() const;
-    AMULET_CORE_EXPORT std::array<std::int64_t, 3> max() const;
+    std::int64_t min_x() const { return _min_x; }
+    std::int64_t min_y() const { return _min_y; }
+    std::int64_t min_z() const { return _min_z; }
+    std::int64_t max_x() const { return _min_x + _size_x; }
+    std::int64_t max_y() const { return _min_y + _size_y; }
+    std::int64_t max_z() const { return _min_z + _size_z; }
+    std::array<std::int64_t, 3> min() const { return { _min_x, _min_y, _min_z }; }
+    std::array<std::int64_t, 3> max() const { return { max_x(), max_y(), max_z() }; }
 
     // Shape and volume
-    AMULET_CORE_EXPORT std::uint64_t size_x() const;
-    AMULET_CORE_EXPORT std::uint64_t size_y() const;
-    AMULET_CORE_EXPORT std::uint64_t size_z() const;
-    AMULET_CORE_EXPORT std::array<std::uint64_t, 3> shape() const;
-    AMULET_CORE_EXPORT size_t volume() const;
+    std::uint64_t size_x() const { return _size_x; }
+    std::uint64_t size_y() const { return _size_y; }
+    std::uint64_t size_z() const { return _size_z; }
+    std::array<std::uint64_t, 3> shape() const { return { _size_x, _size_y, _size_z }; }
+    size_t volume() const { return _size_x * _size_y * _size_z; }
 
     // Contains and intersects
     AMULET_CORE_EXPORT bool contains_block(std::int64_t x, std::int64_t y, std::int64_t z) const;
@@ -67,3 +82,5 @@ public:
 };
 
 } // namespace Amulet
+
+#include "group.hpp"

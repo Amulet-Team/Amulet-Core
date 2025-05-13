@@ -26,7 +26,7 @@ void init_chunk(py::module m_parent)
         "component_ids",
         &Amulet::Chunk::get_component_ids);
     auto py_serialise = [](const Amulet::Chunk& self) -> py::typing::Dict<py::str, py::typing::Optional<py::bytes>> {
-        Amulet::SerialisedComponents chunk_data;
+        Amulet::SerialisedChunkComponents chunk_data;
         {
             ;
             py::gil_scoped_release gil;
@@ -47,7 +47,7 @@ void init_chunk(py::module m_parent)
         py_serialise,
         py::doc("This is private. Do not use this. It will be removed in the future."));
     auto py_deserialise = [](Amulet::Chunk& self, py::typing::Dict<py::str, py::typing::Optional<py::bytes>> data) {
-        Amulet::SerialisedComponents component_data;
+        Amulet::SerialisedChunkComponents component_data;
         for (const auto& [k, v] : data) {
             if (v.is(py::none())) {
                 component_data[k.cast<std::string>()];

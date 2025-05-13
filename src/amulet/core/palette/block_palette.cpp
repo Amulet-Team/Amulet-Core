@@ -1,5 +1,3 @@
-#include <amulet/core/dll.hpp>
-
 #include "block_palette.hpp"
 
 namespace Amulet {
@@ -20,7 +18,7 @@ BlockPalette BlockPalette::deserialise(BinaryReader& reader)
     case 1: {
         auto version_range = VersionRange::deserialise(reader);
         auto count = reader.read_numeric<std::uint64_t>();
-        BlockPalette palette(version_range);
+        BlockPalette palette(std::move(version_range));
         for (auto i = 0; i < count; i++) {
             if (palette.size() != palette.block_stack_to_index(BlockStack::deserialise(reader))) {
                 throw std::runtime_error("Error deserialising BlockPalette");
@@ -29,7 +27,7 @@ BlockPalette BlockPalette::deserialise(BinaryReader& reader)
         return palette;
     }
     default:
-        throw std::invalid_argument("Unsupported BlockComponentData version " + std::to_string(version));
+        throw std::invalid_argument("Unsupported BlockPalette version " + std::to_string(version));
     }
 }
 }

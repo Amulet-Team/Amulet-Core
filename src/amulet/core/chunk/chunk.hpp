@@ -21,7 +21,7 @@
 // serialise loaded components.
 
 namespace Amulet {
-typedef std::unordered_map<std::string, std::optional<std::string>> SerialisedComponents;
+typedef std::unordered_map<std::string, std::optional<std::string>> SerialisedChunkComponents;
 
 // The abstract chunk class
 class Chunk {
@@ -31,12 +31,14 @@ public:
     virtual std::set<std::string> get_component_ids() const = 0;
     // private:
     //  These are public but may become private one day
-    virtual SerialisedComponents serialise_chunk() const = 0;
-    virtual void reconstruct_chunk(SerialisedComponents) = 0;
+    virtual SerialisedChunkComponents serialise_chunk() const = 0;
+    virtual void reconstruct_chunk(SerialisedChunkComponents) = 0;
 };
 
 namespace detail {
-    std::unordered_map<std::string, std::function<std::shared_ptr<Chunk>()>>& get_chunk_constructors();
+    using ChunkContructor = std::function<std::shared_ptr<Chunk>()>;
+    AMULET_CORE_EXPORT void add_null_chunk_constructor(const std::string& id, ChunkContructor constructor);
+    AMULET_CORE_EXPORT void remove_null_chunk_constructor(const std::string& id);
 }
 
 AMULET_CORE_EXPORT std::shared_ptr<Chunk> get_null_chunk(std::string chunk_id);
@@ -48,16 +50,13 @@ class ChunkNullConstructor {
 public:
     ChunkNullConstructor()
     {
-        if (detail::get_chunk_constructors().contains(ChunkT::ChunkID)) {
-            throw std::runtime_error("A chunk class has already been registered with ID " + ChunkT::ChunkID);
-        }
-        detail::get_chunk_constructors()[ChunkT::ChunkID] = []() {
+        detail::add_null_chunk_constructor(ChunkT::ChunkID, []() {
             return std::make_shared<ChunkT>();
-        };
+        });
     }
     ~ChunkNullConstructor()
     {
-        detail::get_chunk_constructors().erase(ChunkT::ChunkID);
+        detail::remove_null_chunk_constructor(ChunkT::ChunkID);
     }
 };
 
@@ -83,10 +82,10 @@ public:
     {
     }
     // private:
-    //  Serialiser
-    SerialisedComponents serialise_chunk() const override
+    // Serialiser
+    SerialisedChunkComponents serialise_chunk() const override
     {
-        SerialisedComponents component_data;
+        SerialisedChunkComponents component_data;
         (
             [&] {
                 component_data[Components::ComponentID] = Components::serialise();
@@ -95,7 +94,7 @@ public:
         return component_data;
     }
     // Deserialiser
-    void reconstruct_chunk(SerialisedComponents component_data) override
+    void reconstruct_chunk(SerialisedChunkComponents component_data) override
     {
         (
             [&] {

@@ -24,23 +24,23 @@ typedef std::string PlatformType;
 // All methods are thread safe.
 class VersionNumber {
 private:
-    std::vector<std::int64_t> vec;
+    std::vector<std::int64_t> _vec;
 
 public:
     // Get the underlying vector.
     // Thread safe.
-    const std::vector<std::int64_t>& get_vector() const { return vec; }
+    const std::vector<std::int64_t>& get_vector() const { return _vec; }
 
     // Constructors
     template <typename... Args>
         requires std::is_constructible_v<std::vector<std::int64_t>, Args...>
     VersionNumber(Args&&... args)
-        : vec(std::forward<Args>(args)...)
+        : _vec(std::forward<Args>(args)...)
     {
     }
 
     VersionNumber(std::initializer_list<std::int64_t> args)
-        : vec(args)
+        : _vec(args)
     {
     }
 
@@ -48,21 +48,26 @@ public:
     AMULET_CORE_EXPORT static VersionNumber deserialise(BinaryReader&);
 
     // Iterators
-    std::vector<std::int64_t>::const_iterator begin() const { return vec.begin(); }
-    std::vector<std::int64_t>::const_iterator end() const { return vec.end(); }
-    std::vector<std::int64_t>::const_reverse_iterator rbegin() const { return vec.rbegin(); }
-    std::vector<std::int64_t>::const_reverse_iterator rend() const { return vec.rend(); }
+    std::vector<std::int64_t>::const_iterator begin() const { return _vec.begin(); }
+    std::vector<std::int64_t>::const_iterator end() const { return _vec.end(); }
+    std::vector<std::int64_t>::const_reverse_iterator rbegin() const { return _vec.rbegin(); }
+    std::vector<std::int64_t>::const_reverse_iterator rend() const { return _vec.rend(); }
 
     // Capacity
-    size_t size() const { return vec.size(); }
+    size_t size() const { return _vec.size(); }
 
     // Element access
-    AMULET_CORE_EXPORT std::int64_t operator[](size_t index) const;
+    std::int64_t operator[](size_t index) const {
+        if (index >= _vec.size()) {
+            return 0;
+        }
+        return _vec[index];
+    }
 
     // Comparison
     auto operator<=>(const VersionNumber& other) const
     {
-        size_t max_len = std::max(vec.size(), other.size());
+        size_t max_len = std::max(_vec.size(), other.size());
         std::int64_t v1, v2;
         for (size_t i = 0; i < max_len; i++) {
             v1 = (*this)[i];
@@ -98,21 +103,22 @@ public:
 // Thread safe.
 class PlatformVersionContainer {
 private:
-    PlatformType platform;
-    VersionNumber version;
+    PlatformType _platform;
+    VersionNumber _version;
 
 public:
     // Get the platform identifier.
-    const PlatformType& get_platform() const { return platform; }
+    const PlatformType& get_platform() const { return _platform; }
 
     // Get the version number.
-    const VersionNumber& get_version() const { return version; }
+    const VersionNumber& get_version() const { return _version; }
 
+    template <typename PlatformT, typename VersionNumberT>
     PlatformVersionContainer(
-        const PlatformType& platform,
-        const VersionNumber& version)
-        : platform(platform)
-        , version(version)
+        PlatformT&& platform,
+        VersionNumberT&& version)
+        : _platform(std::forward<PlatformT>(platform))
+        , _version(std::forward<VersionNumberT>(version))
     {
     }
 
@@ -122,11 +128,11 @@ public:
     // Comparison operators
     auto operator<=>(const PlatformVersionContainer& other) const
     {
-        auto cmp = platform <=> other.platform;
+        auto cmp = _platform <=> other._platform;
         if (cmp != 0) {
             return cmp;
         }
-        return version <=> other.version;
+        return _version <=> other._version;
     }
     bool operator==(const PlatformVersionContainer& other) const
     {
@@ -138,29 +144,30 @@ public:
 // Thread safe.
 class VersionRange {
 private:
-    PlatformType platform;
-    VersionNumber min_version;
-    VersionNumber max_version;
+    PlatformType _platform;
+    VersionNumber _min_version;
+    VersionNumber _max_version;
 
 public:
     // Get the platform identifier.
-    const PlatformType& get_platform() const { return platform; }
+    const PlatformType& get_platform() const { return _platform; }
 
     // Get the minimum version number
-    const VersionNumber& get_min_version() const { return min_version; }
+    const VersionNumber& get_min_version() const { return _min_version; }
 
     // Get the maximum version number
-    const VersionNumber& get_max_version() const { return max_version; }
+    const VersionNumber& get_max_version() const { return _max_version; }
 
+    template <typename PlatformT, typename MinVersionT, typename MaxVersionT>
     VersionRange(
-        const PlatformType& platform,
-        const VersionNumber& min_version,
-        const VersionNumber& max_version)
-        : platform(platform)
-        , min_version(min_version)
-        , max_version(max_version)
+        PlatformT&& platform,
+        MinVersionT&& min_version,
+        MaxVersionT&& max_version)
+        : _platform(std::forward<PlatformT>(platform))
+        , _min_version(std::forward<MinVersionT>(min_version))
+        , _max_version(std::forward<MaxVersionT>(max_version))
     {
-        if (min_version > max_version) {
+        if (_min_version > _max_version) {
             throw std::invalid_argument("min_version must be less than or equal to max_version");
         }
     }
@@ -178,15 +185,16 @@ public:
 // A class that contains a version range.
 class VersionRangeContainer {
 private:
-    VersionRange version_range;
+    VersionRange _version_range;
 
 public:
     // Get the version range.
-    const VersionRange& get_version_range() const { return version_range; }
+    const VersionRange& get_version_range() const { return _version_range; }
 
+    template <typename VersionRangeT>
     VersionRangeContainer(
-        const VersionRange& version_range)
-        : version_range(version_range)
+        VersionRangeT&& version_range)
+        : _version_range(std::forward<VersionRangeT>(version_range))
     {
     }
 

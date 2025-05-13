@@ -7,14 +7,16 @@
 #include "version.hpp"
 
 namespace Amulet {
+
 void VersionNumber::serialise(BinaryWriter& writer) const
 {
     writer.write_numeric<std::uint8_t>(1);
-    writer.write_numeric<std::uint64_t>(vec.size());
-    for (const std::int64_t& v : vec) {
+    writer.write_numeric<std::uint64_t>(_vec.size());
+    for (const std::int64_t& v : _vec) {
         writer.write_numeric<std::int64_t>(v);
     }
 }
+
 VersionNumber VersionNumber::deserialise(BinaryReader& reader)
 {
     auto version_number = reader.read_numeric<std::uint8_t>();
@@ -33,22 +35,14 @@ VersionNumber VersionNumber::deserialise(BinaryReader& reader)
     }
 }
 
-std::int64_t VersionNumber::operator[](size_t index) const
-{
-    if (index >= vec.size()) {
-        return 0;
-    }
-    return vec[index];
-}
-
 std::string VersionNumber::toString() const
 {
     std::ostringstream oss;
-    for (size_t i = 0; i < vec.size(); ++i) {
+    for (size_t i = 0; i < _vec.size(); ++i) {
         if (i > 0) {
             oss << '.';
         }
-        oss << vec[i];
+        oss << _vec[i];
     }
     return oss.str();
 }
@@ -57,7 +51,7 @@ std::vector<std::int64_t> VersionNumber::cropped_version() const
 {
     bool found_non_zero = false;
     std::vector<std::int64_t> out;
-    for (auto it = vec.rbegin(); it != vec.rend(); ++it) {
+    for (auto it = _vec.rbegin(); it != _vec.rend(); ++it) {
         if (found_non_zero) {
             out.push_back(*it);
         } else if (*it != 0) {
@@ -81,9 +75,10 @@ std::vector<std::int64_t> VersionNumber::padded_version(size_t len) const
 void PlatformVersionContainer::serialise(BinaryWriter& writer) const
 {
     writer.write_numeric<std::uint8_t>(1);
-    writer.write_size_and_bytes(platform);
-    version.serialise(writer);
+    writer.write_size_and_bytes(_platform);
+    _version.serialise(writer);
 }
+
 PlatformVersionContainer PlatformVersionContainer::deserialise(BinaryReader& reader)
 {
     auto version_number = reader.read_numeric<std::uint8_t>();
@@ -101,10 +96,11 @@ PlatformVersionContainer PlatformVersionContainer::deserialise(BinaryReader& rea
 void VersionRange::serialise(BinaryWriter& writer) const
 {
     writer.write_numeric<std::uint8_t>(1);
-    writer.write_size_and_bytes(platform);
-    min_version.serialise(writer);
-    max_version.serialise(writer);
+    writer.write_size_and_bytes(_platform);
+    _min_version.serialise(writer);
+    _max_version.serialise(writer);
 }
+
 VersionRange VersionRange::deserialise(BinaryReader& reader)
 {
     auto version_number = reader.read_numeric<std::uint8_t>();
@@ -120,21 +116,22 @@ VersionRange VersionRange::deserialise(BinaryReader& reader)
     }
 }
 
-bool VersionRange::contains(const PlatformType& platform_, const VersionNumber& version) const
+bool VersionRange::contains(const PlatformType& platform, const VersionNumber& version) const
 {
-    return platform == platform_ && min_version <= version && version <= max_version;
+    return _platform == platform && _min_version <= version && version <= _max_version;
 }
 
 bool VersionRange::operator==(const VersionRange& other) const
 {
-    return platform == other.platform && min_version == other.min_version && max_version == other.max_version;
+    return _platform == other._platform && _min_version == other._min_version && _max_version == other._max_version;
 }
 
 void VersionRangeContainer::serialise(BinaryWriter& writer) const
 {
     writer.write_numeric<std::uint8_t>(1);
-    version_range.serialise(writer);
+    _version_range.serialise(writer);
 }
+
 VersionRangeContainer VersionRangeContainer::deserialise(BinaryReader& reader)
 {
     auto version_number = reader.read_numeric<std::uint8_t>();
@@ -146,4 +143,5 @@ VersionRangeContainer VersionRangeContainer::deserialise(BinaryReader& reader)
         throw std::invalid_argument("Unsupported version " + std::to_string(version_number));
     }
 }
-}
+
+} // namespace Amulet

@@ -20,7 +20,10 @@ private:
 public:
     // Constructors
     SelectionGroup() {};
-    AMULET_CORE_EXPORT SelectionGroup(const SelectionBox& box);
+    SelectionGroup(const SelectionBox& box)
+    {
+        _boxes.insert(box);
+    }
 
     template <typename Iterable>
         requires std::ranges::input_range<Iterable> && std::convertible_to<std::ranges::range_value_t<Iterable>, const SelectionBox&>
@@ -32,8 +35,14 @@ public:
     }
 
     // Accessors
-    AMULET_CORE_EXPORT const std::set<SelectionBox>& selection_boxes() const;
-    AMULET_CORE_EXPORT size_t size() const;
+    const std::set<SelectionBox>& selection_boxes() const
+    {
+        return _boxes;
+    }
+    size_t size() const
+    {
+        return _boxes.size();
+    }
 
     // Bounds
     AMULET_CORE_EXPORT std::int64_t min_x() const;
@@ -60,7 +69,10 @@ public:
     AMULET_CORE_EXPORT SelectionGroup translate(std::int64_t dx, std::int64_t dy, std::int64_t dz) const;
 
     // Operators
-    AMULET_CORE_EXPORT operator bool() const;
+    operator bool() const
+    {
+        return !_boxes.empty();
+    }
     bool operator==(const SelectionGroup& rhs) const = default;
     bool operator!=(const SelectionGroup& rhs) const = default;
 };

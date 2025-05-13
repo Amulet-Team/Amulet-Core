@@ -11,21 +11,22 @@
 namespace Amulet {
 class Biome : public PlatformVersionContainer {
 private:
-    std::string namespace_;
-    std::string base_name;
+    std::string _namespace;
+    std::string _base_name;
 
 public:
-    const std::string& get_namespace() const { return namespace_; }
-    const std::string& get_base_name() const { return base_name; }
+    const std::string& get_namespace() const { return _namespace; }
+    const std::string& get_base_name() const { return _base_name; }
 
+    template <typename PlatformT, typename VersionT, typename NamespaceT, typename BaseNameT>
     Biome(
-        const PlatformType& platform,
-        const VersionNumber& version,
-        const std::string& namespace_,
-        const std::string& base_name)
-        : PlatformVersionContainer(platform, version)
-        , namespace_(namespace_)
-        , base_name(base_name)
+        PlatformT&& platform,
+        VersionT&& version,
+        NamespaceT&& namespace_,
+        BaseNameT&& base_name)
+        : PlatformVersionContainer(std::forward<PlatformT>(platform), std::forward<VersionT>(version))
+        , _namespace(std::forward<NamespaceT>(namespace_))
+        , _base_name(std::forward<BaseNameT>(base_name))
     {
     }
 
@@ -38,11 +39,11 @@ public:
         if (cmp != 0) {
             return cmp;
         }
-        cmp = namespace_ <=> other.namespace_;
+        cmp = _namespace <=> other._namespace;
         if (cmp != 0) {
             return cmp;
         }
-        return base_name <=> other.base_name;
+        return _base_name <=> other._base_name;
     }
     bool operator==(const Biome& other) const
     {

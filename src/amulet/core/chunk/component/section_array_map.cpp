@@ -36,15 +36,43 @@ IndexArray3D::IndexArray3D(const SectionShape& shape, std::uint32_t value)
 IndexArray3D::IndexArray3D(const IndexArray3D& other)
     : IndexArray3D(other.get_shape())
 {
-    std::memcpy(_buffer, other._buffer, sizeof(std::uint32_t) * other.get_size());
+    std::memcpy(_buffer, other._buffer, sizeof(std::uint32_t) * _size);
 }
 
-IndexArray3D::IndexArray3D(IndexArray3D&& other)
+IndexArray3D::IndexArray3D(IndexArray3D&& other) noexcept
+    : _shape(other._shape)
+    , _size(other._size)
+    , _buffer(other._buffer)
 {
+    other._buffer = nullptr;
+}
+
+IndexArray3D& IndexArray3D::operator=(const IndexArray3D& other)
+{
+    if (_buffer == nullptr) {
+        // Buffer was freed. Create a new one.
+        _buffer = new_buffer<std::uint32_t>(other.get_size());
+    } else if (_size != other.get_size()) {
+        // Buffer size has changed. Free and create a new one.
+        free(_buffer);
+        _buffer = new_buffer<std::uint32_t>(other.get_size());
+    }
+    _shape = other._shape;
+    _size = other._size;
+    std::memcpy(_buffer, other._buffer, sizeof(std::uint32_t) * _size);
+    return *this;
+}
+
+IndexArray3D& IndexArray3D::operator=(IndexArray3D&& other) noexcept
+{
+    if (_buffer != nullptr) {
+        free(_buffer);
+    }
     _shape = other._shape;
     _size = other._size;
     _buffer = other._buffer;
     other._buffer = nullptr;
+    return *this;
 }
 
 IndexArray3D::~IndexArray3D()
@@ -99,47 +127,7 @@ IndexArray3D IndexArray3D::deserialise(BinaryReader& reader)
     }
 }
 
-const SectionShape& IndexArray3D::get_shape() const
-{
-    return _shape;
-}
-const size_t& IndexArray3D::get_size() const { return _size; }
-std::uint32_t* IndexArray3D::get_buffer() const { return _buffer; }
-
-static inline void validate_array_shape(
-    const IndexArray3D& default_array,
-    const SectionShape& array_shape)
-{
-    if (default_array.get_shape() != array_shape) {
-        throw std::invalid_argument("Array shape does not match required shape.");
-    }
-}
-
-static inline void validate_array_shape(
-    const std::variant<std::uint32_t, std::shared_ptr<IndexArray3D>>& default_array,
-    const SectionShape& array_shape)
-{
-    std::visit(
-        [&](auto&& arr) {
-            using T = std::decay_t<decltype(arr)>;
-            if constexpr (std::is_same_v<T, std::shared_ptr<IndexArray3D>>) {
-                validate_array_shape(*arr, array_shape);
-            }
-        },
-        default_array);
-}
-
 // SectionArrayMap
-SectionArrayMap::SectionArrayMap(
-    const SectionShape& array_shape,
-    std::variant<std::uint32_t, std::shared_ptr<IndexArray3D>> default_array)
-    : _array_shape(array_shape)
-    , _default_array(default_array)
-    , _arrays()
-{
-    validate_array_shape(_default_array, _array_shape);
-}
-
 void SectionArrayMap::serialise(BinaryWriter& writer) const
 {
     writer.write_numeric<std::uint8_t>(1);
@@ -172,6 +160,7 @@ void SectionArrayMap::serialise(BinaryWriter& writer) const
         arr->serialise(writer);
     }
 }
+
 SectionArrayMap SectionArrayMap::deserialise(BinaryReader& reader)
 {
     auto version = reader.read_numeric<std::uint8_t>();
@@ -214,61 +203,21 @@ SectionArrayMap SectionArrayMap::deserialise(BinaryReader& reader)
     }
 }
 
-const SectionShape& SectionArrayMap::get_array_shape() const { return _array_shape; }
-
-std::variant<std::uint32_t, std::shared_ptr<IndexArray3D>> SectionArrayMap::get_default_array() const
-{
-    return _default_array;
-}
-
-void SectionArrayMap::set_default_array(std::variant<std::uint32_t, std::shared_ptr<IndexArray3D>> default_array)
-{
-    validate_array_shape(default_array, _array_shape);
-    _default_array = default_array;
-}
-
-const std::unordered_map<std::int64_t, std::shared_ptr<IndexArray3D>>& SectionArrayMap::get_arrays() const
-{
-    return _arrays;
-}
-
-size_t SectionArrayMap::get_size() const { return _arrays.size(); }
-
-bool SectionArrayMap::contains_section(std::int64_t cy) const
-{
-    return _arrays.contains(cy);
-}
-
-std::shared_ptr<IndexArray3D> SectionArrayMap::get_section(std::int64_t cy) const
-{
-    return _arrays.at(cy);
-}
-
-void SectionArrayMap::set_section(std::int64_t cy, std::shared_ptr<IndexArray3D> section)
-{
-    validate_array_shape(section, _array_shape);
-    _arrays[cy] = section;
-}
-
 void SectionArrayMap::populate_section(std::int64_t cy)
 {
     if (_arrays.contains(cy)) {
         return;
     }
-    std::visit([this, &cy](auto&& arg) {
-        using T = std::decay_t<decltype(arg)>;
-        if constexpr (std::is_same_v<T, std::uint32_t>) {
-            _arrays[cy] = std::make_shared<IndexArray3D>(_array_shape, arg);
-        } else {
-            _arrays[cy] = std::make_shared<IndexArray3D>(*arg);
-        }
-    },
+    std::visit(
+        [this, &cy](auto&& arg) {
+            using T = std::decay_t<decltype(arg)>;
+            if constexpr (std::is_same_v<T, std::uint32_t>) {
+                _arrays.emplace(cy, std::make_shared<IndexArray3D>(_array_shape, arg));
+            } else {
+                _arrays.emplace(cy, std::make_shared<IndexArray3D>(*arg));
+            }
+        },
         _default_array);
-}
-
-void SectionArrayMap::del_section(std::int64_t cy)
-{
-    _arrays.erase(cy);
 }
 
 } // namespace Amulet

@@ -14,6 +14,7 @@
 #include <amulet/core/version/version.hpp>
 
 namespace Amulet {
+
 class Entity : public PlatformVersionContainer {
 private:
     std::string _namespace;
@@ -24,38 +25,76 @@ private:
     double _z;
 
 public:
-    AMULET_CORE_EXPORT const std::string& get_namespace() const;
-    AMULET_CORE_EXPORT void set_namespace(const std::string& namespace_);
+    const std::string& get_namespace() const { return _namespace; }
 
-    AMULET_CORE_EXPORT const std::string& get_base_name() const;
-    AMULET_CORE_EXPORT void set_base_name(const std::string& base_name);
+    template <typename NamespaceT>
+    void set_namespace(NamespaceT&& namespace_) { _namespace = std::forward<NamespaceT>(namespace_); }
 
-    AMULET_CORE_EXPORT std::shared_ptr<Amulet::NBT::NamedTag> get_nbt() const;
-    AMULET_CORE_EXPORT void set_nbt(std::shared_ptr<Amulet::NBT::NamedTag> nbt);
+    const std::string& get_base_name() const { return _base_name; }
 
-    AMULET_CORE_EXPORT double get_x() const;
-    AMULET_CORE_EXPORT double get_y() const;
-    AMULET_CORE_EXPORT double get_z() const;
+    template <typename BaseNameT>
+    void set_base_name(BaseNameT&& base_name) { _base_name = std::forward<BaseNameT>(base_name); }
 
-    AMULET_CORE_EXPORT void set_x(double);
-    AMULET_CORE_EXPORT void set_y(double);
-    AMULET_CORE_EXPORT void set_z(double);
+    std::shared_ptr<Amulet::NBT::NamedTag> get_nbt() const { return _nbt; }
 
-    AMULET_CORE_EXPORT Entity(
-        PlatformType platform,
-        VersionNumber version,
-        std::string namespace_,
-        std::string base_name,
+    template <typename NBTT>
+    void set_nbt(NBTT&& nbt)
+    {
+        if constexpr (std::is_same_v<std::shared_ptr<Amulet::NBT::NamedTag>, std::decay_t<NBTT>>) {
+            _nbt = std::forward<NBTT>(nbt);
+        } else {
+            _nbt = std::make_shared<Amulet::NBT::NamedTag>(std::forward<NBTT>(nbt));
+        }
+    }
+
+    double get_x() const { return _x; }
+
+    double get_y() const { return _y; }
+
+    double get_z() const { return _z; }
+
+    void set_x(double x) { _x = x; }
+
+    void set_y(double y) { _y = y; }
+
+    void set_z(double z) { _z = z; }
+
+    template <
+        typename PlatformT,
+        typename VersionNumberT,
+        typename NamespaceT,
+        typename BaseNameT,
+        typename NBTT>
+    Entity(
+        PlatformT&& platform,
+        VersionNumberT&& version,
+        NamespaceT&& namespace_,
+        BaseNameT&& base_name,
         double x,
         double y,
         double z,
-        std::shared_ptr<Amulet::NBT::NamedTag> nbt);
-
-    AMULET_CORE_EXPORT ~Entity();
+        NBTT&& nbt)
+        : PlatformVersionContainer(std::forward<PlatformT>(platform), std::forward<VersionNumberT>(version))
+        , _namespace(std::forward<NamespaceT>(namespace_))
+        , _base_name(std::forward<BaseNameT>(base_name))
+        , _nbt(
+              [&nbt]() {
+                  if constexpr (std::is_same_v<std::shared_ptr<Amulet::NBT::NamedTag>, NBTT>) {
+                      return std::forward<NBTT>(nbt);
+                  } else {
+                      return std::make_shared<Amulet::NBT::NamedTag>(std::forward<NBTT>(nbt));
+                  }
+              }())
+        , _x(x)
+        , _y(y)
+        , _z(z)
+    {
+    }
 
     AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
     AMULET_CORE_EXPORT static Entity deserialise(BinaryReader&);
 
     AMULET_CORE_EXPORT bool operator==(const Entity& other) const;
 };
-}
+
+} // namespace Amulet

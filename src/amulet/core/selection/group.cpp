@@ -6,22 +6,6 @@
 
 namespace Amulet {
 
-// Constructors
-SelectionGroup::SelectionGroup(const SelectionBox& box)
-{
-    _boxes.insert(box);
-}
-
-// Accessors
-const std::set<SelectionBox>& SelectionGroup::selection_boxes() const
-{
-    return _boxes;
-}
-size_t SelectionGroup::size() const
-{
-    return _boxes.size();
-}
-
 // Bounds
 std::int64_t SelectionGroup::min_x() const
 {
@@ -247,12 +231,6 @@ SelectionGroup SelectionGroup::translate(std::int64_t dx, std::int64_t dy, std::
             box.size_z());
     }
     return group;
-}
-
-// Operators
-SelectionGroup::operator bool() const
-{
-    return !_boxes.empty();
 }
 
 } // namespace Amulet

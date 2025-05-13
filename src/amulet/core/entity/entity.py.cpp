@@ -5,6 +5,7 @@
 
 #include <memory>
 
+#include <amulet/pybind11_extensions/builtins.hpp>
 #include <amulet/pybind11_extensions/hash.hpp>
 #include <amulet/pybind11_extensions/py_module.hpp>
 
@@ -55,7 +56,7 @@ void init_entity(py::module m_parent)
     Entity.def_property(
         "namespace",
         &Amulet::Entity::get_namespace,
-        &Amulet::Entity::set_namespace,
+        &Amulet::Entity::set_namespace<std::string&>,
         py::doc(
             "The namespace of the entity represented by the :class:`Entity` object.\n"
             "\n"
@@ -66,7 +67,7 @@ void init_entity(py::module m_parent)
     Entity.def_property(
         "base_name",
         &Amulet::Entity::get_base_name,
-        &Amulet::Entity::set_base_name,
+        &Amulet::Entity::set_base_name<std::string&>,
         py::doc(
             "The base name of the entity represented by the :class:`Entity` object.\n"
             "\n"
@@ -92,7 +93,15 @@ void init_entity(py::module m_parent)
     Entity.def_property(
         "nbt",
         &Amulet::Entity::get_nbt,
-        &Amulet::Entity::set_nbt,
+        [](Amulet::Entity& self, pyext::PyObjectCpp<Amulet::NBT::NamedTag> tag) {
+            std::shared_ptr<Amulet::NBT::NamedTag> tag_ptr;
+            try {
+                tag_ptr = tag.cast<std::shared_ptr<Amulet::NBT::NamedTag>>();
+            } catch (const std::runtime_error&) {
+                tag_ptr = std::make_shared<Amulet::NBT::NamedTag>(tag.cast<Amulet::NBT::NamedTag&>());
+            }
+            self.set_nbt(std::move(tag_ptr));
+        },
         py::doc(
             "The nbt data for the entity.\n"
             ">>> entity: Entity\n"
