@@ -16,8 +16,9 @@ private:
 public:
     const std::vector<Biome>& get_biomes() const { return _index_to_biome; }
 
-    BiomePalette(const VersionRange& version_range)
-        : VersionRangeContainer(version_range)
+    template <typename VersionRangeT>
+    BiomePalette(VersionRangeT&& version_range)
+        : VersionRangeContainer(std::forward<VersionRangeT>(version_range))
         , _index_to_biome()
         , _biome_to_index()
     {
