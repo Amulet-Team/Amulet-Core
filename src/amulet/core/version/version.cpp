@@ -7,6 +7,7 @@
 #include "version.hpp"
 
 namespace Amulet {
+
 void VersionNumber::serialise(BinaryWriter& writer) const
 {
     writer.write_numeric<std::uint8_t>(1);
@@ -15,6 +16,7 @@ void VersionNumber::serialise(BinaryWriter& writer) const
         writer.write_numeric<std::int64_t>(v);
     }
 }
+
 VersionNumber VersionNumber::deserialise(BinaryReader& reader)
 {
     auto version_number = reader.read_numeric<std::uint8_t>();
@@ -76,6 +78,7 @@ void PlatformVersionContainer::serialise(BinaryWriter& writer) const
     writer.write_size_and_bytes(_platform);
     _version.serialise(writer);
 }
+
 PlatformVersionContainer PlatformVersionContainer::deserialise(BinaryReader& reader)
 {
     auto version_number = reader.read_numeric<std::uint8_t>();
@@ -97,6 +100,7 @@ void VersionRange::serialise(BinaryWriter& writer) const
     _min_version.serialise(writer);
     _max_version.serialise(writer);
 }
+
 VersionRange VersionRange::deserialise(BinaryReader& reader)
 {
     auto version_number = reader.read_numeric<std::uint8_t>();
@@ -127,6 +131,7 @@ void VersionRangeContainer::serialise(BinaryWriter& writer) const
     writer.write_numeric<std::uint8_t>(1);
     _version_range.serialise(writer);
 }
+
 VersionRangeContainer VersionRangeContainer::deserialise(BinaryReader& reader)
 {
     auto version_number = reader.read_numeric<std::uint8_t>();
@@ -138,4 +143,5 @@ VersionRangeContainer VersionRangeContainer::deserialise(BinaryReader& reader)
         throw std::invalid_argument("Unsupported version " + std::to_string(version_number));
     }
 }
-}
+
+} // namespace Amulet
