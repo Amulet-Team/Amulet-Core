@@ -52,11 +52,11 @@ Entity::~Entity() { }
 
 void Entity::serialise(BinaryWriter&) const
 {
-    throw std::runtime_error("NotImplemented");
+    throw std::runtime_error("NotImplementedError");
 }
 Entity Entity::deserialise(BinaryReader&)
 {
-    throw std::runtime_error("NotImplemented");
+    throw std::runtime_error("NotImplementedError");
 }
 
 bool Entity::operator==(const Entity& other) const

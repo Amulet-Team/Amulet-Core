@@ -6,12 +6,12 @@ namespace Amulet {
 
 void BlockEntity::serialise(BinaryWriter&) const
 {
-    throw std::runtime_error("NotImplemented");
+    throw std::runtime_error("NotImplementedError");
 }
 
 BlockEntity BlockEntity::deserialise(BinaryReader&)
 {
-    throw std::runtime_error("NotImplemented");
+    throw std::runtime_error("NotImplementedError");
 }
 
 bool BlockEntity::operator==(const BlockEntity& other) const
