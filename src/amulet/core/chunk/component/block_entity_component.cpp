@@ -5,40 +5,14 @@
 namespace Amulet {
 
 // BlockEntityComponentData
-BlockEntityComponentData::BlockEntityComponentData(
-    const VersionRange& version_range,
-    std::uint16_t x_size,
-    std::uint16_t z_size)
-    : VersionRangeContainer(version_range)
-    , _x_size(x_size)
-    , _z_size(z_size)
-    , _block_entities()
+
+void BlockEntityComponentData::serialise(BinaryWriter&) const
 {
+    throw std::runtime_error("NotImplementedError");
 }
-
-std::uint16_t BlockEntityComponentData::get_x_size() const { return _x_size; }
-std::uint16_t BlockEntityComponentData::get_z_size() const { return _z_size; }
-
-const std::map<
-    BlockEntityChunkCoord,
-    std::shared_ptr<BlockEntity>>&
-BlockEntityComponentData::get_block_entities() const
+BlockEntityComponentData BlockEntityComponentData::deserialise(BinaryReader&)
 {
-    return _block_entities;
-}
-
-size_t BlockEntityComponentData::get_size() const { return _block_entities.size(); }
-
-bool BlockEntityComponentData::contains(
-    const BlockEntityChunkCoord& coord) const
-{
-    return _block_entities.contains(coord);
-}
-
-std::shared_ptr<BlockEntity> BlockEntityComponentData::get(
-    const BlockEntityChunkCoord& coord) const
-{
-    return _block_entities.at(coord);
+    throw std::runtime_error("NotImplementedError");
 }
 
 void BlockEntityComponentData::set(
@@ -57,13 +31,7 @@ void BlockEntityComponentData::set(
         throw std::invalid_argument(
             "BlockEntity is incompatible with VersionRange.");
     }
-    _block_entities[coord] = block_entity;
-}
-
-void BlockEntityComponentData::del(
-    const BlockEntityChunkCoord& coord)
-{
-    _block_entities.erase(coord);
+    _block_entities.insert_or_assign(coord, std::move(block_entity));
 }
 
 // BlockEntityComponent
@@ -75,6 +43,24 @@ AMULET_CORE_EXPORT void BlockEntityComponent::init(
     _value = std::make_shared<BlockEntityComponentData>(version_range, x_size, z_size);
 }
 
+std::optional<std::string> BlockEntityComponent::serialise() const
+{
+    if (_value) {
+        return Amulet::serialise(**_value);
+    } else {
+        return std::nullopt;
+    }
+}
+
+void BlockEntityComponent::deserialise(std::optional<std::string> data)
+{
+    if (data) {
+        _value = std::make_shared<BlockEntityComponentData>(Amulet::deserialise<BlockEntityComponentData>(*data));
+    } else {
+        _value = std::nullopt;
+    }
+}
+
 const std::string BlockEntityComponent::ComponentID = "Amulet::BlockEntityComponent";
 
 AMULET_CORE_EXPORT std::shared_ptr<BlockEntityComponentData> BlockEntityComponent::get_block_entity()
@@ -84,14 +70,15 @@ AMULET_CORE_EXPORT std::shared_ptr<BlockEntityComponentData> BlockEntityComponen
     }
     throw std::runtime_error("BlockEntityComponent has not been loaded.");
 }
+
 AMULET_CORE_EXPORT void BlockEntityComponent::set_block_entity(std::shared_ptr<BlockEntityComponentData> component)
 {
     if (_value) {
-        if (
-            (*_value)->get_x_size() != component->get_x_size() || (*_value)->get_z_size() != component->get_z_size()) {
+        auto& old_data = **_value;
+        if (old_data.get_x_size() != component->get_x_size() || old_data.get_z_size() != component->get_z_size()) {
             throw std::invalid_argument("New BlockEntityComponent shape does not match old shape.");
         }
-        if ((*_value)->get_version_range() != component->get_version_range()) {
+        if (old_data.get_version_range() != component->get_version_range()) {
             throw std::invalid_argument("New BlockEntityComponent version range does not match old version range.");
         }
         _value = component;
