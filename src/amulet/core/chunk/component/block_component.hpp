@@ -26,8 +26,22 @@ public:
     BlockComponentData(
         PaletteT&& palette,
         SectionsT&& sections)
-        : _palette(std::forward<PaletteT>(palette))
-        , _sections(std::forward<SectionsT>(sections))
+        : _palette(
+              [&palette] {
+                  if constexpr (std::is_same_v<std::shared_ptr<BlockPalette>, std::decay_t<PaletteT>>) {
+                      return std::forward<PaletteT>(palette);
+                  } else {
+                      return std::make_shared<BlockPalette>(palette);
+                  }
+              }())
+        , _sections(
+              [&sections] {
+                  if constexpr (std::is_same_v<std::shared_ptr<SectionArrayMap>, std::decay_t<SectionsT>>) {
+                      return std::forward<SectionsT>(sections);
+                  } else {
+                      return std::make_shared<SectionArrayMap>(sections);
+                  }
+              }())
     {
     }
 
