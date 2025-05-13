@@ -20,8 +20,9 @@ private:
 public:
     const std::vector<BlockStack>& get_blocks() const { return _index_to_block; }
 
-    BlockPalette(const VersionRange& version_range)
-        : VersionRangeContainer(version_range)
+    template <typename VersionRangeT>
+    BlockPalette(VersionRangeT&& version_range)
+        : VersionRangeContainer(std::forward<VersionRangeT>(version_range))
         , _index_to_block()
         , _block_to_index()
     {
