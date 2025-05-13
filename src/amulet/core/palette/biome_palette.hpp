@@ -24,6 +24,9 @@ public:
     {
     }
 
+    AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
+    AMULET_CORE_EXPORT static BiomePalette deserialise(BinaryReader&);
+
     bool operator==(const BiomePalette& other) const
     {
         return _index_to_biome == other._index_to_biome;
