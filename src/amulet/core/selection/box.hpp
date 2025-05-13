@@ -4,8 +4,6 @@
 
 #include <amulet/core/dll.hpp>
 
-#include "group.hpp"
-
 namespace Amulet {
 
 class SelectionGroup;
@@ -84,3 +82,5 @@ public:
 };
 
 } // namespace Amulet
+
+#include "group.hpp"
