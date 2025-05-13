@@ -29,20 +29,21 @@ private:
 public:
     AMULET_CORE_EXPORT IndexArray3D(const SectionShape& shape);
     AMULET_CORE_EXPORT IndexArray3D(const SectionShape& shape, std::uint32_t value);
-    
+
     AMULET_CORE_EXPORT IndexArray3D(const IndexArray3D& other);
     AMULET_CORE_EXPORT IndexArray3D(IndexArray3D&& other) noexcept;
     AMULET_CORE_EXPORT IndexArray3D& operator=(const IndexArray3D& other);
     AMULET_CORE_EXPORT IndexArray3D& operator=(IndexArray3D&& other) noexcept;
-    
+
     AMULET_CORE_EXPORT ~IndexArray3D();
-    
+
     AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
     AMULET_CORE_EXPORT static IndexArray3D deserialise(BinaryReader&);
 
     const SectionShape& get_shape() const { return _shape; }
     const size_t& get_size() const { return _size; }
     std::uint32_t* get_buffer() const { return _buffer; }
+    std::span<std::uint32_t> get_span() const { return { _buffer, _size }; }
 };
 
 class SectionArrayMap {
@@ -59,16 +60,39 @@ public:
     AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
     AMULET_CORE_EXPORT static SectionArrayMap deserialise(BinaryReader&);
 
-    AMULET_CORE_EXPORT const SectionShape& get_array_shape() const;
-    AMULET_CORE_EXPORT std::variant<std::uint32_t, std::shared_ptr<IndexArray3D>> get_default_array() const;
+    const SectionShape& get_array_shape() const { return _array_shape; }
+
+    std::variant<std::uint32_t, std::shared_ptr<IndexArray3D>> get_default_array() const
+    {
+        return _default_array;
+    }
+
     AMULET_CORE_EXPORT void set_default_array(std::variant<std::uint32_t, std::shared_ptr<IndexArray3D>> default_array);
-    AMULET_CORE_EXPORT const std::unordered_map<std::int64_t, std::shared_ptr<IndexArray3D>>& get_arrays() const;
-    AMULET_CORE_EXPORT size_t get_size() const;
-    AMULET_CORE_EXPORT bool contains_section(std::int64_t cy) const;
-    AMULET_CORE_EXPORT std::shared_ptr<IndexArray3D> get_section(std::int64_t cy) const;
+
+    const std::unordered_map<std::int64_t, std::shared_ptr<IndexArray3D>>& get_arrays() const
+    {
+        return _arrays;
+    }
+
+    size_t get_size() const { return _arrays.size(); }
+
+    bool contains_section(std::int64_t cy) const
+    {
+        return _arrays.contains(cy);
+    }
+
+    std::shared_ptr<IndexArray3D> get_section(std::int64_t cy) const
+    {
+        return _arrays.at(cy);
+    }
+
     AMULET_CORE_EXPORT void set_section(std::int64_t cy, std::shared_ptr<IndexArray3D> section);
     AMULET_CORE_EXPORT void populate_section(std::int64_t cy);
-    AMULET_CORE_EXPORT void del_section(std::int64_t cy);
+
+    void del_section(std::int64_t cy)
+    {
+        _arrays.erase(cy);
+    }
 };
 
 } // namespace Amulet
