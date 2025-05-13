@@ -4,18 +4,18 @@
 
 namespace Amulet {
 
-// BlockEntityMap
+// BlockEntityComponentData
 
-void BlockEntityMap::serialise(BinaryWriter&) const
+void BlockEntityComponentData::serialise(BinaryWriter&) const
 {
     throw std::runtime_error("NotImplementedError");
 }
-BlockEntityMap BlockEntityMap::deserialise(BinaryReader&)
+BlockEntityComponentData BlockEntityComponentData::deserialise(BinaryReader&)
 {
     throw std::runtime_error("NotImplementedError");
 }
 
-void BlockEntityMap::set(
+void BlockEntityComponentData::set(
     const BlockEntityChunkCoord& coord,
     std::shared_ptr<BlockEntity> block_entity)
 {
@@ -40,7 +40,7 @@ AMULET_CORE_EXPORT void BlockEntityComponent::init(
     std::uint16_t x_size,
     std::uint16_t z_size)
 {
-    _value = std::make_shared<BlockEntityMap>(version_range, x_size, z_size);
+    _value = std::make_shared<BlockEntityComponentData>(version_range, x_size, z_size);
 }
 
 std::optional<std::string> BlockEntityComponent::serialise() const
@@ -55,7 +55,7 @@ std::optional<std::string> BlockEntityComponent::serialise() const
 void BlockEntityComponent::deserialise(std::optional<std::string> data)
 {
     if (data) {
-        _value = std::make_shared<BlockEntityMap>(Amulet::deserialise<BlockEntityMap>(*data));
+        _value = std::make_shared<BlockEntityComponentData>(Amulet::deserialise<BlockEntityComponentData>(*data));
     } else {
         _value = std::nullopt;
     }
@@ -63,7 +63,7 @@ void BlockEntityComponent::deserialise(std::optional<std::string> data)
 
 const std::string BlockEntityComponent::ComponentID = "Amulet::BlockEntityComponent";
 
-AMULET_CORE_EXPORT std::shared_ptr<BlockEntityMap> BlockEntityComponent::get_block_entity()
+AMULET_CORE_EXPORT std::shared_ptr<BlockEntityComponentData> BlockEntityComponent::get_block_entity()
 {
     if (_value) {
         return *_value;
@@ -71,7 +71,7 @@ AMULET_CORE_EXPORT std::shared_ptr<BlockEntityMap> BlockEntityComponent::get_blo
     throw std::runtime_error("BlockEntityComponent has not been loaded.");
 }
 
-AMULET_CORE_EXPORT void BlockEntityComponent::set_block_entity(std::shared_ptr<BlockEntityMap> component)
+AMULET_CORE_EXPORT void BlockEntityComponent::set_block_entity(std::shared_ptr<BlockEntityComponentData> component)
 {
     if (_value) {
         auto& old_data = **_value;
