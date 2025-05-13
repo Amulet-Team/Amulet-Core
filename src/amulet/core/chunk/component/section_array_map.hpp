@@ -52,10 +52,32 @@ private:
     std::variant<std::uint32_t, std::shared_ptr<IndexArray3D>> _default_array;
     std::unordered_map<std::int64_t, std::shared_ptr<IndexArray3D>> _arrays;
 
+    void validate_array_shape(const IndexArray3D& array)
+    {
+        if (_array_shape != array.get_shape()) {
+            throw std::invalid_argument("Array shape does not match stored shape.");
+        }
+    }
+
+    void validate_array_shape(
+        const std::variant<std::uint32_t, std::shared_ptr<IndexArray3D>>& array)
+    {
+        if (auto* arr = std::get_if<std::shared_ptr<IndexArray3D>>(&array)) {
+            return validate_array_shape(**arr);
+        }
+    }
+
 public:
-    AMULET_CORE_EXPORT SectionArrayMap(
+    template <typename DefaultArrayT>
+    SectionArrayMap(
         const SectionShape& array_shape,
-        std::variant<std::uint32_t, std::shared_ptr<IndexArray3D>> default_array);
+        DefaultArrayT&& default_array)
+        : _array_shape(array_shape)
+        , _default_array(std::forward<DefaultArrayT>(default_array))
+        , _arrays()
+    {
+        validate_array_shape(_default_array);
+    }
 
     AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
     AMULET_CORE_EXPORT static SectionArrayMap deserialise(BinaryReader&);
@@ -67,7 +89,11 @@ public:
         return _default_array;
     }
 
-    AMULET_CORE_EXPORT void set_default_array(std::variant<std::uint32_t, std::shared_ptr<IndexArray3D>> default_array);
+    void set_default_array(std::variant<std::uint32_t, std::shared_ptr<IndexArray3D>> default_array)
+    {
+        validate_array_shape(default_array);
+        _default_array = std::move(default_array);
+    }
 
     const std::unordered_map<std::int64_t, std::shared_ptr<IndexArray3D>>& get_arrays() const
     {
@@ -86,7 +112,12 @@ public:
         return _arrays.at(cy);
     }
 
-    AMULET_CORE_EXPORT void set_section(std::int64_t cy, std::shared_ptr<IndexArray3D> section);
+    void set_section(std::int64_t cy, std::shared_ptr<IndexArray3D> section)
+    {
+        validate_array_shape(*section);
+        _arrays.insert_or_assign(cy, std::move(section));
+    }
+
     AMULET_CORE_EXPORT void populate_section(std::int64_t cy);
 
     void del_section(std::int64_t cy)

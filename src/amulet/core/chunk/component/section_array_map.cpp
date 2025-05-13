@@ -127,35 +127,7 @@ IndexArray3D IndexArray3D::deserialise(BinaryReader& reader)
     }
 }
 
-static void validate_array_shape(
-    const IndexArray3D& default_array,
-    const SectionShape& array_shape)
-{
-    if (default_array.get_shape() != array_shape) {
-        throw std::invalid_argument("Array shape does not match stored shape.");
-    }
-}
-
-static void validate_array_shape(
-    const std::variant<std::uint32_t, std::shared_ptr<IndexArray3D>>& default_array,
-    const SectionShape& array_shape)
-{
-    if (auto* arr = std::get_if<std::shared_ptr<IndexArray3D>>(&default_array)) {
-        return validate_array_shape(**arr, array_shape);
-    }
-}
-
 // SectionArrayMap
-SectionArrayMap::SectionArrayMap(
-    const SectionShape& array_shape,
-    std::variant<std::uint32_t, std::shared_ptr<IndexArray3D>> default_array)
-    : _array_shape(array_shape)
-    , _default_array(default_array)
-    , _arrays()
-{
-    validate_array_shape(_default_array, _array_shape);
-}
-
 void SectionArrayMap::serialise(BinaryWriter& writer) const
 {
     writer.write_numeric<std::uint8_t>(1);
@@ -229,18 +201,6 @@ SectionArrayMap SectionArrayMap::deserialise(BinaryReader& reader)
     default:
         throw std::invalid_argument("Unsupported BlockComponentData version " + std::to_string(version));
     }
-}
-
-void SectionArrayMap::set_default_array(std::variant<std::uint32_t, std::shared_ptr<IndexArray3D>> default_array)
-{
-    validate_array_shape(default_array, _array_shape);
-    _default_array = default_array;
-}
-
-void SectionArrayMap::set_section(std::int64_t cy, std::shared_ptr<IndexArray3D> section)
-{
-    validate_array_shape(*section, _array_shape);
-    _arrays.insert_or_assign(cy, section);
 }
 
 void SectionArrayMap::populate_section(std::int64_t cy)
