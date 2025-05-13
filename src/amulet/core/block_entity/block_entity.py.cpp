@@ -5,6 +5,7 @@
 
 #include <memory>
 
+#include <amulet/pybind11_extensions/builtins.hpp>
 #include <amulet/pybind11_extensions/hash.hpp>
 #include <amulet/pybind11_extensions/py_module.hpp>
 
@@ -72,7 +73,15 @@ void init_block_entity(py::module m_parent)
     BlockEntity.def_property(
         "nbt",
         &Amulet::BlockEntity::get_nbt,
-        &Amulet::BlockEntity::set_nbt,
+        [](Amulet::BlockEntity& self, pyext::PyObjectCpp<Amulet::NBT::NamedTag> tag) {
+            std::shared_ptr<Amulet::NBT::NamedTag> tag_ptr;
+            try {
+                tag_ptr = tag.cast<std::shared_ptr<Amulet::NBT::NamedTag>>();
+            } catch (const std::runtime_error&) {
+                tag_ptr = std::make_shared<Amulet::NBT::NamedTag>(tag.cast<Amulet::NBT::NamedTag&>());
+            }
+            self.set_nbt(std::move(tag_ptr));
+        },
         py::doc(
             "The nbt data for the block entity.\n"
             ">>> block_entity: BlockEntity\n"

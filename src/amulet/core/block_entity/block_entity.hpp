@@ -48,9 +48,14 @@ public:
         return _nbt;
     }
 
-    void set_nbt(std::shared_ptr<Amulet::NBT::NamedTag> nbt)
+    template <typename NBTT>
+    void set_nbt(NBTT&& nbt)
     {
-        _nbt = std::move(nbt);
+        if constexpr (std::is_same_v<std::shared_ptr<Amulet::NBT::NamedTag>, std::decay_t<NBTT>>) {
+            _nbt = std::forward<NBTT>(nbt);
+        } else {
+            _nbt = std::make_shared<Amulet::NBT::NamedTag>(std::forward<NBTT>(nbt));
+        }
     }
 
     template <
