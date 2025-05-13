@@ -14,13 +14,13 @@
 
 namespace Amulet {
 
-class Biome3DStorage {
+class Biome3DComponentData {
 private:
     std::shared_ptr<BiomePalette> _palette;
     std::shared_ptr<SectionArrayMap> _sections;
 
 public:
-    AMULET_CORE_EXPORT Biome3DStorage(
+    AMULET_CORE_EXPORT Biome3DComponentData(
         const VersionRange& version_range,
         const SectionShape& array_shape,
         const Biome& default_biome);
@@ -30,7 +30,7 @@ public:
 
 class Biome3DComponent {
 private:
-    std::optional<std::shared_ptr<Biome3DStorage>> _value;
+    std::optional<std::shared_ptr<Biome3DComponentData>> _value;
 
 protected:
     // Null constructor
@@ -48,8 +48,8 @@ protected:
 
 public:
     AMULET_CORE_EXPORT static const std::string ComponentID;
-    AMULET_CORE_EXPORT std::shared_ptr<Biome3DStorage> get_biome();
-    AMULET_CORE_EXPORT void set_biome(std::shared_ptr<Biome3DStorage> component);
+    AMULET_CORE_EXPORT std::shared_ptr<Biome3DComponentData> get_biome();
+    AMULET_CORE_EXPORT void set_biome(std::shared_ptr<Biome3DComponentData> component);
 };
 
 } // namespace Amulet

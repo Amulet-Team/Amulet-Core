@@ -4,8 +4,8 @@
 
 namespace Amulet {
 
-// Biome3DStorage
-Biome3DStorage::Biome3DStorage(
+// Biome3DComponentData
+Biome3DComponentData::Biome3DComponentData(
     const VersionRange& version_range,
     const SectionShape& array_shape,
     const Biome& default_biome)
@@ -15,12 +15,12 @@ Biome3DStorage::Biome3DStorage(
     _palette->biome_to_index(default_biome);
 }
 
-std::shared_ptr<BiomePalette> Biome3DStorage::get_palette()
+std::shared_ptr<BiomePalette> Biome3DComponentData::get_palette()
 {
     return _palette;
 }
 
-std::shared_ptr<SectionArrayMap> Biome3DStorage::get_sections()
+std::shared_ptr<SectionArrayMap> Biome3DComponentData::get_sections()
 {
     return _sections;
 }
@@ -31,12 +31,12 @@ void Biome3DComponent::init(
     const SectionShape& array_shape,
     const Biome& default_biome)
 {
-    _value = std::make_shared<Biome3DStorage>(version_range, array_shape, default_biome);
+    _value = std::make_shared<Biome3DComponentData>(version_range, array_shape, default_biome);
 }
 
 const std::string Biome3DComponent::ComponentID = "Amulet::Biome3DComponent";
 
-std::shared_ptr<Biome3DStorage> Biome3DComponent::get_biome()
+std::shared_ptr<Biome3DComponentData> Biome3DComponent::get_biome()
 {
     if (_value) {
         return *_value;
@@ -44,7 +44,7 @@ std::shared_ptr<Biome3DStorage> Biome3DComponent::get_biome()
     throw std::runtime_error("BiomeComponent has not been loaded.");
 }
 
-void Biome3DComponent::set_biome(std::shared_ptr<Biome3DStorage> component)
+void Biome3DComponent::set_biome(std::shared_ptr<Biome3DComponentData> component)
 {
     if (_value) {
         if ((*_value)->get_sections()->get_array_shape() != component->get_sections()->get_array_shape()) {
