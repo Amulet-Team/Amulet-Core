@@ -67,11 +67,11 @@ private:
 
 protected:
     // Null constructor
-    AMULET_CORE_EXPORT Biome3DComponent() = default;
+    Biome3DComponent() = default;
 
     // Default constructor
     template <typename VersionRangeT>
-    AMULET_CORE_EXPORT void init(
+    void init(
         VersionRangeT&& version_range,
         const SectionShape& array_shape,
         const Biome& default_biome)
