@@ -5,8 +5,8 @@
 
 #include <memory>
 
-#include <amulet/pybind11_extensions/py_module.hpp>
 #include <amulet/pybind11_extensions/hash.hpp>
+#include <amulet/pybind11_extensions/py_module.hpp>
 
 #include <amulet/nbt/tag/named_tag.hpp>
 
@@ -83,10 +83,10 @@ void init_block_entity(py::module m_parent)
         "__repr__",
         [](const Amulet::BlockEntity& self) {
             return "BlockEntity("
-                + py::repr(py::cast(self.get_platform())).cast<std::string>() + ", " 
-                + py::repr(py::cast(self.get_version(), py::return_value_policy::reference)).cast<std::string>() + ", " 
-                + py::repr(py::cast(self.get_namespace())).cast<std::string>() + ", " 
-                + py::repr(py::cast(self.get_base_name())).cast<std::string>() + ", " 
+                + py::repr(py::cast(self.get_platform())).cast<std::string>() + ", "
+                + py::repr(py::cast(self.get_version(), py::return_value_policy::reference)).cast<std::string>() + ", "
+                + py::repr(py::cast(self.get_namespace())).cast<std::string>() + ", "
+                + py::repr(py::cast(self.get_base_name())).cast<std::string>() + ", "
                 + py::repr(py::cast(self.get_nbt())).cast<std::string>() + ")";
         });
     BlockEntity.def(
