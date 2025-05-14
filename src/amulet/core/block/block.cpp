@@ -25,7 +25,7 @@ void Block::serialise(BinaryWriter& writer) const
     for (auto const& [key, val] : _properties) {
         writer.write_size_and_bytes(key);
         std::visit([&writer](auto&& tag) {
-            Amulet::NBT::encode_nbt(writer, "", tag);
+            Amulet::NBT::encode_nbt(writer, std::nullopt, tag);
         },
             val);
     }
@@ -45,7 +45,7 @@ Block Block::deserialise(BinaryReader& reader)
         reader.read_numeric_into<std::uint64_t>(property_count);
         for (std::uint64_t i = 0; i < property_count; i++) {
             std::string name { reader.read_size_and_bytes() };
-            Amulet::NBT::NamedTag named_tag = Amulet::NBT::decode_nbt(reader);
+            Amulet::NBT::NamedTag named_tag = Amulet::NBT::decode_nbt(reader, false);
             properties[name] = std::visit([](auto&& tag) -> Block::PropertyValue {
                 using T = std::decay_t<decltype(tag)>;
                 if constexpr (
