@@ -22,7 +22,7 @@ class BiomeTestCase(unittest.TestCase):
     def test_equal(self) -> None:
         self.assertEqual(
             Biome("java", VersionNumber(3578), "namespace", "basename"),
-            Biome("java", VersionNumber(3578), "namespace", "basename")
+            Biome("java", VersionNumber(3578), "namespace", "basename"),
         )
         self.assertNotEqual(
             Biome("java", VersionNumber(3578), "namespace", "basename"),
@@ -65,7 +65,7 @@ class BiomeTestCase(unittest.TestCase):
     def test_hash(self) -> None:
         self.assertEqual(
             hash(Biome("java", VersionNumber(3578), "namespace", "basename")),
-            hash(Biome("java", VersionNumber(3578), "namespace", "basename"))
+            hash(Biome("java", VersionNumber(3578), "namespace", "basename")),
         )
         self.assertNotEqual(
             hash(Biome("java", VersionNumber(3578), "namespace", "basename")),
