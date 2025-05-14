@@ -64,18 +64,6 @@ Block Block::deserialise(BinaryReader& reader)
     }
 }
 
-template <typename T>
-inline std::vector<std::string> get_ordered_keys(const T& map)
-{
-    std::vector<std::string> keys;
-    keys.reserve(map.size());
-    for (const auto& [key, _] : map) {
-        keys.push_back(key);
-    }
-    std::sort(keys.begin(), keys.end());
-    return keys;
-}
-
 std::string Block::java_blockstate() const
 {
     std::string blockstate;
