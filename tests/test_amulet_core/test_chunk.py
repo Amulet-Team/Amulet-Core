@@ -8,6 +8,11 @@ from test_amulet_core.test_chunk_ import (
 
 
 class ChunkTestCase(unittest.TestCase):
+    def test_cpp(self) -> None:
+        from test_amulet_core.test_chunk_ import test_chunk
+
+        test_chunk()
+
     def test_exceptions(self) -> None:
         with self.assertRaises(RuntimeError):
             raise ChunkLoadError

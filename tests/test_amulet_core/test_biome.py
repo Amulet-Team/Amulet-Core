@@ -18,6 +18,11 @@ def get_test_biome_variants() -> tuple[Biome, ...]:
 
 
 class BiomeTestCase(unittest.TestCase):
+    def test_cpp(self) -> None:
+        from test_amulet_core.test_biome_ import test_biome
+
+        test_biome()
+
     def test_construct(self) -> None:
         biome = get_test_biome()
         self.assertEqual("java", biome.platform)

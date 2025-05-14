@@ -6,6 +6,11 @@ from amulet.core.selection import SelectionGroup, SelectionBox
 
 
 class SelectionBoxTestCase(unittest.TestCase):
+    def test_cpp(self) -> None:
+        from test_amulet_core.test_selection_ import test_selection_box
+
+        test_selection_box()
+
     def test_attrs(self) -> None:
         box = SelectionBox(0, 1, 2, 3, 4, 5)
 
@@ -128,6 +133,11 @@ class SelectionBoxTestCase(unittest.TestCase):
 
 
 class SelectionGroupTestCase(unittest.TestCase):
+    def test_cpp(self) -> None:
+        from test_amulet_core.test_selection_ import test_selection_group
+
+        test_selection_group()
+
     def test_construct(self) -> None:
         self.assertEqual(0, len(SelectionGroup()))
         self.assertEqual(1, len(SelectionGroup(SelectionBox(0, 1, 2, 3, 4, 5))))

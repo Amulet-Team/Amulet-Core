@@ -105,6 +105,11 @@ def get_test_entity_variants() -> tuple[Entity, ...]:
 
 
 class EntityTestCase(unittest.TestCase):
+    def test_cpp(self) -> None:
+        from test_amulet_core.test_entity_ import test_entity
+
+        test_entity()
+
     def test_construct(self) -> None:
         entity = get_test_entity()
         self.assertEqual("java", entity.platform)
