@@ -19,9 +19,11 @@ def get_test_biome_variants() -> tuple[Biome, ...]:
 
 class BiomeTestCase(unittest.TestCase):
     def test_cpp(self) -> None:
-        from test_amulet_core.test_biome_ import test_biome
+        from test_amulet_core.test_biome_ import get_tests
 
-        test_biome()
+        for test_name, test in get_tests():
+            with self.subTest(test_name=test_name):
+                test()
 
     def test_construct(self) -> None:
         biome = get_test_biome()

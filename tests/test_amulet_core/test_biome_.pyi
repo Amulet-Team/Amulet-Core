@@ -1,5 +1,7 @@
 from __future__ import annotations
 
-__all__ = ["test_biome"]
+import typing
 
-def test_biome() -> None: ...
+__all__ = ["get_tests"]
+
+def get_tests() -> list[tuple[str, typing.Callable[[], None]]]: ...
