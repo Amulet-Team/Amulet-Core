@@ -82,13 +82,10 @@ std::string Block::java_blockstate() const
     blockstate += get_namespace();
     blockstate += ":";
     blockstate += get_base_name();
-    const auto& properties = get_properties();
-    if (!properties.empty()) {
+    if (!get_properties().empty()) {
         blockstate += "[";
-        auto keys = get_ordered_keys(properties);
         bool is_first = true;
-        for (const std::string& key : keys) {
-            const auto& it = properties.find(key);
+        for (const auto& [key, node] : get_properties()) {
             std::visit(
                 [&is_first, &blockstate, &key](auto&& tag) {
                     using T = std::decay_t<decltype(tag)>;
@@ -103,7 +100,7 @@ std::string Block::java_blockstate() const
                         blockstate += tag;
                     }
                 },
-                it->second);
+                node);
         }
         blockstate += "]";
     }
@@ -116,23 +113,20 @@ std::string Block::bedrock_blockstate() const
     blockstate += get_namespace();
     blockstate += ":";
     blockstate += get_base_name();
-    const auto& properties = get_properties();
-    if (!properties.empty()) {
+    if (!get_properties().empty()) {
         blockstate += "[";
-        auto keys = get_ordered_keys(properties);
         bool is_first = true;
-        for (const std::string& key : keys) {
-            const auto& it = properties.find(key);
+        for (const auto& [key, node] : get_properties()) {
+            if (is_first) {
+                is_first = false;
+            } else {
+                blockstate += ",";
+            }
+            blockstate += "\"";
+            blockstate += key;
+            blockstate += "\"=";
             std::visit(
                 [&is_first, &blockstate, &key](auto&& tag) {
-                    if (is_first) {
-                        is_first = false;
-                    } else {
-                        blockstate += ",";
-                    }
-                    blockstate += "\"";
-                    blockstate += key;
-                    blockstate += "\"=";
                     using T = std::decay_t<decltype(tag)>;
                     if constexpr (std::is_same_v<T, Amulet::NBT::ByteTag>) {
                         if (tag == 0) {
@@ -150,7 +144,7 @@ std::string Block::bedrock_blockstate() const
                         blockstate += Amulet::NBT::encode_snbt(tag);
                     }
                 },
-                it->second);
+                node);
         }
         blockstate += "]";
     }
