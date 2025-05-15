@@ -21,7 +21,7 @@
 
 namespace py = pybind11;
 
-#define VersionTuple { 1, 2, 3 }
+static const Amulet::VersionNumber VersionTuple { 1, 2, 3 };
 
 static void test_block_ctor_attrs_lvalue()
 {
