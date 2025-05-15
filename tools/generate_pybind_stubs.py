@@ -227,9 +227,11 @@ def main() -> None:
     # Fix some issues and reformat the stub files.
     stub_paths = []
     for _, module_dir, _ in modules:
-        stub_paths.extend(glob.glob(
-            os.path.join(glob.escape(module_dir), "**", "*.pyi"), recursive=True
-        ))
+        stub_paths.extend(
+            glob.glob(
+                os.path.join(glob.escape(module_dir), "**", "*.pyi"), recursive=True
+            )
+        )
     for stub_path in stub_paths:
         with open(stub_path, encoding="utf-8") as f:
             pyi = f.read()
@@ -271,7 +273,9 @@ def main() -> None:
         ]
     )
 
-    subprocess.run([sys.executable, "-m", "black", *[module_dir for _, module_dir, _ in modules]])
+    subprocess.run(
+        [sys.executable, "-m", "black", *[module_dir for _, module_dir, _ in modules]]
+    )
 
 
 if __name__ == "__main__":
