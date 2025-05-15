@@ -6,6 +6,7 @@ __pycache__/
 # Distribution / packaging
 .Python
 build/
+install/
 develop-eggs/
 dist/
 downloads/
@@ -109,13 +110,8 @@ venv*
 # Visual Studio
 src/sln
 .vs
+*.dll
 *.lib
 *.exp
 *.pdb
 *.ilk
-
-worlds_temp/
-world_temp/
-logs/
-install/
-*.dll
