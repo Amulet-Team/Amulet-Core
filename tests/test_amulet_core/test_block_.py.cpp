@@ -22,7 +22,7 @@ namespace py = pybind11;
 
 #define VersionTuple { 1, 2, 3 }
 
-static void test_block_ctror_attrs_lvalue()
+static void test_block_ctor_attrs_lvalue()
 {
     Amulet::PlatformType block_platform = "java";
     Amulet::VersionNumber block_version = { 1, 2, 3 };
@@ -47,7 +47,7 @@ static void test_block_ctror_attrs_lvalue()
     ASSERT_EQUAL(Amulet::Block::PropertyMap, block_properties, block_lvalue_2.get_properties());
 }
 
-static void test_block_ctror_attrs_rvalue()
+static void test_block_ctor_attrs_rvalue()
 {
     Amulet::Block block_rvalue_1("java", Amulet::VersionNumber { 1, 2, 3 }, "hello", "world");
 
@@ -68,7 +68,7 @@ static void test_block_ctror_attrs_rvalue()
     ASSERT_EQUAL(Amulet::Block::PropertyMap, block_properties, block_rvalue_2.get_properties());
 }
 
-static void test_block_ctror_attrs_view()
+static void test_block_ctor_attrs_view()
 {
     Amulet::PlatformType block_platform = "java";
     Amulet::VersionNumber block_version = { 1, 2, 3 };
@@ -321,9 +321,9 @@ static std::vector<std::pair<std::string, std::function<void()>>> get_block_test
 {
     std::vector<std::pair<std::string, std::function<void()>>> tests;
 
-    add_test(test_block_ctror_attrs_lvalue);
-    add_test(test_block_ctror_attrs_rvalue);
-    add_test(test_block_ctror_attrs_view);
+    add_test(test_block_ctor_attrs_lvalue);
+    add_test(test_block_ctor_attrs_rvalue);
+    add_test(test_block_ctor_attrs_view);
     add_test(test_block_equal);
     add_test(test_block_compare);
     add_test(test_block_serialise);
