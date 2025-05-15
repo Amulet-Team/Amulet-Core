@@ -8,6 +8,8 @@ import pybind11_stubgen
 from pybind11_stubgen.structs import Identifier
 from pybind11_stubgen.parser.mixins.filter import FilterClassMembers
 
+from pybind11_stubgen import main as pybind11_stubgen_main
+
 UnionPattern = re.compile(
     r"^(?P<variable>[a-zA-Z_][a-zA-Z0-9_]*): types\.UnionType\s*#\s*value = (?P<value>.*)$",
     flags=re.MULTILINE,
@@ -192,17 +194,12 @@ def main() -> None:
     # Call pybind11-stubgen
     print("Running pybind11-stubgen...")
     for out_dir, _, module_name in modules:
-        sys.argv = [
-            "pybind11_stubgen",
-            f"--output-dir={out_dir}",
-            module_name,
-        ]
-        pybind11_stubgen.main()
-        # If pybind11_stubgen adds args to main
-        # pybind11_stubgen.main([
-        #     f"--output-dir={src_path}",
-        #     "test_amulet_core",
-        # ])
+        pybind11_stubgen.main(
+            [
+                f"--output-dir={out_dir}",
+                module_name,
+            ]
+        )
 
     # Run normal stubgen on the python files
     # print("Running stubgen...")
