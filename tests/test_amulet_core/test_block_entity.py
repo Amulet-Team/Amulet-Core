@@ -57,6 +57,13 @@ def get_test_block_entity_variants() -> tuple[BlockEntity, ...]:
 
 
 class BlockEntityTestCase(unittest.TestCase):
+    def test_cpp(self) -> None:
+        from test_amulet_core.test_block_entity_ import get_tests
+
+        for test_name, test in get_tests():
+            with self.subTest(test_name):
+                test()
+
     def test_construct(self) -> None:
         block_entity = get_test_block_entity()
         self.assertEqual("java", block_entity.platform)

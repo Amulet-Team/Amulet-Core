@@ -86,6 +86,13 @@ def get_test_block_variants() -> tuple[Block, ...]:
 
 
 class BlockTestCase(unittest.TestCase):
+    def test_cpp(self) -> None:
+        from test_amulet_core.test_block_ import get_block_tests
+
+        for test_name, test in get_block_tests():
+            with self.subTest(test_name):
+                test()
+
     def test_construct(self) -> None:
         block = get_test_block()
         self.assertEqual("java", block.platform)
@@ -264,6 +271,13 @@ class BlockTestCase(unittest.TestCase):
 
 
 class BlockStackTestCase(unittest.TestCase):
+    def test_cpp(self) -> None:
+        from test_amulet_core.test_block_ import get_block_stack_tests
+
+        for test_name, test in get_block_stack_tests():
+            with self.subTest(test_name):
+                test()
+
     def test_constructor(self) -> None:
         block_stack_1 = BlockStack(get_test_block())
         block_stack_2 = BlockStack(get_test_block())

@@ -137,7 +137,7 @@ public:
             return cmp;
         }
         for (size_t i = 0; i < size(); i++) {
-            cmp = (*this)[i] <=> other[i];
+            cmp = at(i) <=> other.at(i);
             if (cmp != 0) {
                 return cmp;
             }
@@ -150,7 +150,7 @@ public:
     }
 
     size_t size() const { return _blocks.size(); }
-    const Block& operator[](size_t index) const { return _blocks[index]; }
+    const Block& at(size_t index) const { return _blocks.at(index); }
 };
 
 } // namespace Amulet

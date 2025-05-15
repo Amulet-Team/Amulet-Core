@@ -10,6 +10,11 @@ import unittest
 
 
 class VersionNumberTestCase(unittest.TestCase):
+    def test_cpp(self) -> None:
+        from test_amulet_core.test_version_ import test_version_number
+
+        test_version_number()
+
     def test_subclass(self) -> None:
         self.assertTrue(issubclass(VersionNumber, Sequence))
         self.assertIsInstance(VersionNumber(1, 0, 0), Sequence)
@@ -122,6 +127,11 @@ class VersionNumberTestCase(unittest.TestCase):
 
 
 class VersionRangeTestCase(unittest.TestCase):
+    def test_cpp(self) -> None:
+        from test_amulet_core.test_version_ import test_version_range
+
+        test_version_range()
+
     def test(self) -> None:
         version_range_1 = VersionRange("platform1", VersionNumber(1), VersionNumber(2))
         self.assertTrue(version_range_1.contains("platform1", VersionNumber(1)))

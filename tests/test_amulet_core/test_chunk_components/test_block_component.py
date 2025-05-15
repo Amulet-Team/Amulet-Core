@@ -18,5 +18,12 @@ def test_block_component(self: TestCase, chunk: Chunk) -> None:
 
 
 class TestBlockComponent(TestCase):
+    def test_cpp(self) -> None:
+        from test_amulet_core.test_chunk_components.test_block_component_ import (
+            test_block_component,
+        )
+
+        test_block_component()
+
     def test_block_component(self) -> None:
         test_component(self, BlockComponent)

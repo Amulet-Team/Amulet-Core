@@ -10,6 +10,13 @@ faulthandler.enable()
 
 
 class IndexArray3DTestCase(unittest.TestCase):
+    def test_cpp(self) -> None:
+        from test_amulet_core.test_chunk_components.test_section_array_map_ import (
+            test_section_array_map,
+        )
+
+        test_section_array_map()
+
     def test_construct_shape(self) -> None:
         # Construct from shape
         array = IndexArray3D((1, 1, 1))

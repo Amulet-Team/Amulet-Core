@@ -163,32 +163,46 @@ def patch_stubgen():
 
 
 def main() -> None:
-    amulet_path = get_package_dir("amulet.core")
-    src_path = os.path.dirname(os.path.dirname(amulet_path))
+    root_path = os.path.dirname(os.path.dirname(__file__))
+    src_path = os.path.join(root_path, "src")
+    amulet_core_path = get_package_dir("amulet.core")
+    tests_path = os.path.join(root_path, "tests")
+    test_amulet_core_path = os.path.join(tests_path, "test_amulet_core")
+
+    # make tests importable
+    sys.path.append(tests_path)
+
+    # out_dir, module_dir, module_name
+    modules: list[tuple[str, str, str]] = [
+        (src_path, amulet_core_path, "amulet.core"),
+        (tests_path, test_amulet_core_path, "test_amulet_core"),
+    ]
 
     # Remove all existing stub files
     print("Removing stub files...")
-    for stub_path in glob.iglob(
-        os.path.join(glob.escape(amulet_path), "**", "*.pyi"), recursive=True
-    ):
-        os.remove(stub_path)
+    for _, module_dir, _ in modules:
+        for stub_path in glob.iglob(
+            os.path.join(glob.escape(module_dir), "**", "*.pyi"), recursive=True
+        ):
+            os.remove(stub_path)
 
     # Extend pybind11-stubgen
     patch_stubgen()
 
     # Call pybind11-stubgen
     print("Running pybind11-stubgen...")
-    sys.argv = [
-        "pybind11_stubgen",
-        f"--output-dir={src_path}",
-        "amulet.core",
-    ]
-    pybind11_stubgen.main()
-    # If pybind11_stubgen adds args to main
-    # pybind11_stubgen.main([
-    #     f"--output-dir={src_path}",
-    #     "amulet.core",
-    # ])
+    for out_dir, _, module_name in modules:
+        sys.argv = [
+            "pybind11_stubgen",
+            f"--output-dir={out_dir}",
+            module_name,
+        ]
+        pybind11_stubgen.main()
+        # If pybind11_stubgen adds args to main
+        # pybind11_stubgen.main([
+        #     f"--output-dir={src_path}",
+        #     "test_amulet_core",
+        # ])
 
     # Run normal stubgen on the python files
     # print("Running stubgen...")
@@ -202,17 +216,22 @@ def main() -> None:
     # ])
 
     # Remove stub files generated for python modules
-    for stub_path in glob.iglob(
-        os.path.join(glob.escape(amulet_path), "**", "*.pyi"), recursive=True
-    ):
-        if os.path.isfile(stub_path[:-1]):
-            os.remove(stub_path)
+    for _, module_dir, _ in modules:
+        for stub_path in glob.iglob(
+            os.path.join(glob.escape(module_dir), "**", "*.pyi"), recursive=True
+        ):
+            if os.path.isfile(stub_path[:-1]):
+                os.remove(stub_path)
 
     print("Patching stub files...")
     # Fix some issues and reformat the stub files.
-    stub_paths = glob.glob(
-        os.path.join(glob.escape(amulet_path), "**", "*.pyi"), recursive=True
-    )
+    stub_paths = []
+    for _, module_dir, _ in modules:
+        stub_paths.extend(
+            glob.glob(
+                os.path.join(glob.escape(module_dir), "**", "*.pyi"), recursive=True
+            )
+        )
     for stub_path in stub_paths:
         with open(stub_path, encoding="utf-8") as f:
             pyi = f.read()
@@ -254,7 +273,9 @@ def main() -> None:
         ]
     )
 
-    subprocess.run([sys.executable, "-m", "black", amulet_path])
+    subprocess.run(
+        [sys.executable, "-m", "black", *[module_dir for _, module_dir, _ in modules]]
+    )
 
 
 if __name__ == "__main__":

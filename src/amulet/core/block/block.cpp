@@ -25,7 +25,7 @@ void Block::serialise(BinaryWriter& writer) const
     for (auto const& [key, val] : _properties) {
         writer.write_size_and_bytes(key);
         std::visit([&writer](auto&& tag) {
-            Amulet::NBT::encode_nbt(writer, "", tag);
+            Amulet::NBT::encode_nbt(writer, std::nullopt, tag);
         },
             val);
     }
@@ -45,7 +45,7 @@ Block Block::deserialise(BinaryReader& reader)
         reader.read_numeric_into<std::uint64_t>(property_count);
         for (std::uint64_t i = 0; i < property_count; i++) {
             std::string name { reader.read_size_and_bytes() };
-            Amulet::NBT::NamedTag named_tag = Amulet::NBT::decode_nbt(reader);
+            Amulet::NBT::NamedTag named_tag = Amulet::NBT::decode_nbt(reader, false);
             properties[name] = std::visit([](auto&& tag) -> Block::PropertyValue {
                 using T = std::decay_t<decltype(tag)>;
                 if constexpr (
@@ -64,31 +64,16 @@ Block Block::deserialise(BinaryReader& reader)
     }
 }
 
-template <typename T>
-inline std::vector<std::string> get_ordered_keys(const T& map)
-{
-    std::vector<std::string> keys;
-    keys.reserve(map.size());
-    for (const auto& [key, _] : map) {
-        keys.push_back(key);
-    }
-    std::sort(keys.begin(), keys.end());
-    return keys;
-}
-
 std::string Block::java_blockstate() const
 {
     std::string blockstate;
     blockstate += get_namespace();
     blockstate += ":";
     blockstate += get_base_name();
-    const auto& properties = get_properties();
-    if (!properties.empty()) {
+    if (!get_properties().empty()) {
         blockstate += "[";
-        auto keys = get_ordered_keys(properties);
         bool is_first = true;
-        for (const std::string& key : keys) {
-            const auto& it = properties.find(key);
+        for (const auto& [key, node] : get_properties()) {
             std::visit(
                 [&is_first, &blockstate, &key](auto&& tag) {
                     using T = std::decay_t<decltype(tag)>;
@@ -103,7 +88,7 @@ std::string Block::java_blockstate() const
                         blockstate += tag;
                     }
                 },
-                it->second);
+                node);
         }
         blockstate += "]";
     }
@@ -116,23 +101,20 @@ std::string Block::bedrock_blockstate() const
     blockstate += get_namespace();
     blockstate += ":";
     blockstate += get_base_name();
-    const auto& properties = get_properties();
-    if (!properties.empty()) {
+    if (!get_properties().empty()) {
         blockstate += "[";
-        auto keys = get_ordered_keys(properties);
         bool is_first = true;
-        for (const std::string& key : keys) {
-            const auto& it = properties.find(key);
+        for (const auto& [key, node] : get_properties()) {
+            if (is_first) {
+                is_first = false;
+            } else {
+                blockstate += ",";
+            }
+            blockstate += "\"";
+            blockstate += key;
+            blockstate += "\"=";
             std::visit(
                 [&is_first, &blockstate, &key](auto&& tag) {
-                    if (is_first) {
-                        is_first = false;
-                    } else {
-                        blockstate += ",";
-                    }
-                    blockstate += "\"";
-                    blockstate += key;
-                    blockstate += "\"=";
                     using T = std::decay_t<decltype(tag)>;
                     if constexpr (std::is_same_v<T, Amulet::NBT::ByteTag>) {
                         if (tag == 0) {
@@ -150,7 +132,7 @@ std::string Block::bedrock_blockstate() const
                         blockstate += Amulet::NBT::encode_snbt(tag);
                     }
                 },
-                it->second);
+                node);
         }
         blockstate += "]";
     }

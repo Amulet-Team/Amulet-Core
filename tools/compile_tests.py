@@ -9,6 +9,7 @@ import amulet.pybind11_extensions
 import amulet.io
 import amulet.nbt
 import amulet.core
+import amulet.test_utils
 
 
 def fix_path(path: str) -> str:
@@ -42,6 +43,7 @@ def main() -> None:
             f"-Damulet_io_DIR={fix_path(amulet.io.__path__[0])}",
             f"-Damulet_nbt_DIR={fix_path(amulet.nbt.__path__[0])}",
             f"-Damulet_core_DIR={fix_path(amulet.core.__path__[0])}",
+            f"-Damulet_test_utils_DIR={fix_path(amulet.test_utils.__path__[0])}",
             "-B",
             "build",
         ]
