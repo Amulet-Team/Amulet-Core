@@ -3,6 +3,7 @@
 #include <pybind11/stl.h>
 
 #include <functional>
+#include <list>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -333,9 +334,223 @@ static std::vector<std::pair<std::string, std::function<void()>>> get_block_test
     return tests;
 }
 
+static void test_block_stack_ctor_args_lvalue()
+{
+    {
+        // initialiser list 1
+        Amulet::Block block("bedrock", Amulet::VersionNumber { 1, 2, 3 }, "hello", "world");
+        Amulet::BlockStack block_stack({ block });
+        ASSERT_EQUAL(size_t, 1, block_stack.size())
+        ASSERT_EQUAL(Amulet::Block, block, block_stack.at(0))
+        ASSERT_RAISES(std::out_of_range, block_stack.at(1))
+
+        ASSERT_EQUAL(size_t, 1, block_stack.get_blocks().size())
+        ASSERT_EQUAL(Amulet::Block, block, block_stack.get_blocks().at(0))
+    }
+    {
+        // initialiser list 2
+        Amulet::Block block_1("bedrock", Amulet::VersionNumber { 1, 2, 3 }, "hello", "world");
+        Amulet::Block block_2("java", Amulet::VersionNumber { 1, 2, 3 }, "hello", "world");
+        Amulet::BlockStack block_stack({ block_1, block_2 });
+        ASSERT_EQUAL(size_t, 2, block_stack.size())
+        ASSERT_EQUAL(Amulet::Block, block_1, block_stack.at(0))
+        ASSERT_EQUAL(Amulet::Block, block_2, block_stack.at(1))
+        ASSERT_RAISES(std::out_of_range, block_stack.at(2))
+
+        ASSERT_EQUAL(size_t, 2, block_stack.get_blocks().size())
+        ASSERT_EQUAL(Amulet::Block, block_1, block_stack.get_blocks().at(0))
+        ASSERT_EQUAL(Amulet::Block, block_2, block_stack.get_blocks().at(1))
+    }
+    {
+        // initialiser list 2 inline
+        Amulet::BlockStack block_stack({
+            { "bedrock", Amulet::VersionNumber { 1, 2, 3 }, "hello", "world" },
+            { "java", Amulet::VersionNumber { 1, 2, 3 }, "hello", "world" },
+        });
+
+        Amulet::Block block_1("bedrock", Amulet::VersionNumber { 1, 2, 3 }, "hello", "world");
+        Amulet::Block block_2("java", Amulet::VersionNumber { 1, 2, 3 }, "hello", "world");
+        ASSERT_EQUAL(size_t, 2, block_stack.size())
+        ASSERT_EQUAL(Amulet::Block, block_1, block_stack.at(0))
+        ASSERT_EQUAL(Amulet::Block, block_2, block_stack.at(1))
+        ASSERT_RAISES(std::out_of_range, block_stack.at(2))
+
+        ASSERT_EQUAL(size_t, 2, block_stack.get_blocks().size())
+        ASSERT_EQUAL(Amulet::Block, block_1, block_stack.get_blocks().at(0))
+        ASSERT_EQUAL(Amulet::Block, block_2, block_stack.get_blocks().at(1))
+    }
+    {
+        // vector
+        Amulet::Block block_1("bedrock", Amulet::VersionNumber { 1, 2, 3 }, "hello", "world");
+        Amulet::Block block_2("java", Amulet::VersionNumber { 1, 2, 3 }, "hello", "world");
+        std::vector<Amulet::Block> blocks { block_1, block_2 };
+        Amulet::BlockStack block_stack(blocks);
+        ASSERT_EQUAL(size_t, 2, block_stack.size())
+        ASSERT_EQUAL(Amulet::Block, block_1, block_stack.at(0))
+        ASSERT_EQUAL(Amulet::Block, block_2, block_stack.at(1))
+        ASSERT_RAISES(std::out_of_range, block_stack.at(2))
+
+        ASSERT_EQUAL(size_t, 2, block_stack.get_blocks().size())
+        ASSERT_EQUAL(Amulet::Block, block_1, block_stack.get_blocks().at(0))
+        ASSERT_EQUAL(Amulet::Block, block_2, block_stack.get_blocks().at(1))
+    }
+    {
+        // list iterators
+        Amulet::Block block_1("bedrock", Amulet::VersionNumber { 1, 2, 3 }, "hello", "world");
+        Amulet::Block block_2("java", Amulet::VersionNumber { 1, 2, 3 }, "hello", "world");
+        std::list<Amulet::Block> blocks { block_1, block_2 };
+        Amulet::BlockStack block_stack(blocks.begin(), blocks.end());
+        ASSERT_EQUAL(size_t, 2, block_stack.size())
+        ASSERT_EQUAL(Amulet::Block, block_1, block_stack.at(0))
+        ASSERT_EQUAL(Amulet::Block, block_2, block_stack.at(1))
+        ASSERT_RAISES(std::out_of_range, block_stack.at(2))
+
+        ASSERT_EQUAL(size_t, 2, block_stack.get_blocks().size())
+        ASSERT_EQUAL(Amulet::Block, block_1, block_stack.get_blocks().at(0))
+        ASSERT_EQUAL(Amulet::Block, block_2, block_stack.get_blocks().at(1))
+    }
+}
+
+static void test_block_stack_ctor_args_rvalue()
+{
+    {
+        // vector
+        Amulet::Block block_1("bedrock", Amulet::VersionNumber { 1, 2, 3 }, "hello", "world");
+        Amulet::Block block_2("java", Amulet::VersionNumber { 1, 2, 3 }, "hello", "world");
+        std::vector<Amulet::Block> blocks { block_1, block_2 };
+        // Not good code. Used to make sure the vector is actually moved.
+        const auto* vec_ptr = &blocks.at(0);
+        Amulet::BlockStack block_stack(std::move(blocks));
+        ASSERT_EQUAL(const Amulet::Block*, vec_ptr, &block_stack.at(0))
+        ASSERT_EQUAL(size_t, 2, block_stack.size())
+        ASSERT_EQUAL(Amulet::Block, block_1, block_stack.at(0))
+        ASSERT_EQUAL(Amulet::Block, block_2, block_stack.at(1))
+        ASSERT_RAISES(std::out_of_range, block_stack.at(2))
+
+        ASSERT_EQUAL(size_t, 2, block_stack.get_blocks().size())
+        ASSERT_EQUAL(Amulet::Block, block_1, block_stack.get_blocks().at(0))
+        ASSERT_EQUAL(Amulet::Block, block_2, block_stack.get_blocks().at(1))
+    }
+}
+
+static void test_block_stack_ctor_errors()
+{
+    ASSERT_RAISES(std::invalid_argument, Amulet::BlockStack block_stack)
+    ASSERT_RAISES(std::invalid_argument, Amulet::BlockStack block_stack({}))
+}
+
+static void test_block_stack_compare()
+{
+    {
+        // size sort
+        Amulet::BlockStack block_stack_1({
+            { "z", Amulet::VersionNumber { 1, 2, 3 }, "hello", "world" },
+        });
+        Amulet::BlockStack block_stack_2({
+            { "bedrock", Amulet::VersionNumber { 1, 2, 3 }, "hello", "world" },
+            { "java", Amulet::VersionNumber { 1, 2, 3 }, "hello", "world" },
+        });
+        ASSERT_LESS(Amulet::BlockStack, block_stack_1, block_stack_2)
+        ASSERT_GREATER(Amulet::BlockStack, block_stack_2, block_stack_1)
+        ASSERT_NOT_EQUAL(Amulet::BlockStack, block_stack_1, block_stack_2)
+    }
+    {
+        // value sort a
+        Amulet::BlockStack block_stack_1({
+            { "bedrock1", Amulet::VersionNumber { 1, 2, 3 }, "hello", "world" },
+            { "java", Amulet::VersionNumber { 1, 2, 3 }, "hello", "world" },
+        });
+        Amulet::BlockStack block_stack_2({
+            { "bedrock2", Amulet::VersionNumber { 1, 2, 3 }, "hello", "world" },
+            { "java", Amulet::VersionNumber { 1, 2, 3 }, "hello", "world" },
+        });
+        ASSERT_LESS(Amulet::BlockStack, block_stack_1, block_stack_2)
+        ASSERT_GREATER(Amulet::BlockStack, block_stack_2, block_stack_1)
+        ASSERT_NOT_EQUAL(Amulet::BlockStack, block_stack_1, block_stack_2)
+    }
+    {
+        // value sort b
+        Amulet::BlockStack block_stack_1({
+            { "bedrock", Amulet::VersionNumber { 1, 2, 3 }, "hello", "world" },
+            { "java", Amulet::VersionNumber { 1, 2, 3 }, "hello", "world" },
+        });
+        Amulet::BlockStack block_stack_2({
+            { "bedrock", Amulet::VersionNumber { 1, 2, 3 }, "hello", "world" },
+            { "java", Amulet::VersionNumber { 1, 2, 3 }, "hello", "world_" },
+        });
+        ASSERT_LESS(Amulet::BlockStack, block_stack_1, block_stack_2)
+        ASSERT_GREATER(Amulet::BlockStack, block_stack_2, block_stack_1)
+        ASSERT_NOT_EQUAL(Amulet::BlockStack, block_stack_1, block_stack_2)
+    }
+}
+
+static void test_block_stack_equal()
+{
+    {
+        // equal 1
+        Amulet::BlockStack block_stack_1({
+            { "bedrock", Amulet::VersionNumber { 1, 2, 3 }, "hello", "world" },
+        });
+        Amulet::BlockStack block_stack_2({
+            { "bedrock", Amulet::VersionNumber { 1, 2, 3 }, "hello", "world" },
+        });
+        ASSERT_EQUAL(Amulet::BlockStack, block_stack_1, block_stack_2)
+    }
+    {
+        // equal 2
+        Amulet::BlockStack block_stack_1({
+            { "bedrock", Amulet::VersionNumber { 1, 2, 3 }, "hello", "world" },
+            { "java", Amulet::VersionNumber { 1, 2, 3 }, "hello", "world" },
+        });
+        Amulet::BlockStack block_stack_2({
+            { "bedrock", Amulet::VersionNumber { 1, 2, 3 }, "hello", "world" },
+            { "java", Amulet::VersionNumber { 1, 2, 3 }, "hello", "world" },
+        });
+        ASSERT_EQUAL(Amulet::BlockStack, block_stack_1, block_stack_2)
+    }
+    {
+        // not equal
+        Amulet::BlockStack block_stack_1({
+            { "bedrock", Amulet::VersionNumber { 1, 2, 3 }, "hello", "world" },
+            { "java", Amulet::VersionNumber { 1, 2, 3 }, "hello", "world" },
+        });
+        Amulet::BlockStack block_stack_2({
+            { "java", Amulet::VersionNumber { 1, 2, 3 }, "hello", "world" },
+            { "bedrock", Amulet::VersionNumber { 1, 2, 3 }, "hello", "world" },
+        });
+        ASSERT_NOT_EQUAL(Amulet::BlockStack, block_stack_1, block_stack_2)
+    }
+}
+
+static void test_block_stack_serialisation()
+{
+    {
+        Amulet::Block block { "bedrock", Amulet::VersionNumber { 1, 2, 3 }, "hello", "world" };
+        Amulet::BlockStack block_stack({ block });
+        std::string encoded = std::string("\x01\x01\x00\x00\x00\x00\x00\x00\x00", 9) + Amulet::serialise(block);
+        ASSERT_EQUAL(std::string, encoded, Amulet::serialise(block_stack))
+        ASSERT_EQUAL(Amulet::BlockStack, block_stack, Amulet::deserialise<Amulet::BlockStack>(encoded))
+    }
+    {
+        Amulet::Block block_1 { "bedrock", Amulet::VersionNumber { 1, 2, 3 }, "hello", "world" };
+        Amulet::Block block_2 { "java", Amulet::VersionNumber { 1, 2, 3 }, "hello", "world" };
+        Amulet::BlockStack block_stack({ block_1, block_2 });
+        std::string encoded = std::string("\x01\x02\x00\x00\x00\x00\x00\x00\x00", 9) + Amulet::serialise(block_1) + Amulet::serialise(block_2);
+        ASSERT_EQUAL(std::string, encoded, Amulet::serialise(block_stack))
+        ASSERT_EQUAL(Amulet::BlockStack, block_stack, Amulet::deserialise<Amulet::BlockStack>(encoded))
+    }
+}
+
 static std::vector<std::pair<std::string, std::function<void()>>> get_block_stack_tests()
 {
     std::vector<std::pair<std::string, std::function<void()>>> tests;
+
+    add_test(test_block_stack_ctor_args_lvalue);
+    add_test(test_block_stack_ctor_args_rvalue);
+    add_test(test_block_stack_ctor_errors);
+    add_test(test_block_stack_compare);
+    add_test(test_block_stack_equal);
+    add_test(test_block_stack_serialisation);
 
     return tests;
 }
