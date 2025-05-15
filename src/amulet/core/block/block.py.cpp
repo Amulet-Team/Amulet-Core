@@ -246,7 +246,7 @@ void init_block(py::module m_parent)
                 blocks.push_back(block);
                 auto extra_blocks = py_extra_blocks.cast<std::vector<Amulet::Block>>();
                 blocks.insert(blocks.end(), extra_blocks.begin(), extra_blocks.end());
-                return Amulet::BlockStack(blocks);
+                return Amulet::BlockStack(std::move(blocks));
             }),
         py::doc("__init__(self, block: amulet.core.block.Block, *extra_blocks: amulet.core.block.Block) -> None"));
     options.enable_function_signatures();
