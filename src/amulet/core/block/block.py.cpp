@@ -282,7 +282,7 @@ void init_block(py::module m_parent)
             if (index >= self.size()) {
                 throw py::index_error("");
             }
-            return self[index];
+            return self.at(index);
         });
     BlockStack.def(
         "__hash__",
@@ -308,7 +308,7 @@ void init_block(py::module m_parent)
     BlockStack.def_property_readonly(
         "base_block",
         [](const Amulet::BlockStack& self) {
-            return self[0];
+            return self.at(0);
         },
         py::doc(
             "The first block in the stack.\n"
