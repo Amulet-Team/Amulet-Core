@@ -152,8 +152,6 @@ jobs:
         AMULET_FREEZE_COMPILER: 1
       run: |
         pip install -vv .[dev]
-        ext_req=$(python -c "import requirements; print(requirements.AMULET_PYBIND11_EXTENSIONS_REQUIREMENT)")
-        pip install amulet_pybind11_extensions$ext_req
         python tools/compile_tests.py
 
     - name: Test with unittest
