@@ -48,7 +48,7 @@ runs:
 
     - name: Clone Amulet-NBT
       id: nbt-clone
-      uses: Amulet-Team/checkout-pep440@1
+      uses: Amulet-Team/checkout-pep440@v1
       with:
         repository: 'Amulet-Team/Amulet-NBT'
         specifier: '==${{ steps.dep.outputs.nbt }}'
