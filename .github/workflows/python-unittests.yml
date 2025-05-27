@@ -43,6 +43,7 @@ jobs:
         username: ${{ secrets.PYPI_USERNAME }}
         compiler-version-password: ${{ secrets.AMULET_COMPILER_VERSION_PYPI_PASSWORD }}
         nbt-password: ${{ secrets.AMULET_NBT_PASSWORD }}
+        rest-token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Build Amulet-Core
       env:

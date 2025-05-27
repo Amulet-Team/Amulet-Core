@@ -7,6 +7,8 @@ inputs:
     description: 'The password for the compiler-version library'
   nbt-password:
     description: 'The password for the nbt library'
+  rest-token:
+    description: 'The Github authentication token to use to access the REST API.'
 runs:
   using: "composite"
   steps:
@@ -54,6 +56,7 @@ runs:
         repository: 'Amulet-Team/Amulet-NBT'
         specifier: '==${{ steps.dep.outputs.nbt }}'
         path: 'build/pylib/Amulet-NBT'
+        rest-token: ${{ inputs.rest-token }}
 
     - name: Install Amulet-NBT
       uses: ./build/pylib/Amulet-NBT/.github/actions/install
