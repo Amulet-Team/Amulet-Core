@@ -13,45 +13,7 @@ on:
   pull_request:
 
 jobs:
-  unittests-first-ubuntu:
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: [ '3.11', '3.12', '3.13' ]
-        os: [ ubuntu-latest ]
-
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 30
-    defaults:
-      run:
-        shell: bash
-
-    steps:
-      - name: Clone Amulet-Core
-        uses: actions/checkout@v4
-
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Install dependencies
-        run: |
-          pip cache purge
-          python -m pip install --upgrade pip
-          pip install build
-
-      - name: Build Amulet-Core
-        run: |
-          pip install -vv .[dev]
-          python tools/compile_tests.py
-
-      - name: Test with unittest
-        run: python -m unittest discover -v -s tests
-
-  unittests-first-windows-mac:
+  unittests-first:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
 
     strategy:
@@ -76,76 +38,12 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - name: Install dependencies
-      run: |
-        pip cache purge
-        python -m pip install --upgrade pip
-        pip install build
-
-    - name: Install Twine
-      run: |
-        pip install twine
-
-    - name: Clone Amulet-Compiler-Version
-      uses: actions/checkout@v4
+      uses: ./.github/actions/install-dependencies
       with:
-        repository: 'Amulet-Team/Amulet-Compiler-Version'
-        ref: '1.0'
-        path: 'build/pylib/Amulet-Compiler-Version'
-
-    - name: Build Amulet-Compiler-Version
-      env:
-        BUILD_SPECIALISED: 1
-      run: |
-        python -m build build/pylib/Amulet-Compiler-Version
-
-    - name: Publish Amulet-Compiler-Version
-      env:
-        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-        TWINE_PASSWORD: ${{ secrets.AMULET_COMPILER_VERSION_PYPI_PASSWORD }}
-      run: |
-        twine upload build/pylib/Amulet-Compiler-Version/dist/* --skip-existing
-
-    - name: Install Amulet-Compiler-Version and get __version__
-      run: |
-        python -m pip install build/pylib/Amulet-Compiler-Version/dist/amulet_compiler_version-*.whl
-        version=$(python -c "import amulet_compiler_version; print(amulet_compiler_version.__version__)")
-        echo "AMULET_COMPILER_VERSION=$version" >> "$GITHUB_ENV"
-
-    - name: Get Amulet-NBT Requirement
-      run: |
-        amulet_nbt_req=$(python -c "import requirements; print(requirements.AMULET_NBT_REQUIREMENT)")
-        echo "AMULET_NBT_REQUIREMENT=$amulet_nbt_req" >> "$GITHUB_ENV"
-
-    - name: Install Amulet-NBT
-      id: install_amulet_nbt
-      continue-on-error: true
-      run: |
-        python -m pip install --only-binary amulet-compiler-version,amulet-nbt amulet-compiler-version==$AMULET_COMPILER_VERSION amulet-nbt$AMULET_NBT_REQUIREMENT
-
-    - name: Build Amulet-NBT
-      if: steps.install_amulet_nbt.outcome == 'failure'
-      env:
-        AMULET_FREEZE_COMPILER: 1
-      run: |
-        python -m pip wheel --wheel-dir build/pylib/Amulet-NBT/dist --no-deps --no-binary amulet-nbt amulet-nbt$AMULET_NBT_REQUIREMENT
-
-    - name: Publish Amulet-NBT
-      if: steps.install_amulet_nbt.outcome == 'failure'
-      env:
-        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-        TWINE_PASSWORD: ${{ secrets.AMULET_NBT_PYPI_PASSWORD }}
-      run: |
-        twine upload build/pylib/Amulet-NBT/dist/* --skip-existing
-
-    - name: Install Amulet-NBT
-      if: steps.install_amulet_nbt.outcome == 'failure'
-      run: |
-        python -m pip install build/pylib/Amulet-NBT/dist/amulet_nbt-*.whl
-
-    - name: Get Amulet-NBT version
-      run: |
-        version=$(python -c "import amulet.nbt; print(amulet.nbt.__version__)")
-        echo "AMULET_NBT_VERSION=$version" >> "$GITHUB_ENV"
+        username: ${{ secrets.PYPI_USERNAME }}
+        compiler-version-password: ${{ secrets.AMULET_COMPILER_VERSION_PYPI_PASSWORD }}
+        nbt-password: ${{ secrets.AMULET_NBT_PYPI_PASSWORD }}
+        rest-token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Build Amulet-Core
       env:
@@ -156,6 +54,30 @@ jobs:
 
     - name: Test with unittest
       run: python -m unittest discover -v -s tests
+
+  unittests-first-ubuntu:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [ '3.11', '3.12', '3.13' ]
+        os: [ ubuntu-latest ]
+
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Clone
+        uses: actions/checkout@v4
+
+      - name: Build and run unittests
+        uses: ./.github/actions/unittests-src
+        with:
+          python-version: ${{ matrix.python-version }}
 
   unittests-third:
     if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository
@@ -173,24 +95,10 @@ jobs:
         shell: bash
 
     steps:
-      - name: Clone Amulet-Core
+      - name: Clone
         uses: actions/checkout@v4
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+      - name: Build and run unittests
+        uses: ./.github/actions/unittests-src
         with:
           python-version: ${{ matrix.python-version }}
-
-      - name: Install dependencies
-        run: |
-          pip cache purge
-          python -m pip install --upgrade pip
-          pip install build
-
-      - name: Build Amulet-Core
-        run: |
-          pip install -vv .[dev]
-          python tools/compile_tests.py
-
-      - name: Test with unittest
-        run: python -m unittest discover -v -s tests

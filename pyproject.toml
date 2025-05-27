@@ -2,7 +2,8 @@
 requires = [
     "setuptools>=42",
     "versioneer",
-    "packaging"
+    "packaging",
+    "amulet-compiler-version@git+https://github.com/Amulet-Team/Amulet-Compiler-Version.git@3.0"
 ]
 build-backend = "build_requires"
 backend-path = [""]
