@@ -60,4 +60,4 @@ runs:
       with:
         twine-username: ${{ inputs.username }}
         twine-password: ${{ inputs.nbt-password }}
-        nbt-version: ${{ steps.compiled-dep.outputs.nbt }}
+        nbt-specifier: ${{ steps.compiled-dep.outputs.nbt }}
