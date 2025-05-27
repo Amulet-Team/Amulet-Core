@@ -6,9 +6,6 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Clone Amulet-Core
-      uses: actions/checkout@v4
-
     - name: Set up Python ${{ inputs.python-version }}
       uses: actions/setup-python@v5
       with:
