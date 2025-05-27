@@ -70,7 +70,7 @@ jobs:
         shell: bash
 
     steps:
-      - uses: ./.github/actions/unittests_src
+      - uses: ./.github/actions/unittests-src
 
   unittests-third:
     if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository
@@ -88,4 +88,4 @@ jobs:
         shell: bash
 
     steps:
-      - uses: ./.github/actions/unittests_src
+      - uses: ./.github/actions/unittests-src
