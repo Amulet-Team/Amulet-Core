@@ -73,7 +73,10 @@ jobs:
       - name: Clone
         uses: actions/checkout@v4
 
-      - uses: ./.github/actions/unittests-src
+      - name: Build and run unittests
+        uses: ./.github/actions/unittests-src
+        with:
+          python-version: ${{ matrix.python-version }}
 
   unittests-third:
     if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository
@@ -94,4 +97,7 @@ jobs:
       - name: Clone
         uses: actions/checkout@v4
 
-      - uses: ./.github/actions/unittests-src
+      - name: Build and run unittests
+        uses: ./.github/actions/unittests-src
+        with:
+          python-version: ${{ matrix.python-version }}
