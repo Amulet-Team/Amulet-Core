@@ -21,6 +21,7 @@ runs:
       id: dep
       shell: bash
       run: |
+        mkdir -p build
         pip install --dry-run --report build/install.json .
         nbt=$(python -c "import json, requirements; f = open('build/install.json', encoding='utf-8'); print(next(l['metadata']['version'] for l in json.load(f)['install'] if l['metadata']['name'] == 'amulet-nbt'))")
         echo "nbt=$nbt" >> "$GITHUB_OUTPUT"
