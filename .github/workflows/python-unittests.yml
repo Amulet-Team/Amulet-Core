@@ -13,44 +13,6 @@ on:
   pull_request:
 
 jobs:
-  unittests-first-ubuntu:
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: [ '3.11', '3.12', '3.13' ]
-        os: [ ubuntu-latest ]
-
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 30
-    defaults:
-      run:
-        shell: bash
-
-    steps:
-      - name: Clone Amulet-Core
-        uses: actions/checkout@v4
-
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Install dependencies
-        run: |
-          pip cache purge
-          python -m pip install --upgrade pip
-          pip install build
-
-      - name: Build Amulet-Core
-        run: |
-          pip install -vv .[dev]
-          python tools/compile_tests.py
-
-      - name: Test with unittest
-        run: python -m unittest discover -v -s tests
-
   unittests-first-windows-mac:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
 
@@ -157,6 +119,24 @@ jobs:
     - name: Test with unittest
       run: python -m unittest discover -v -s tests
 
+  unittests-first-ubuntu:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [ '3.11', '3.12', '3.13' ]
+        os: [ ubuntu-latest ]
+
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - uses: ./.github/actions/unittests_src
+
   unittests-third:
     if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository
 
@@ -173,24 +153,4 @@ jobs:
         shell: bash
 
     steps:
-      - name: Clone Amulet-Core
-        uses: actions/checkout@v4
-
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Install dependencies
-        run: |
-          pip cache purge
-          python -m pip install --upgrade pip
-          pip install build
-
-      - name: Build Amulet-Core
-        run: |
-          pip install -vv .[dev]
-          python tools/compile_tests.py
-
-      - name: Test with unittest
-        run: python -m unittest discover -v -s tests
+      - uses: ./.github/actions/unittests_src

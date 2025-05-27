@@ -1,0 +1,32 @@
+name: 'Src Unit-tests'
+description: 'Build from source and run unittests.'
+inputs:
+  python-version:
+    description: 'The version of Python to install'
+runs:
+  using: "composite"
+  steps:
+    - name: Clone Amulet-Core
+      uses: actions/checkout@v4
+
+    - name: Set up Python ${{ inputs.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - name: Install dependencies
+      shell: bash
+      run: |
+        pip cache purge
+        python -m pip install --upgrade pip
+        pip install build
+
+    - name: Build Amulet-Core
+      shell: bash
+      run: |
+        pip install -vv .[dev]
+        python tools/compile_tests.py
+
+    - name: Test with unittest
+      shell: bash
+      run: python -m unittest discover -v -s tests
