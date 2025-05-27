@@ -10,7 +10,8 @@ def get_requires_for_build_wheel(
 ) -> list[str]:
     return [
         *build_meta.get_requires_for_build_wheel(config_settings),
-        *requirements.get_compile_dependencies(config_settings),
+        "wheel",
+        *requirements.get_build_dependencies(),
     ]
 
 
@@ -19,5 +20,5 @@ def get_requires_for_build_editable(
 ) -> list[str]:
     return [
         *build_meta.get_requires_for_build_editable(config_settings),
-        *requirements.get_compile_dependencies(config_settings),
+        *requirements.get_build_dependencies(),
     ]

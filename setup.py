@@ -2,77 +2,23 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-import requirements
 
 from setuptools import setup, Extension, Command
 from setuptools.command.build_ext import build_ext
+
 from packaging.version import Version
 
 import versioneer
+
+import requirements
+import amulet_compiler_version
 
 
 def fix_path(path: str) -> str:
     return os.path.realpath(path).replace(os.sep, "/")
 
 
-dependencies = requirements.get_fixed_runtime_dependencies()
-
-
-def add_dependency(lib_name: str, version_str: str) -> None:
-    version = Version(version_str)
-    if version.is_prerelease:
-        # Breaking API changes can be made between pre-release versions. Pin to this exact release.
-        dependencies.append(f"{lib_name}=={version_str}")
-    else:
-        # Major - breaking API change. Dependents must be updated and recompiled.
-        major = version.major
-        # Minor - backwards compatible API change. Dependents must be recompiled.
-        minor = version.minor
-        # Patch - API unchanged. Dependents must be recompiled.
-        patch = version.micro
-        # Fix - API unchanged. Dependents do not need to be recompiled.
-        dependencies.append(f"{lib_name}~={major}.{minor}.{patch}.0")
-
-
-try:
-    import amulet_compiler_version
-except ImportError:
-    dependencies.append(
-        f"amulet-compiler-version{requirements.AMULET_COMPILER_VERSION_REQUIREMENT}"
-    )
-else:
-    if os.environ.get("AMULET_FREEZE_COMPILER", None):
-        dependencies.append(
-            f"amulet-compiler-version=={amulet_compiler_version.__version__}"
-        )
-    else:
-        dependencies.append(
-            f"amulet-compiler-version{requirements.AMULET_COMPILER_VERSION_REQUIREMENT}"
-        )
-
-try:
-    import amulet.pybind11_extensions
-except ImportError:
-    dependencies.append(
-        f"amulet_pybind11_extensions{requirements.AMULET_PYBIND11_EXTENSIONS_REQUIREMENT}"
-    )
-else:
-    add_dependency("amulet_pybind11_extensions", amulet.pybind11_extensions.__version__)
-
-try:
-    import amulet.io
-except ImportError:
-    dependencies.append(f"amulet_io{requirements.AMULET_IO_REQUIREMENT}")
-else:
-    add_dependency("amulet_io", amulet.io.__version__)
-
-try:
-    import amulet.nbt
-except ImportError:
-    dependencies.append(f"amulet_nbt{requirements.AMULET_NBT_REQUIREMENT}")
-else:
-    add_dependency("amulet_nbt", amulet.nbt.__version__)
-
+dependencies = requirements.get_runtime_dependencies()
 
 cmdclass: dict[str, type[Command]] = versioneer.get_cmdclass()
 
