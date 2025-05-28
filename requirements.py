@@ -10,7 +10,7 @@ AMULET_PYBIND11_EXTENSIONS_REQUIREMENT = "~=1.0"
 
 AMULET_IO_REQUIREMENT = "~=1.0"
 # AMULET_NBT_REQUIREMENT = "~=4.0"
-AMULET_NBT_REQUIREMENT = "==4.0a24"
+AMULET_NBT_REQUIREMENT = "~=4.0.0.0a24"
 NUMPY_REQUIREMENT = "~=2.0"
 
 
@@ -25,15 +25,7 @@ def get_specifier_set(version_str: str, compiler_suffix_: str = "") -> str:
 
     major, minor, patch, fix, *_ = version.release + (0, 0, 0, 0)
 
-    if version.is_prerelease:
-        # Pre-releases can make breaking changes. Pin to this exact release.
-        if compiler_suffix_:
-            return f"=={major}.{minor}.{patch}.{fix}{compiler_suffix_}{''.join(map(str, version.pre))}"
-        else:
-            return f"=={version_str}"
-    else:
-        # Require an ABI compatible build.
-        return f"~={major}.{minor}.{patch}.{fix}"
+    return f"~={major}.{minor}.{patch}.{fix}{compiler_suffix_}{''.join(map(str, version.pre or ()))}"
 
 
 if os.environ.get("AMULET_FREEZE_COMPILER", None):
