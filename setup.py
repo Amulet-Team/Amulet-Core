@@ -3,6 +3,7 @@ import subprocess
 import sys
 from pathlib import Path
 import platform
+import datetime
 
 from setuptools import setup, Extension, Command
 from setuptools.command.build_ext import build_ext
@@ -12,7 +13,6 @@ from packaging.version import Version
 import versioneer
 
 import requirements
-import amulet_compiler_version
 
 
 if (
@@ -94,20 +94,13 @@ def _get_version() -> str:
     version_str: str = versioneer.get_version()
 
     if os.environ.get("AMULET_FREEZE_COMPILER", None):
-        # Add the compiler version to the library version so that pip sees it as a distinct version.
-        compiler_version_str = ".".join(
-            amulet_compiler_version.__version__.split(".")[3:]
-        )
-        if compiler_version_str:
-            version = Version(version_str)
-            if version.epoch != 0 or version.is_devrelease or version.is_postrelease:
-                raise RuntimeError(f"Unsupported version format. {version_str}")
-            major, minor, patch, fix, *_ = version.release + (0, 0, 0, 0)
-            pre = "".join(map(str, version.pre)) if version.is_prerelease else ""
-            local = f"+{version.local}" if version.local else ""
-            version_str = (
-                f"{major}.{minor}.{patch}.{fix}.{compiler_version_str}{pre}{local}"
-            )
+        version = Version(version_str)
+        epoch = f"{version.epoch}!" if version.epoch else ""
+        release = ".".join(map(str, version.release))
+        pre = "".join(map(str, version.pre)) if version.is_prerelease else ""
+        post = f".post{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}"
+        local = f"+{version.local}" if version.local else ""
+        version_str = f"{epoch}{release}{pre}{post}{local}"
 
     return version_str
 
