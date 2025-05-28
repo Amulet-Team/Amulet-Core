@@ -10,14 +10,13 @@ AMULET_PYBIND11_EXTENSIONS_REQUIREMENT = "~=1.0"
 
 AMULET_IO_REQUIREMENT = "~=1.0"
 # AMULET_NBT_REQUIREMENT = "~=4.0"
-AMULET_NBT_REQUIREMENT = "~=4.0.0.0a24"
+AMULET_NBT_REQUIREMENT = "~=4.0.1.0a0"
 NUMPY_REQUIREMENT = "~=2.0"
 
 
-def get_specifier_set(version_str: str, compiler_suffix_: str = "") -> str:
+def get_specifier_set(version_str: str) -> str:
     """
     version_str: The PEP 440 version number of the library.
-    compiler_suffix_: Only specified if it is a compiled library and the compiler is being frozen.
     """
     version = Version(version_str)
     if version.epoch != 0 or version.is_devrelease or version.is_postrelease:
@@ -25,13 +24,11 @@ def get_specifier_set(version_str: str, compiler_suffix_: str = "") -> str:
 
     major, minor, patch, fix, *_ = version.release + (0, 0, 0, 0)
 
-    return f"~={major}.{minor}.{patch}.{fix}{compiler_suffix_}{''.join(map(str, version.pre or ()))}"
+    return f"~={major}.{minor}.{patch}.{fix}{''.join(map(str, version.pre or ()))}"
 
 
 if os.environ.get("AMULET_FREEZE_COMPILER", None):
     AMULET_COMPILER_VERSION_REQUIREMENT = f"=={amulet_compiler_version.__version__}"
-
-    compiler_suffix = f".{'.'.join(amulet_compiler_version.__version__.split('.')[3:])}"
 
     try:
         import amulet.io
@@ -45,9 +42,7 @@ if os.environ.get("AMULET_FREEZE_COMPILER", None):
     except ImportError:
         pass
     else:
-        AMULET_NBT_REQUIREMENT = get_specifier_set(
-            amulet.nbt.__version__, compiler_suffix
-        )
+        AMULET_NBT_REQUIREMENT = get_specifier_set(amulet.nbt.__version__)
 
 
 def get_build_dependencies() -> list:
