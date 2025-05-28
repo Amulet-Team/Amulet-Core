@@ -16,7 +16,6 @@ runs:
       run: |
         pip cache purge
         python -m pip install --upgrade pip
-        pip install build
 
     - name: Build Amulet-Core
       shell: bash
