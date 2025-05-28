@@ -58,7 +58,7 @@ class CMakeBuild(cmdclass.get("build_ext", build_ext)):
             platform_args.extend(["-T", "v143"])
         elif sys.platform == "darwin":
             if platform.machine() == "arm64":
-                platform_args.append('-DCMAKE_OSX_ARCHITECTURES=x86_64;arm64')
+                platform_args.append("-DCMAKE_OSX_ARCHITECTURES=x86_64;arm64")
 
         if subprocess.run(
             [
