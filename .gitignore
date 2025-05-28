@@ -6,7 +6,6 @@ __pycache__/
 # Distribution / packaging
 .Python
 build/
-install/
 develop-eggs/
 dist/
 downloads/
@@ -108,7 +107,8 @@ venv*
 .mypy_cache/
 
 # Visual Studio
-src/sln
+/src/sln
+/install
 .vs
 *.dll
 *.lib
