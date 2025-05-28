@@ -46,7 +46,7 @@ runs:
       id: compiled-dep
       shell: bash
       run: |
-        nbt=$(python -c "import requirements; print(requirements.get_specifier_set(\"${{ steps.dep.outputs.nbt }}\", \"${{ steps.compiler.outputs.suffix }}\"))")
+        nbt=$(python -c "import requirements; print(requirements.get_specifier_set(\"${{ steps.dep.outputs.nbt }}\"))")
         echo "nbt=$nbt" >> "$GITHUB_OUTPUT"
 
     - name: Clone Amulet-NBT
