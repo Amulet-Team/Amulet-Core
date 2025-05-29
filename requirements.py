@@ -22,9 +22,7 @@ def get_specifier_set(version_str: str) -> str:
     if version.epoch != 0 or version.is_devrelease or version.is_postrelease:
         raise RuntimeError(f"Unsupported version format. {version_str}")
 
-    major, minor, patch, fix, *_ = version.release + (0, 0, 0, 0)
-
-    return f"~={major}.{minor}.{patch}.{fix}{''.join(map(str, version.pre or ()))}"
+    return f"~={version.major}.{version.minor}.{version.micro}.0{''.join(map(str, version.pre or ()))}"
 
 
 if os.environ.get("AMULET_FREEZE_COMPILER", None):
