@@ -33,11 +33,11 @@ runs:
         twine-username: ${{ inputs.username }}
         twine-password: ${{ inputs.compiler-version-password }}
 
-    - name: Get Compiled Dependencies
-      id: compiled-dep
+    - name: Get Dependencies
+      id: dep
       shell: bash
       run: |
-        nbt=$(python -c "import requirements; print(requirements.get_specifier_set(requirements.AMULET_NBT_REQUIREMENT))")
+        nbt=$(python -c "import requirements; print(requirements.AMULET_NBT_REQUIREMENT)")
         echo "nbt=$nbt" >> "$GITHUB_OUTPUT"
 
     - name: Clone Amulet-NBT
@@ -45,9 +45,16 @@ runs:
       uses: Amulet-Team/checkout-pep440@v1
       with:
         repository: 'Amulet-Team/Amulet-NBT'
-        specifier: '==${{ steps.dep.outputs.nbt }}'
+        specifier: ${{ steps.dep.outputs.nbt }}
         path: 'build/pylib/Amulet-NBT'
         rest-token: ${{ inputs.rest-token }}
+
+    - name: Specialise Specifiers
+      id: dep2
+      shell: bash
+      run: |
+        nbt=$(python -c "import requirements; print(requirements.get_specifier_set(\"${{ steps.nbt-clone.outputs.ref }}\"))")
+        echo "nbt=$nbt" >> "$GITHUB_OUTPUT"
 
     - name: Install Amulet-NBT
       uses: ./build/pylib/Amulet-NBT/.github/actions/install
@@ -55,4 +62,4 @@ runs:
         twine-username: ${{ inputs.username }}
         twine-password: ${{ inputs.nbt-password }}
         compiler-specifier: '==${{ steps.compiler.outputs.version }}'
-        nbt-specifier: ${{ steps.compiled-dep.outputs.nbt }}
+        nbt-specifier: ${{ steps.dep2.outputs.nbt }}
