@@ -14,6 +14,17 @@ AMULET_NBT_REQUIREMENT = "~=4.0.1.0a2"
 NUMPY_REQUIREMENT = "~=2.0"
 
 
+if os.environ.get("AMULET_IO_REQUIREMENT", None):
+    AMULET_IO_REQUIREMENT = (
+        f"{AMULET_IO_REQUIREMENT},{os.environ['AMULET_IO_REQUIREMENT']}"
+    )
+
+if os.environ.get("AMULET_NBT_REQUIREMENT", None):
+    AMULET_NBT_REQUIREMENT = (
+        f"{AMULET_NBT_REQUIREMENT},{os.environ['AMULET_NBT_REQUIREMENT']}"
+    )
+
+
 def get_specifier_set(version_str: str) -> str:
     """
     version_str: The PEP 440 version number of the library.
