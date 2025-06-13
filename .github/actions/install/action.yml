@@ -3,16 +3,22 @@ description: 'Build, publish and install this library specialised for the instal
 inputs:
   twine-username:
     description: 'The twine username'
+    required: true
   twine-password:
     description: 'The twine password'
+    required: true
   compiler-specifier:
     description: 'The PEP 440 version specifier for the compiler library'
+    required: true
   io-specifier:
     description: 'The PEP 440 version specifier for the io library'
+    required: true
   nbt-specifier:
     description: 'The PEP 440 version specifier for the NBT library'
+    required: true
   core-specifier:
     description: 'The PEP 440 version specifier for the Core library'
+    required: true
 outputs:
   version:
     description: "The version number of the installed library."
@@ -20,6 +26,39 @@ outputs:
 runs:
   using: "composite"
   steps:
+    - name: Validate Inputs
+      shell: bash
+      run: |
+        if [ -z "${{ inputs.twine-username }}" ]; then
+          echo "twine-username is empty"
+          exit 1
+        fi
+        
+        if [ -z "${{ inputs.twine-password }}" ]; then
+          echo "twine-password is empty"
+          exit 1
+        fi
+        
+        if [ -z "${{ inputs.compiler-specifier }}" ]; then
+          echo "compiler-specifier is empty"
+          exit 1
+        fi
+        
+        if [ -z "${{ inputs.io-specifier }}" ]; then
+          echo "io-specifier is empty"
+          exit 1
+        fi
+        
+        if [ -z "${{ inputs.nbt-specifier }}" ]; then
+          echo "nbt-specifier is empty"
+          exit 1
+        fi
+        
+        if [ -z "${{ inputs.core-specifier }}" ]; then
+          echo "core-specifier is empty"
+          exit 1
+        fi
+
     - name: Install Prebuilt
       id: install
       shell: bash
