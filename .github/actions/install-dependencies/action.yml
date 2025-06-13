@@ -22,6 +22,39 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Validate Inputs
+      shell: bash
+      run: |
+        if [ -z "${{ inputs.python-version }}" ]; then
+          echo "python-version is empty"
+          exit 1
+        fi
+
+        if [ -z "${{ inputs.username }}" ]; then
+          echo "username is empty"
+          exit 1
+        fi
+        
+        if [ -z "${{ inputs.compiler-version-password }}" ]; then
+          echo "compiler-version-password is empty"
+          exit 1
+        fi
+        
+        if [ -z "${{ inputs.zlib-password }}" ]; then
+          echo "zlib-password is empty"
+          exit 1
+        fi
+        
+        if [ -z "${{ inputs.nbt-password }}" ]; then
+          echo "nbt-password is empty"
+          exit 1
+        fi
+        
+        if [ -z "${{ inputs.rest-token }}" ]; then
+          echo "rest-token is empty"
+          exit 1
+        fi
+
     - name: Set up Python ${{ inputs.python-version }}
       uses: actions/setup-python@v5
       with:
