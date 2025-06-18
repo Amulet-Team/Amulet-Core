@@ -6,14 +6,42 @@ namespace Amulet {
 
 // Biome3DComponent
 
+void Biome3DComponentData::serialise(BinaryWriter& writer) const
+{
+    writer.write_numeric<std::uint8_t>(1);
+    _palette->serialise(writer);
+    _sections->serialise(writer);
+}
+Biome3DComponentData Biome3DComponentData::deserialise(BinaryReader& reader)
+{
+    auto version_number = reader.read_numeric<std::uint8_t>();
+    switch (version_number) {
+    case 1: {
+        auto palette = std::make_shared<BiomePalette>(BiomePalette::deserialise(reader));
+        auto sections = std::make_shared<SectionArrayMap>(SectionArrayMap::deserialise(reader));
+        return Biome3DComponentData { std::move(palette), std::move(sections) };
+    }
+    default:
+        throw std::invalid_argument("Unsupported Biome3DComponentData version " + std::to_string(version_number));
+    }
+}
+
 std::optional<std::string> Biome3DComponent::serialise() const
 {
-    throw std::runtime_error("NotImplementedError");
+    if (_value) {
+        return Amulet::serialise(**_value);
+    } else {
+        return std::nullopt;
+    }
 }
 // Deserialise the component
-void Biome3DComponent::deserialise(std::optional<std::string>)
+void Biome3DComponent::deserialise(std::optional<std::string> data)
 {
-    throw std::runtime_error("NotImplementedError");
+    if (data) {
+        _value = std::make_shared<Biome3DComponentData>(Amulet::deserialise<Biome3DComponentData>(*data));
+    } else {
+        _value = std::nullopt;
+    }
 }
 
 const std::string Biome3DComponent::ComponentID = "Amulet::Biome3DComponent";

@@ -59,6 +59,9 @@ public:
     std::shared_ptr<BiomePalette> get_palette_ptr() { return _palette; }
     SectionArrayMap& get_sections() { return *_sections; }
     std::shared_ptr<SectionArrayMap> get_sections_ptr() { return _sections; }
+
+    AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
+    AMULET_CORE_EXPORT static Biome3DComponentData deserialise(BinaryReader&);
 };
 
 class Biome3DComponent {

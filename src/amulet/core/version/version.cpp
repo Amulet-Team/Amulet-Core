@@ -31,7 +31,7 @@ VersionNumber VersionNumber::deserialise(BinaryReader& reader)
         return vec;
     }
     default:
-        throw std::invalid_argument("Unsupported version " + std::to_string(version_number));
+        throw std::invalid_argument("Unsupported VersionNumber version " + std::to_string(version_number));
     }
 }
 
@@ -89,7 +89,7 @@ PlatformVersionContainer PlatformVersionContainer::deserialise(BinaryReader& rea
         return { platform, version };
     }
     default:
-        throw std::invalid_argument("Unsupported version " + std::to_string(version_number));
+        throw std::invalid_argument("Unsupported PlatformVersionContainer version " + std::to_string(version_number));
     }
 }
 
@@ -112,7 +112,7 @@ VersionRange VersionRange::deserialise(BinaryReader& reader)
         return { platform, min_version, max_version };
     }
     default:
-        throw std::invalid_argument("Unsupported version " + std::to_string(version_number));
+        throw std::invalid_argument("Unsupported VersionRange version " + std::to_string(version_number));
     }
 }
 
@@ -140,7 +140,7 @@ VersionRangeContainer VersionRangeContainer::deserialise(BinaryReader& reader)
         return VersionRange::deserialise(reader);
     }
     default:
-        throw std::invalid_argument("Unsupported version " + std::to_string(version_number));
+        throw std::invalid_argument("Unsupported VersionRangeContainer version " + std::to_string(version_number));
     }
 }
 

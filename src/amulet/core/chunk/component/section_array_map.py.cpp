@@ -233,5 +233,14 @@ py::module init_section_array_map(py::module m_parent)
     pyext::collections::def_MutableMapping_setdefault<std::int64_t, pyext::numpy::array_t<std::uint32_t>>(SectionArrayMap);
     pyext::collections::register_MutableMapping(SectionArrayMap);
 
+    SectionArrayMap.def(
+        py::pickle(
+            [](const Amulet::SectionArrayMap& self) -> py::bytes {
+                return py::bytes(Amulet::serialise(self));
+            },
+            [](py::bytes state) {
+                return Amulet::deserialise<Amulet::SectionArrayMap>(state.cast<std::string>());
+            }));
+
     return m;
 }
