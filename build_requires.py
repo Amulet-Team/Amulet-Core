@@ -1,8 +1,9 @@
 from typing import Union, Mapping
-import requirements
 
 from setuptools import build_meta
 from setuptools.build_meta import *
+
+import requirements
 
 
 def get_requires_for_build_wheel(

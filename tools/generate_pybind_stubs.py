@@ -7,7 +7,6 @@ import re
 import pybind11_stubgen
 from pybind11_stubgen.structs import Identifier
 from pybind11_stubgen.parser.mixins.filter import FilterClassMembers
-
 from pybind11_stubgen import main as pybind11_stubgen_main
 
 UnionPattern = re.compile(
@@ -205,10 +204,10 @@ def main() -> None:
     # print("Running stubgen...")
     # stubgen.main([
     #     *glob.glob(
-    #         os.path.join(glob.escape(amulet_path), "**", "*.py"), recursive=True
+    #         os.path.join(glob.escape(package_path), "**", "*.py"), recursive=True
     #     ),
     #     "-o",
-    #     amulet_path,
+    #     package_path,
     #     "--include-docstrings",
     # ])
 
@@ -217,7 +216,9 @@ def main() -> None:
         for stub_path in glob.iglob(
             os.path.join(glob.escape(module_dir), "**", "*.pyi"), recursive=True
         ):
-            if os.path.isfile(stub_path[:-1]):
+            if os.path.isfile(stub_path[:-1]) and not stub_path.endswith(
+                "__init__.pyi"
+            ):
                 os.remove(stub_path)
 
     print("Patching stub files...")

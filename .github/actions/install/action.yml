@@ -10,14 +10,23 @@ inputs:
   compiler-specifier:
     description: 'The PEP 440 version specifier for the compiler library'
     required: true
+  pybind11-specifier:
+    description: 'The PEP 440 version specifier for the pybind11 library'
+    required: true
+  pybind11-extensions-specifier:
+    description: 'The PEP 440 version specifier for the Amulet-pybind11-extensions library'
+    required: true
   io-specifier:
-    description: 'The PEP 440 version specifier for the io library'
+    description: 'The PEP 440 version specifier for the Amulet-IO library'
+    required: true
+  zlib-specifier:
+    description: 'The PEP 440 version specifier for the Amulet-zlib library'
     required: true
   nbt-specifier:
-    description: 'The PEP 440 version specifier for the NBT library'
+    description: 'The PEP 440 version specifier for the Amulet-NBT library'
     required: true
   core-specifier:
-    description: 'The PEP 440 version specifier for the Core library'
+    description: 'The PEP 440 version specifier for the Amulet-Core library'
     required: true
 outputs:
   version:
@@ -43,17 +52,32 @@ runs:
           echo "compiler-specifier is empty"
           exit 1
         fi
-        
+
+        if [ -z "${{ inputs.pybind11-specifier }}" ]; then
+          echo "pybind11-specifier is empty"
+          exit 1
+        fi
+
+        if [ -z "${{ inputs.pybind11-extensions-specifier }}" ]; then
+          echo "pybind11-extensions-specifier is empty"
+          exit 1
+        fi
+
         if [ -z "${{ inputs.io-specifier }}" ]; then
           echo "io-specifier is empty"
           exit 1
         fi
-        
+
+        if [ -z "${{ inputs.zlib-specifier }}" ]; then
+          echo "zlib-specifier is empty"
+          exit 1
+        fi
+
         if [ -z "${{ inputs.nbt-specifier }}" ]; then
           echo "nbt-specifier is empty"
           exit 1
         fi
-        
+
         if [ -z "${{ inputs.core-specifier }}" ]; then
           echo "core-specifier is empty"
           exit 1
@@ -64,14 +88,17 @@ runs:
       shell: bash
       continue-on-error: true
       run: |
-        python -m pip install --only-binary amulet-core amulet-compiler-version${{ inputs.compiler-specifier }} amulet-io${{ inputs.io-specifier }} amulet-nbt${{ inputs.nbt-specifier }} amulet-core${{ inputs.core-specifier }}
+        python -m pip install --only-binary amulet-core amulet-compiler-version${{ inputs.compiler-specifier }} pybind11${{ inputs.pybind11-specifier }} amulet-pybind11-extensions${{ inputs.pybind11-extensions-specifier }} amulet-io${{ inputs.io-specifier }} amulet-zlib${{ inputs.zlib-specifier }} amulet-nbt${{ inputs.nbt-specifier }} amulet-core${{ inputs.core-specifier }}
 
     - name: Build
       if: steps.install.outcome == 'failure'
       shell: bash
       env:
         AMULET_FREEZE_COMPILER: 1
+        PYBIND11_REQUIREMENT: ${{ inputs.pybind11-specifier }}
+        AMULET_PYBIND11_EXTENSIONS_REQUIREMENT: ${{ inputs.pybind11-extensions-specifier }}
         AMULET_IO_REQUIREMENT: ${{ inputs.io-specifier }}
+        AMULET_ZLIB_REQUIREMENT: ${{ inputs.zlib-specifier }}
         AMULET_NBT_REQUIREMENT: ${{ inputs.nbt-specifier }}
       run: |
         python -m build --wheel "${{ github.action_path }}"/../../..

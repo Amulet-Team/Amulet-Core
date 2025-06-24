@@ -21,10 +21,8 @@ if (MSVC)
     add_definitions("/MP")
 endif()
 
-# Add pybind11
+# Find libraries
 find_package(pybind11 CONFIG REQUIRED)
-
-# Add Amulet libraries
 find_package(amulet_pybind11_extensions CONFIG REQUIRED)
 find_package(amulet_io CONFIG REQUIRED)
 find_package(amulet_nbt CONFIG REQUIRED)
@@ -40,9 +38,9 @@ list(REMOVE_ITEM HEADERS ${EXTENSION_HEADERS})
 
 # Add implementation
 add_library(amulet_core SHARED)
-target_link_libraries( amulet_core PRIVATE amulet_io )
-target_link_libraries( amulet_core PRIVATE amulet_nbt )
 target_compile_definitions(amulet_core PRIVATE ExportAmuletCore)
+target_link_libraries(amulet_core PUBLIC amulet_io)
+target_link_libraries(amulet_core PUBLIC amulet_nbt)
 target_include_directories(amulet_core PUBLIC ${SOURCE_PATH})
 target_sources(amulet_core PRIVATE ${SOURCES} ${HEADERS})
 foreach(FILE ${SOURCES} ${HEADERS})
@@ -54,10 +52,8 @@ endforeach()
 
 # Add python extension
 pybind11_add_module(_amulet_core)
-target_link_libraries( _amulet_core PRIVATE amulet_pybind11_extensions )
-target_link_libraries( _amulet_core PRIVATE amulet_io )
-target_link_libraries( _amulet_core PRIVATE amulet_nbt )
-target_link_libraries( _amulet_core PRIVATE amulet_core )
+target_link_libraries(_amulet_core PRIVATE amulet_pybind11_extensions)
+target_link_libraries(_amulet_core PRIVATE amulet_core)
 target_compile_definitions(_amulet_core PRIVATE PYBIND11_DETAILED_ERROR_MESSAGES)
 target_compile_definitions(_amulet_core PRIVATE PYBIND11_VERSION="${pybind11_VERSION}")
 target_compile_definitions(_amulet_core PRIVATE COMPILER_ID="${CMAKE_CXX_COMPILER_ID}")

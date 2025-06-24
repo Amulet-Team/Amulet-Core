@@ -15,12 +15,12 @@ on:
 jobs:
   unittests-first:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-
+  
     strategy:
       fail-fast: false
       matrix:
         python-version: [ '3.11', '3.12' ]
-        os: [ windows-latest, macos-latest ]
+        os: [ macos-latest, windows-latest ]
 
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
@@ -29,7 +29,7 @@ jobs:
         shell: bash
 
     steps:
-    - name: Clone Amulet-Core
+    - name: Clone
       uses: actions/checkout@v4
 
     - name: Install dependencies
@@ -42,11 +42,11 @@ jobs:
         nbt-password: ${{ secrets.AMULET_NBT_PYPI_PASSWORD }}
         rest-token: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Build Amulet-Core
+    - name: Install
       env:
         AMULET_FREEZE_COMPILER: 1
       run: |
-        pip install -vv .[dev]
+        pip install -v .[dev]
         python tools/compile_tests.py
 
     - name: Test with unittest
