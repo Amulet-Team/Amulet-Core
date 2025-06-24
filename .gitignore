@@ -107,11 +107,15 @@ venv*
 .mypy_cache/
 
 # Visual Studio
-/src/sln
-/install
+/install/
 .vs
 *.dll
+*.so
+*.dylib
 *.lib
 *.exp
 *.pdb
 *.ilk
+
+/amulet_core-*
+/.github/actions/install-dependencies/*.json
