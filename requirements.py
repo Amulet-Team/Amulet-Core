@@ -1,5 +1,4 @@
 import os
-import amulet_compiler_version
 from packaging.version import Version
 
 AMULET_COMPILER_TARGET_REQUIREMENT = "==2.0"
@@ -43,7 +42,9 @@ def get_specifier_set(version_str: str) -> str:
 
 
 if os.environ.get("AMULET_FREEZE_COMPILER", None):
-    AMULET_COMPILER_VERSION_REQUIREMENT = f"=={amulet_compiler_version.__version__}"
+    import get_compiler
+
+    AMULET_COMPILER_VERSION_REQUIREMENT = get_compiler.main()
 
     try:
         import amulet.pybind11_extensions
