@@ -83,12 +83,18 @@ runs:
           exit 1
         fi
 
+    - name: Install Dependencies
+      shell: bash
+      run: |
+        python -m pip install --only-binary amulet-zlib,amulet-nbt amulet-compiler-version${{ inputs.compiler-specifier }} pybind11${{ inputs.pybind11-specifier }} amulet-pybind11-extensions${{ inputs.pybind11-extensions-specifier }} amulet-io${{ inputs.io-specifier }} amulet-zlib${{ inputs.zlib-specifier }} amulet-nbt${{ inputs.nbt-specifier }}
+
+
     - name: Install Prebuilt
       id: install
       shell: bash
       continue-on-error: true
       run: |
-        python -m pip install --only-binary amulet-core amulet-compiler-version${{ inputs.compiler-specifier }} pybind11${{ inputs.pybind11-specifier }} amulet-pybind11-extensions${{ inputs.pybind11-extensions-specifier }} amulet-io${{ inputs.io-specifier }} amulet-zlib${{ inputs.zlib-specifier }} amulet-nbt${{ inputs.nbt-specifier }} amulet-core${{ inputs.core-specifier }}
+        python -m pip install --only-binary amulet-core,amulet-zlib,amulet-nbt amulet-compiler-version${{ inputs.compiler-specifier }} pybind11${{ inputs.pybind11-specifier }} amulet-pybind11-extensions${{ inputs.pybind11-extensions-specifier }} amulet-io${{ inputs.io-specifier }} amulet-zlib${{ inputs.zlib-specifier }} amulet-nbt${{ inputs.nbt-specifier }} amulet-core${{ inputs.core-specifier }}
 
     - name: Build
       if: steps.install.outcome == 'failure'
@@ -116,7 +122,9 @@ runs:
       if: steps.install.outcome == 'failure'
       shell: bash
       run: |
-        python -m pip install "${{ github.action_path }}"/../../../dist/amulet_core-*.whl
+        cache_dir=$(python -m pip cache dir)
+        rm -rf "$cache_dir"/http*
+        python -m pip install --only-binary amulet-core,amulet-zlib,amulet-nbt amulet-compiler-version${{ inputs.compiler-specifier }} pybind11${{ inputs.pybind11-specifier }} amulet-pybind11-extensions${{ inputs.pybind11-extensions-specifier }} amulet-io${{ inputs.io-specifier }} amulet-zlib${{ inputs.zlib-specifier }} amulet-nbt${{ inputs.nbt-specifier }} amulet-core${{ inputs.core-specifier }}
 
     - name: Get __version__
       id: get-version

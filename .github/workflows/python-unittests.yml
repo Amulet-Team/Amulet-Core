@@ -46,7 +46,7 @@ jobs:
       env:
         AMULET_FREEZE_COMPILER: 1
       run: |
-        pip install -v .[dev]
+        pip install --only-binary amulet-compiler-version,amulet-zlib,amulet-nbt -v .[dev]
         python tools/compile_tests.py
 
     - name: Test with unittest
