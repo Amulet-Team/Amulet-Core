@@ -85,7 +85,7 @@ runs:
       env:
         REST_TOKEN: ${{ inputs.rest-token }}
       run: |
-        python -c "import sys; sys.path.append(r'${{ github.action_path }}'); import dependency_resolver; import requirements; dependency_resolver.find_and_save_compatible_libraries([('amulet-zlib', 'Amulet-Team/Amulet-zlib'), ('amulet-nbt', 'Amulet-Team/Amulet-NBT')], requirements.get_runtime_dependencies())"
+        python -c "import sys; sys.path.append(r'${{ github.action_path }}'); import dependency_resolver; import requirements; dependency_resolver.find_and_save_compatible_libraries([('amulet-nbt', 'Amulet-Team/Amulet-NBT'), ('amulet-zlib', 'Amulet-Team/Amulet-zlib')], requirements.get_runtime_dependencies())"
         pybind11=$(python -c "import os; f = open(os.path.join(r'${{ github.action_path }}', 'libraries.json'), encoding='utf-8'); import json; print(json.load(f)['pybind11'])")
         echo "pybind11=$pybind11" >> "$GITHUB_OUTPUT"
         pybind11_extensions=$(python -c "import os; f = open(os.path.join(r'${{ github.action_path }}', 'libraries.json'), encoding='utf-8'); import json; print(json.load(f)['amulet-pybind11-extensions'])")
@@ -114,7 +114,7 @@ runs:
 
 
     - name: Clone Amulet-zlib
-      uses: Amulet-Team/checkout-pep440@v1
+      uses: Amulet-Team/checkout-pep440@v2
       with:
         repository: 'Amulet-Team/Amulet-zlib'
         specifier: '==${{ steps.dep.outputs.zlib }}'
@@ -132,7 +132,7 @@ runs:
         zlib-specifier: ${{ steps.dep2.outputs.zlib }}
 
     - name: Clone Amulet-NBT
-      uses: Amulet-Team/checkout-pep440@v1
+      uses: Amulet-Team/checkout-pep440@v2
       with:
         repository: 'Amulet-Team/Amulet-NBT'
         specifier: '==${{ steps.dep.outputs.nbt }}'

@@ -1,5 +1,4 @@
 import os
-import amulet_compiler_version
 from packaging.version import Version
 
 AMULET_COMPILER_TARGET_REQUIREMENT = "==2.0"
@@ -8,8 +7,8 @@ AMULET_COMPILER_VERSION_REQUIREMENT = "==3.0.0"
 PYBIND11_REQUIREMENT = "==2.13.6"
 AMULET_PYBIND11_EXTENSIONS_REQUIREMENT = "~=1.1.0.0a0"
 AMULET_IO_REQUIREMENT = "~=1.0"
-AMULET_ZLIB_REQUIREMENT = "~=1.0.0.0a4"
-AMULET_NBT_REQUIREMENT = "~=5.0.0.0a4"
+AMULET_ZLIB_REQUIREMENT = "~=1.0.0.0a7"
+AMULET_NBT_REQUIREMENT = "~=5.0.0.0a7"
 NUMPY_REQUIREMENT = "~=2.0"
 
 if os.environ.get("AMULET_PYBIND11_EXTENSIONS_REQUIREMENT", None):
@@ -43,7 +42,9 @@ def get_specifier_set(version_str: str) -> str:
 
 
 if os.environ.get("AMULET_FREEZE_COMPILER", None):
-    AMULET_COMPILER_VERSION_REQUIREMENT = f"=={amulet_compiler_version.__version__}"
+    import get_compiler
+
+    AMULET_COMPILER_VERSION_REQUIREMENT = get_compiler.main()
 
     try:
         import amulet.pybind11_extensions
