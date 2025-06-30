@@ -291,6 +291,15 @@ void init_block(py::module m_parent)
                 py::tuple(py::cast(self.get_blocks())));
         });
 
+    BlockStack.def(
+        py::pickle(
+            [](const Amulet::BlockStack& self) -> py::bytes {
+                return py::bytes(Amulet::serialise(self));
+            },
+            [](py::bytes state) {
+                return Amulet::deserialise<Amulet::BlockStack>(state.cast<std::string>());
+            }));
+
     pyext::collections::def_Sequence_getitem_slice(BlockStack);
     pyext::collections::def_Sequence_contains(BlockStack);
     pyext::collections::def_Sequence_iter<Amulet::Block>(BlockStack);

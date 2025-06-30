@@ -6,13 +6,47 @@ namespace Amulet {
 
 // BlockEntityComponentData
 
-void BlockEntityComponentData::serialise(BinaryWriter&) const
+void BlockEntityComponentData::serialise(BinaryWriter& writer) const
 {
-    throw std::runtime_error("NotImplementedError");
+    writer.write_numeric<std::uint8_t>(1);
+    get_version_range().serialise(writer);
+    writer.write_numeric<std::uint16_t>(get_x_size());
+    writer.write_numeric<std::uint16_t>(get_z_size());
+
+    writer.write_numeric<std::uint64_t>(get_block_entities().size());
+    for (const auto& [coord, block_entity] : get_block_entities()) {
+        writer.write_numeric<std::uint16_t>(std::get<0>(coord));
+        writer.write_numeric<std::int64_t>(std::get<1>(coord));
+        writer.write_numeric<std::uint16_t>(std::get<2>(coord));
+        block_entity->serialise(writer);
+    }
 }
-BlockEntityComponentData BlockEntityComponentData::deserialise(BinaryReader&)
+BlockEntityComponentData BlockEntityComponentData::deserialise(BinaryReader& reader)
 {
-    throw std::runtime_error("NotImplementedError");
+    auto version_number = reader.read_numeric<std::uint8_t>();
+    switch (version_number) {
+    case 1: {
+        auto version_range = VersionRange::deserialise(reader);
+        auto x_size = reader.read_numeric<std::uint16_t>();
+        auto z_size = reader.read_numeric<std::uint16_t>();
+        BlockEntityComponentData block_entities {
+            std::move(version_range),
+            x_size,
+            z_size
+        };
+        auto block_entity_count = reader.read_numeric<std::uint64_t>();
+        for (std::uint16_t i = 0; i < block_entity_count; i++) {
+            auto dx = reader.read_numeric<std::uint16_t>();
+            auto y = reader.read_numeric<std::int64_t>();
+            auto dz = reader.read_numeric<std::uint16_t>();
+            auto block_entity = std::make_shared<BlockEntity>(BlockEntity::deserialise(reader));
+            block_entities.set({ dx, y, dz }, std::move(block_entity));
+        }
+        return block_entities;
+    }
+    default:
+        throw std::invalid_argument("Unsupported BlockEntityComponentData version " + std::to_string(version_number));
+    }
 }
 
 // BlockEntityComponent

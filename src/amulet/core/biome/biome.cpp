@@ -34,7 +34,7 @@ Biome Biome::deserialise(BinaryReader& reader)
         return { platform, version, namespace_, base_name };
     }
     default:
-        throw std::invalid_argument("Unsupported version " + std::to_string(version_number));
+        throw std::invalid_argument("Unsupported Biome version " + std::to_string(version_number));
     }
 }
 
