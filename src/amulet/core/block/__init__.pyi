@@ -37,7 +37,7 @@ class Block(amulet.core.version.PlatformVersionContainer):
     >>> )
     """
 
-    PropertyValue: typing.TypeAlias = (
+    PropertyValue: typing.ClassVar[typing.TypeAlias] = (
         amulet.nbt.ByteTag
         | amulet.nbt.ShortTag
         | amulet.nbt.IntTag
@@ -89,7 +89,7 @@ class Block(amulet.core.version.PlatformVersionContainer):
         version: amulet.core.version.VersionNumber,
         namespace: str,
         base_name: str,
-        properties: dict[
+        properties: collections.abc.Mapping[
             str,
             amulet.nbt.ByteTag
             | amulet.nbt.ShortTag
@@ -223,7 +223,7 @@ class BlockStack:
     def __eq__(self, arg0: typing.Any) -> bool | types.NotImplementedType: ...
     def __ge__(self, arg0: BlockStack) -> bool: ...
     @typing.overload
-    def __getitem__(self, arg0: int) -> Block: ...
+    def __getitem__(self, arg0: typing.SupportsInt) -> Block: ...
     @typing.overload
     def __getitem__(self, arg0: slice) -> list: ...
     def __gt__(self, arg0: BlockStack) -> bool: ...
@@ -237,7 +237,10 @@ class BlockStack:
     def __reversed__(self) -> collections.abc.Iterator[Block]: ...
     def count(self, value: typing.Any) -> int: ...
     def index(
-        self, value: typing.Any, start: int = 0, stop: int = 9223372036854775807
+        self,
+        value: typing.Any,
+        start: typing.SupportsInt = 0,
+        stop: typing.SupportsInt = 9223372036854775807,
     ) -> int: ...
     @property
     def base_block(self) -> Block:

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import typing
+import collections.abc
 
 __all__ = ["get_tests"]
 
-def get_tests() -> list[tuple[str, typing.Callable[[], None]]]: ...
+def get_tests() -> list[tuple[str, collections.abc.Callable[[], None]]]: ...

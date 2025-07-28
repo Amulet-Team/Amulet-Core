@@ -17,7 +17,7 @@ class BlockComponentData:
     def __init__(
         self,
         version_range: amulet.core.version.VersionRange,
-        array_shape: tuple[int, int, int],
+        array_shape: tuple[typing.SupportsInt, typing.SupportsInt, typing.SupportsInt],
         default_block: amulet.core.block.BlockStack,
     ) -> None: ...
     @property
