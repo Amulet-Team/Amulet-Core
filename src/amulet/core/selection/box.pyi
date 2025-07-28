@@ -23,7 +23,13 @@ class SelectionBox:
     def __hash__(self) -> int: ...
     @typing.overload
     def __init__(
-        self, min_x: int, min_y: int, min_z: int, size_x: int, size_y: int, size_z: int
+        self,
+        min_x: typing.SupportsInt,
+        min_y: typing.SupportsInt,
+        min_z: typing.SupportsInt,
+        size_x: typing.SupportsInt,
+        size_y: typing.SupportsInt,
+        size_z: typing.SupportsInt,
     ) -> None:
         """
         Construct a new SelectionBox instance.
@@ -41,7 +47,9 @@ class SelectionBox:
 
     @typing.overload
     def __init__(
-        self, point_1: tuple[int, int, int], point_2: tuple[int, int, int]
+        self,
+        point_1: tuple[typing.SupportsInt, typing.SupportsInt, typing.SupportsInt],
+        point_2: tuple[typing.SupportsInt, typing.SupportsInt, typing.SupportsInt],
     ) -> None:
         """
         Construct a new SelectionBox instance.
@@ -57,7 +65,9 @@ class SelectionBox:
     def __lt__(self, arg0: SelectionBox) -> bool: ...
     def __repr__(self) -> str: ...
     def __str__(self) -> str: ...
-    def contains_block(self, x: int, y: int, z: int) -> bool:
+    def contains_block(
+        self, x: typing.SupportsInt, y: typing.SupportsInt, z: typing.SupportsInt
+    ) -> bool:
         """
         Is the block contained within the selection.
 
@@ -79,7 +89,9 @@ class SelectionBox:
         :return: True if other fits in self, False otherwise.
         """
 
-    def contains_point(self, x: float, y: float, z: float) -> bool:
+    def contains_point(
+        self, x: typing.SupportsFloat, y: typing.SupportsFloat, z: typing.SupportsFloat
+    ) -> bool:
         """
         Is the point contained within the selection.
 
@@ -120,7 +132,9 @@ class SelectionBox:
         :return: True if the two :class:`SelectionBox` instances touch or intersect, False otherwise.
         """
 
-    def translate(self, x: int, y: int, z: int) -> SelectionBox:
+    def translate(
+        self, x: typing.SupportsInt, y: typing.SupportsInt, z: typing.SupportsInt
+    ) -> SelectionBox:
         """
         Create a new :class:`SelectionBox` based on this one with the coordinates moved by the given offset.
 

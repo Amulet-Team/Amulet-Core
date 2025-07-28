@@ -63,7 +63,9 @@ class SelectionGroup:
         >>> ])
         """
 
-    def __iter__(self) -> typing.Iterator[amulet.core.selection.box.SelectionBox]:
+    def __iter__(
+        self,
+    ) -> collections.abc.Iterator[amulet.core.selection.box.SelectionBox]:
         """
         An iterable of all the :class:`SelectionBox` classes in the group.
         """
@@ -75,7 +77,9 @@ class SelectionGroup:
 
     def __repr__(self) -> str: ...
     def __str__(self) -> str: ...
-    def contains_block(self, x: int, y: int, z: int) -> bool:
+    def contains_block(
+        self, x: typing.SupportsInt, y: typing.SupportsInt, z: typing.SupportsInt
+    ) -> bool:
         """
         Is the block contained within the selection.
 
@@ -89,7 +93,9 @@ class SelectionGroup:
         :return: True if the block is in the selection.
         """
 
-    def contains_point(self, x: float, y: float, z: float) -> bool:
+    def contains_point(
+        self, x: typing.SupportsFloat, y: typing.SupportsFloat, z: typing.SupportsFloat
+    ) -> bool:
         """
         Is the point contained within the selection.
 
@@ -114,7 +120,9 @@ class SelectionGroup:
 
     @typing.overload
     def intersects(self, other: SelectionGroup) -> bool: ...
-    def translate(self, x: int, y: int, z: int) -> SelectionGroup:
+    def translate(
+        self, x: typing.SupportsInt, y: typing.SupportsInt, z: typing.SupportsInt
+    ) -> SelectionGroup:
         """
         Create a new :class:`SelectionGroup` based on this one with the coordinates moved by the given offset.
 
@@ -207,7 +215,7 @@ class SelectionGroup:
     @property
     def selection_boxes(
         self,
-    ) -> typing.Iterator[amulet.core.selection.box.SelectionBox]:
+    ) -> collections.abc.Iterator[amulet.core.selection.box.SelectionBox]:
         """
         An iterator of the :class:`SelectionBox` instances stored for this group.
         """

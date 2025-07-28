@@ -24,9 +24,9 @@ class Entity(amulet.core.version.PlatformVersionContainer):
         version: amulet.core.version.VersionNumber,
         namespace: str,
         base_name: str,
-        x: float,
-        y: float,
-        z: float,
+        x: typing.SupportsFloat,
+        y: typing.SupportsFloat,
+        z: typing.SupportsFloat,
         nbt: amulet.nbt.NamedTag,
     ) -> None: ...
     def __repr__(self) -> str: ...
@@ -86,7 +86,7 @@ class Entity(amulet.core.version.PlatformVersionContainer):
         """
 
     @x.setter
-    def x(self, arg1: float) -> None: ...
+    def x(self, arg1: typing.SupportsFloat) -> None: ...
     @property
     def y(self) -> float:
         """
@@ -94,7 +94,7 @@ class Entity(amulet.core.version.PlatformVersionContainer):
         """
 
     @y.setter
-    def y(self, arg1: float) -> None: ...
+    def y(self, arg1: typing.SupportsFloat) -> None: ...
     @property
     def z(self) -> float:
         """
@@ -102,4 +102,4 @@ class Entity(amulet.core.version.PlatformVersionContainer):
         """
 
     @z.setter
-    def z(self, arg1: float) -> None: ...
+    def z(self, arg1: typing.SupportsFloat) -> None: ...
