@@ -9,7 +9,7 @@ namespace Amulet {
 class SelectionGroup;
 
 // The SelectionBox class represents a single cuboid selection.
-class SelectionBox {
+class AMULET_CORE_EXPORT SelectionBox {
 private:
     std::int64_t _min_x;
     std::int64_t _min_y;
@@ -65,22 +65,20 @@ public:
     size_t volume() const { return _size_x * _size_y * _size_z; }
 
     // Contains and intersects
-    AMULET_CORE_EXPORT bool contains_block(std::int64_t x, std::int64_t y, std::int64_t z) const;
-    AMULET_CORE_EXPORT bool contains_point(double x, double y, double z) const;
-    AMULET_CORE_EXPORT bool contains_box(const SelectionBox& other) const;
-    AMULET_CORE_EXPORT bool intersects(const SelectionBox& other) const;
-    AMULET_CORE_EXPORT bool intersects(const SelectionGroup& other) const;
-    AMULET_CORE_EXPORT bool touches_or_intersects(const SelectionBox& other) const;
-    AMULET_CORE_EXPORT bool touches(const SelectionBox& other) const;
+    bool contains_block(std::int64_t x, std::int64_t y, std::int64_t z) const;
+    bool contains_point(double x, double y, double z) const;
+    bool contains_box(const SelectionBox& other) const;
+    bool intersects(const SelectionBox& other) const;
+    bool intersects(const SelectionGroup& other) const;
+    bool touches_or_intersects(const SelectionBox& other) const;
+    bool touches(const SelectionBox& other) const;
 
     // Transform
-    AMULET_CORE_EXPORT SelectionBox translate(std::int64_t dx, std::int64_t dy, std::int64_t dz) const;
-    // AMULET_CORE_EXPORT SelectionGroup transform() const;
+    SelectionBox translate(std::int64_t dx, std::int64_t dy, std::int64_t dz) const;
+    // SelectionGroup transform() const;
 
     // Operators
     auto operator<=>(const SelectionBox&) const = default;
 };
 
 } // namespace Amulet
-
-#include "group.hpp"
