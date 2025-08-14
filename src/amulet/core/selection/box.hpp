@@ -6,7 +6,7 @@
 
 namespace Amulet {
 
-class SelectionGroup;
+class SelectionBoxes;
 
 // The SelectionBox class represents a single cuboid selection.
 class AMULET_CORE_EXPORT SelectionBox {
@@ -69,13 +69,13 @@ public:
     bool contains_point(double x, double y, double z) const;
     bool contains_box(const SelectionBox& other) const;
     bool intersects(const SelectionBox& other) const;
-    bool intersects(const SelectionGroup& other) const;
+    bool intersects(const SelectionBoxes& other) const;
     bool touches_or_intersects(const SelectionBox& other) const;
     bool touches(const SelectionBox& other) const;
 
     // Transform
     SelectionBox translate(std::int64_t dx, std::int64_t dy, std::int64_t dz) const;
-    // SelectionGroup transform() const;
+    // SelectionBoxes transform() const;
 
     // Operators
     auto operator<=>(const SelectionBox&) const = default;

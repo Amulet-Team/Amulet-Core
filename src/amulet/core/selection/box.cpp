@@ -2,7 +2,7 @@
 #include <array>
 
 #include "box.hpp"
-#include "group.hpp"
+#include "boxes.hpp"
 
 namespace Amulet {
 
@@ -34,7 +34,7 @@ bool SelectionBox::intersects(const SelectionBox& other) const
         && _min_y < other.max_y() && other._min_y < max_y()
         && _min_z < other.max_z() && other._min_z < max_z();
 }
-bool SelectionBox::intersects(const SelectionGroup& other) const
+bool SelectionBox::intersects(const SelectionBoxes& other) const
 {
     return other.intersects(*this);
 }
@@ -60,6 +60,6 @@ SelectionBox SelectionBox::translate(std::int64_t dx, std::int64_t dy, std::int6
         _size_y,
         _size_z);
 }
-// SelectionGroup SelectionBox::transform() const;
+// SelectionBoxes SelectionBox::transform() const;
 
 } // namespace Amulet

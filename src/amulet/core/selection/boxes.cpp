@@ -2,15 +2,15 @@
 #include <stdexcept>
 
 #include "box.hpp"
-#include "group.hpp"
+#include "boxes.hpp"
 
 namespace Amulet {
 
 // Bounds
-std::int64_t SelectionGroup::min_x() const
+std::int64_t SelectionBoxes::min_x() const
 {
     if (_boxes.empty()) {
-        throw std::runtime_error("Empty SelectionGroup has no minimum");
+        throw std::runtime_error("Empty SelectionBoxes has no minimum");
     }
     std::int64_t value = std::numeric_limits<std::int64_t>::max();
     for (const auto& box : _boxes) {
@@ -20,10 +20,10 @@ std::int64_t SelectionGroup::min_x() const
     }
     return value;
 }
-std::int64_t SelectionGroup::min_y() const
+std::int64_t SelectionBoxes::min_y() const
 {
     if (_boxes.empty()) {
-        throw std::runtime_error("Empty SelectionGroup has no minimum");
+        throw std::runtime_error("Empty SelectionBoxes has no minimum");
     }
     std::int64_t value = std::numeric_limits<std::int64_t>::max();
     for (const auto& box : _boxes) {
@@ -33,10 +33,10 @@ std::int64_t SelectionGroup::min_y() const
     }
     return value;
 }
-std::int64_t SelectionGroup::min_z() const
+std::int64_t SelectionBoxes::min_z() const
 {
     if (_boxes.empty()) {
-        throw std::runtime_error("Empty SelectionGroup has no minimum");
+        throw std::runtime_error("Empty SelectionBoxes has no minimum");
     }
     std::int64_t value = std::numeric_limits<std::int64_t>::max();
     for (const auto& box : _boxes) {
@@ -46,10 +46,10 @@ std::int64_t SelectionGroup::min_z() const
     }
     return value;
 }
-std::int64_t SelectionGroup::max_x() const
+std::int64_t SelectionBoxes::max_x() const
 {
     if (_boxes.empty()) {
-        throw std::runtime_error("Empty SelectionGroup has no maximum");
+        throw std::runtime_error("Empty SelectionBoxes has no maximum");
     }
     std::int64_t value = std::numeric_limits<std::int64_t>::min();
     for (const auto& box : _boxes) {
@@ -59,10 +59,10 @@ std::int64_t SelectionGroup::max_x() const
     }
     return value;
 }
-std::int64_t SelectionGroup::max_y() const
+std::int64_t SelectionBoxes::max_y() const
 {
     if (_boxes.empty()) {
-        throw std::runtime_error("Empty SelectionGroup has no maximum");
+        throw std::runtime_error("Empty SelectionBoxes has no maximum");
     }
     std::int64_t value = std::numeric_limits<std::int64_t>::min();
     for (const auto& box : _boxes) {
@@ -72,10 +72,10 @@ std::int64_t SelectionGroup::max_y() const
     }
     return value;
 }
-std::int64_t SelectionGroup::max_z() const
+std::int64_t SelectionBoxes::max_z() const
 {
     if (_boxes.empty()) {
-        throw std::runtime_error("Empty SelectionGroup has no maximum");
+        throw std::runtime_error("Empty SelectionBoxes has no maximum");
     }
     std::int64_t value = std::numeric_limits<std::int64_t>::min();
     for (const auto& box : _boxes) {
@@ -85,10 +85,10 @@ std::int64_t SelectionGroup::max_z() const
     }
     return value;
 }
-std::array<std::int64_t, 3> SelectionGroup::min() const
+std::array<std::int64_t, 3> SelectionBoxes::min() const
 {
     if (_boxes.empty()) {
-        throw std::runtime_error("Empty SelectionGroup has no minimum");
+        throw std::runtime_error("Empty SelectionBoxes has no minimum");
     }
     std::int64_t x = std::numeric_limits<std::int64_t>::max();
     std::int64_t y = std::numeric_limits<std::int64_t>::max();
@@ -106,10 +106,10 @@ std::array<std::int64_t, 3> SelectionGroup::min() const
     }
     return { x, y, z };
 }
-std::array<std::int64_t, 3> SelectionGroup::max() const
+std::array<std::int64_t, 3> SelectionBoxes::max() const
 {
     if (_boxes.empty()) {
-        throw std::runtime_error("Empty SelectionGroup has no maximum");
+        throw std::runtime_error("Empty SelectionBoxes has no maximum");
     }
     std::int64_t x = std::numeric_limits<std::int64_t>::min();
     std::int64_t y = std::numeric_limits<std::int64_t>::min();
@@ -130,10 +130,10 @@ std::array<std::int64_t, 3> SelectionGroup::max() const
 std::pair<
     std::array<std::int64_t, 3>,
     std::array<std::int64_t, 3>>
-SelectionGroup::bounds() const
+SelectionBoxes::bounds() const
 {
     if (_boxes.empty()) {
-        throw std::runtime_error("Empty SelectionGroup has no minimum or maximum");
+        throw std::runtime_error("Empty SelectionBoxes has no minimum or maximum");
     }
     std::int64_t x_min = std::numeric_limits<std::int64_t>::max();
     std::int64_t y_min = std::numeric_limits<std::int64_t>::max();
@@ -165,7 +165,7 @@ SelectionGroup::bounds() const
         std::array<std::int64_t, 3>({ x_min, y_min, z_min }),
         std::array<std::int64_t, 3>({ x_max, y_max, z_max }));
 }
-SelectionBox SelectionGroup::bounding_box() const
+SelectionBox SelectionBoxes::bounding_box() const
 {
     auto [min_point, max_point] = bounds();
     return SelectionBox(
@@ -178,7 +178,7 @@ SelectionBox SelectionGroup::bounding_box() const
 }
 
 // Contains and intersects
-bool SelectionGroup::contains_block(std::int64_t x, std::int64_t y, std::int64_t z) const
+bool SelectionBoxes::contains_block(std::int64_t x, std::int64_t y, std::int64_t z) const
 {
     for (const auto& box : _boxes) {
         if (box.contains_block(x, y, z)) {
@@ -187,7 +187,7 @@ bool SelectionGroup::contains_block(std::int64_t x, std::int64_t y, std::int64_t
     }
     return false;
 }
-bool SelectionGroup::contains_point(double x, double y, double z) const
+bool SelectionBoxes::contains_point(double x, double y, double z) const
 {
     for (const auto& box : _boxes) {
         if (box.contains_point(x, y, z)) {
@@ -196,7 +196,7 @@ bool SelectionGroup::contains_point(double x, double y, double z) const
     }
     return false;
 }
-bool SelectionGroup::intersects(const SelectionBox& other) const
+bool SelectionBoxes::intersects(const SelectionBox& other) const
 {
     for (const auto& box : _boxes) {
         if (box.intersects(other)) {
@@ -205,7 +205,7 @@ bool SelectionGroup::intersects(const SelectionBox& other) const
     }
     return false;
 }
-bool SelectionGroup::intersects(const SelectionGroup& other) const
+bool SelectionBoxes::intersects(const SelectionBoxes& other) const
 {
     for (const auto& box_1 : _boxes) {
         for (const auto& box_2 : other._boxes) {
@@ -218,9 +218,9 @@ bool SelectionGroup::intersects(const SelectionGroup& other) const
 }
 
 // Transform
-SelectionGroup SelectionGroup::translate(std::int64_t dx, std::int64_t dy, std::int64_t dz) const
+SelectionBoxes SelectionBoxes::translate(std::int64_t dx, std::int64_t dy, std::int64_t dz) const
 {
-    SelectionGroup group;
+    SelectionBoxes group;
     for (const auto& box : _boxes) {
         group._boxes.emplace(
             box.min_x() + dx,

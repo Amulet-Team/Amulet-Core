@@ -1,8 +1,8 @@
 ##########################################
- :mod:`amulet.api.selection.group` module
+ :mod:`amulet.api.selection.boxes` module
 ##########################################
 
-.. autoclass:: amulet.api.selection.SelectionGroup
+.. autoclass:: amulet.api.selection.SelectionBoxes
    :members:
    :inherited-members:
    :show-inheritance:

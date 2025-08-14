@@ -3,7 +3,7 @@ from __future__ import annotations
 import types
 import typing
 
-import amulet.core.selection.group
+import amulet.core.selection.boxes
 
 __all__: list[str] = ["SelectionBox"]
 
@@ -11,7 +11,7 @@ class SelectionBox:
     """
     The SelectionBox class represents a single cuboid selection.
 
-    When combined with :class:`~amulet.api.selection.SelectionGroup` it can represent any arbitrary shape.
+    When combined with :class:`~amulet.api.selection.SelectionBoxes` it can represent any arbitrary shape.
     """
 
     @typing.overload
@@ -115,7 +115,7 @@ class SelectionBox:
         """
 
     @typing.overload
-    def intersects(self, other: amulet.core.selection.group.SelectionGroup) -> bool: ...
+    def intersects(self, other: amulet.core.selection.boxes.SelectionBoxes) -> bool: ...
     def touches(self, other: SelectionBox) -> bool:
         """
         Method to check if this instance of :class:`SelectionBox` touches but does not intersect another SelectionBox.
