@@ -7,13 +7,11 @@
 
 #include <amulet/core/dll.hpp>
 
-#include "box.hpp"
-
 namespace Amulet {
 
 class SelectionBox;
 
-class SelectionGroup {
+class AMULET_CORE_EXPORT SelectionGroup {
 private:
     std::set<SelectionBox> _boxes;
 
@@ -45,28 +43,28 @@ public:
     }
 
     // Bounds
-    AMULET_CORE_EXPORT std::int64_t min_x() const;
-    AMULET_CORE_EXPORT std::int64_t min_y() const;
-    AMULET_CORE_EXPORT std::int64_t min_z() const;
-    AMULET_CORE_EXPORT std::int64_t max_x() const;
-    AMULET_CORE_EXPORT std::int64_t max_y() const;
-    AMULET_CORE_EXPORT std::int64_t max_z() const;
-    AMULET_CORE_EXPORT std::array<std::int64_t, 3> min() const;
-    AMULET_CORE_EXPORT std::array<std::int64_t, 3> max() const;
-    AMULET_CORE_EXPORT std::pair<
+    std::int64_t min_x() const;
+    std::int64_t min_y() const;
+    std::int64_t min_z() const;
+    std::int64_t max_x() const;
+    std::int64_t max_y() const;
+    std::int64_t max_z() const;
+    std::array<std::int64_t, 3> min() const;
+    std::array<std::int64_t, 3> max() const;
+    std::pair<
         std::array<std::int64_t, 3>,
         std::array<std::int64_t, 3>>
     bounds() const;
-    AMULET_CORE_EXPORT SelectionBox bounding_box() const;
+    SelectionBox bounding_box() const;
 
     // Contains and intersects
-    AMULET_CORE_EXPORT bool contains_block(std::int64_t x, std::int64_t y, std::int64_t z) const;
-    AMULET_CORE_EXPORT bool contains_point(double x, double y, double z) const;
-    AMULET_CORE_EXPORT bool intersects(const SelectionBox& other) const;
-    AMULET_CORE_EXPORT bool intersects(const SelectionGroup& other) const;
+    bool contains_block(std::int64_t x, std::int64_t y, std::int64_t z) const;
+    bool contains_point(double x, double y, double z) const;
+    bool intersects(const SelectionBox& other) const;
+    bool intersects(const SelectionGroup& other) const;
 
     // Transform
-    AMULET_CORE_EXPORT SelectionGroup translate(std::int64_t dx, std::int64_t dy, std::int64_t dz) const;
+    SelectionGroup translate(std::int64_t dx, std::int64_t dy, std::int64_t dz) const;
 
     // Operators
     operator bool() const
