@@ -570,7 +570,7 @@ void init_selection_group(py::class_<Amulet::SelectionBoxes> SelectionBoxes)
         py::doc("The number of :class:`SelectionBox` classes in the group."));
     SelectionBoxes.def(
         "__len__",
-        &Amulet::SelectionBoxes::size,
+        &Amulet::SelectionBoxes::count,
         py::doc("The number of :class:`SelectionBox` classes in the group."));
 }
 
