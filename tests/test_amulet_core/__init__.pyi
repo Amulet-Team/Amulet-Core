@@ -15,7 +15,7 @@ from . import (
     test_version_,
 )
 
-__all__ = [
+__all__: list[str] = [
     "compiler_config",
     "test_biome_",
     "test_block_",

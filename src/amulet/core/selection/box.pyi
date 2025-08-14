@@ -5,7 +5,7 @@ import typing
 
 import amulet.core.selection.group
 
-__all__ = ["SelectionBox"]
+__all__: list[str] = ["SelectionBox"]
 
 class SelectionBox:
     """

@@ -8,7 +8,7 @@ from amulet.core.chunk.component.section_array_map import IndexArray3D, SectionA
 
 from . import block_component, section_array_map
 
-__all__ = [
+__all__: list[str] = [
     "BlockComponent",
     "BlockComponentData",
     "IndexArray3D",

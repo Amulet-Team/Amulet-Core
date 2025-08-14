@@ -6,7 +6,7 @@ import typing
 import amulet.core.block
 import amulet.core.version
 
-__all__ = ["BlockPalette"]
+__all__: list[str] = ["BlockPalette"]
 
 class BlockPalette(amulet.core.version.VersionRangeContainer):
     @typing.overload

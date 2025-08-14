@@ -5,7 +5,7 @@ import types
 import typing
 from builtins import str as PlatformType
 
-__all__ = [
+__all__: list[str] = [
     "PlatformType",
     "PlatformVersionContainer",
     "VersionNumber",

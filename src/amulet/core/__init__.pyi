@@ -13,7 +13,7 @@ from . import (
     version,
 )
 
-__all__ = [
+__all__: list[str] = [
     "biome",
     "block",
     "block_entity",
