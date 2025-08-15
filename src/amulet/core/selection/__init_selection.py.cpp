@@ -33,7 +33,7 @@ PyTuple<typename arrayT::value_type, std::tuple_size_v<arrayT>>::type wrap_array
     return t;
 }
 
-static void init_selection_box(py::class_<Amulet::SelectionBox> SelectionBox)
+static void init_selection_box(py::classh<Amulet::SelectionBox> SelectionBox)
 {
     // Constructors
     SelectionBox.def(
@@ -582,7 +582,7 @@ void init_selection(py::module m_parent)
     auto selection_box_group_module = m.def_submodule("box_group");
     auto selection_group_module = m.def_submodule("group");
 
-    py::class_<Amulet::SelectionBox> SelectionBox(selection_box_module, "SelectionBox",
+    py::classh<Amulet::SelectionBox, Amulet::SelectionShape> SelectionBox(selection_box_module, "SelectionBox",
         "The SelectionBox class represents a single cuboid selection.\n"
         "\n"
         "When combined with :class:`~amulet.api.selection.SelectionBoxGroup` it can represent any arbitrary shape.");
