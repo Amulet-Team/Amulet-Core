@@ -13,6 +13,7 @@
 #include <amulet/core/selection/box_group.hpp>
 #include <amulet/core/selection/shape.hpp>
 #include <amulet/core/selection/shape_group.hpp>
+#include <amulet/core/selection/sphere.hpp>
 
 namespace py = pybind11;
 namespace pyext = Amulet::pybind11_extensions;
@@ -647,6 +648,45 @@ void init_selection_shape_group(py::classh<Amulet::SelectionShapeGroup> Selectio
         py::doc("The number of :class:`SelectionShape` classes in the group."));
 }
 
+static py::module init_selection_sphere(py::module m_parent)
+{
+    auto m = m_parent.def_submodule("sphere");
+    py::classh<Amulet::SelectionSphere, Amulet::SelectionShape> SelectionSphere(m, "SelectionSphere",
+        "The SelectionSphere class represents a single spherical selection.");
+    SelectionSphere.def(
+        py::init<double, double, double, double>(),
+        py::arg("x"),
+        py::arg("y"),
+        py::arg("z"),
+        py::arg("radius"));
+    SelectionSphere.def_property_readonly(
+        "x",
+        &Amulet::SelectionSphere::get_x);
+    SelectionSphere.def_property_readonly(
+        "y",
+        &Amulet::SelectionSphere::get_y);
+    SelectionSphere.def_property_readonly(
+        "z",
+        &Amulet::SelectionSphere::get_z);
+    SelectionSphere.def_property_readonly(
+        "radius",
+        &Amulet::SelectionSphere::get_radius);
+    SelectionSphere.def(
+        "translate",
+        &Amulet::SelectionSphere::translate,
+        py::doc(
+            "Create a new :class:`SelectionSphere` based on this one with the coordinates moved by the given offset.\n"
+            "\n"
+            ":param dx: The x offset.\n"
+            ":param dy: The y offset.\n"
+            ":param dz: The z offset.\n"
+            ":return: The new selection with the given offset."),
+        py::arg("dx"),
+        py::arg("dy"),
+        py::arg("dz"));
+    return m;
+}
+
 void init_selection(py::module m_parent)
 {
     auto m = pyext::def_subpackage(m_parent, "selection");
@@ -682,4 +722,7 @@ void init_selection(py::module m_parent)
     // Backwards compatibility
     selection_group_module.attr("SelectionGroup") = selection_box_group_module.attr("SelectionBoxGroup");
     m.attr("SelectionGroup") = selection_group_module.attr("SelectionGroup");
+
+    // Complex shapes
+    m.attr("SelectionSphere") = init_selection_sphere(m).attr("SelectionSphere");
 }
