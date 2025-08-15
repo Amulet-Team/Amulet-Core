@@ -100,6 +100,10 @@ public:
     }
     bool operator==(const SelectionBoxGroup& rhs) const = default;
     bool operator!=(const SelectionBoxGroup& rhs) const = default;
+    operator std::set<SelectionBox>() const
+    {
+        return _boxes;
+    }
 };
 
 }
