@@ -12,7 +12,7 @@
 namespace Amulet {
 
 
-class AMULET_CORE_EXPORT SelectionBoxes {
+class AMULET_CORE_EXPORT SelectionBoxGroup {
 private:
     std::set<SelectionBox> _boxes;
 
@@ -67,18 +67,18 @@ public:
     bool contains_block(std::int64_t x, std::int64_t y, std::int64_t z) const;
     bool contains_point(double x, double y, double z) const;
     bool intersects(const SelectionBox& other) const;
-    bool intersects(const SelectionBoxes& other) const;
+    bool intersects(const SelectionBoxGroup& other) const;
 
     // Transform
-    SelectionBoxes translate(std::int64_t dx, std::int64_t dy, std::int64_t dz) const;
+    SelectionBoxGroup translate(std::int64_t dx, std::int64_t dy, std::int64_t dz) const;
 
     // Operators
     operator bool() const
     {
         return !_boxes.empty();
     }
-    bool operator==(const SelectionBoxes& rhs) const = default;
-    bool operator!=(const SelectionBoxes& rhs) const = default;
+    bool operator==(const SelectionBoxGroup& rhs) const = default;
+    bool operator!=(const SelectionBoxGroup& rhs) const = default;
 };
 
 }
