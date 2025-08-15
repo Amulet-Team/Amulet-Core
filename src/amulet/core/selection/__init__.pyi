@@ -1,16 +1,16 @@
 from __future__ import annotations
 
 from amulet.core.selection.box import SelectionBox
-from amulet.core.selection.boxes import SelectionBoxes
-from amulet.core.selection.boxes import SelectionBoxes as SelectionGroup
+from amulet.core.selection.box_group import SelectionBoxGroup
+from amulet.core.selection.box_group import SelectionBoxGroup as SelectionGroup
 
-from . import box, boxes, group
+from . import box, box_group, group
 
 __all__: list[str] = [
     "SelectionBox",
-    "SelectionBoxes",
+    "SelectionBoxGroup",
     "SelectionGroup",
     "box",
-    "boxes",
+    "box_group",
     "group",
 ]

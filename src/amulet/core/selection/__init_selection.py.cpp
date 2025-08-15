@@ -10,7 +10,7 @@
 #include <amulet/pybind11_extensions/py_module.hpp>
 
 #include <amulet/core/selection/box.hpp>
-#include <amulet/core/selection/boxes.hpp>
+#include <amulet/core/selection/box_group.hpp>
 
 namespace py = pybind11;
 namespace pyext = Amulet::pybind11_extensions;
@@ -212,7 +212,7 @@ static void init_selection_box(py::class_<Amulet::SelectionBox> SelectionBox)
         py::arg("other"));
     SelectionBox.def(
         "intersects",
-        [](const Amulet::SelectionBox& self, const Amulet::SelectionBoxes& other) {
+        [](const Amulet::SelectionBox& self, const Amulet::SelectionBoxGroup& other) {
             return self.intersects(other);
         },
         py::arg("other"));
@@ -304,108 +304,108 @@ static void init_selection_box(py::class_<Amulet::SelectionBox> SelectionBox)
         });
 }
 
-void init_selection_group(py::class_<Amulet::SelectionBoxes> SelectionBoxes)
+void init_selection_box_group(py::classh<Amulet::SelectionBoxGroup> SelectionBoxGroup)
 {
     // Constructors
-    SelectionBoxes.def(
+    SelectionBoxGroup.def(
         py::init<>(),
         py::doc(
-            "Create an empty SelectionBoxes.\n"
+            "Create an empty SelectionBoxGroup.\n"
             "\n"
-            ">>> SelectionBoxes()"));
-    SelectionBoxes.def(
+            ">>> SelectionBoxGroup()"));
+    SelectionBoxGroup.def(
         py::init<const Amulet::SelectionBox&>(),
         py::arg("box"),
         py::doc(
-            "Create a SelectionBoxes containing the given box.\n"
+            "Create a SelectionBoxGroup containing the given box.\n"
             "\n"
-            ">>> SelectionBoxes(SelectionBox(0, 0, 0, 1, 1, 1))"));
+            ">>> SelectionBoxGroup(SelectionBox(0, 0, 0, 1, 1, 1))"));
     static_assert(std::ranges::input_range<pyext::collections::Iterable<Amulet::SelectionBox>>);
     static_assert(std::convertible_to<std::ranges::range_value_t<pyext::collections::Iterable<Amulet::SelectionBox>>, const Amulet::SelectionBox&>);
-    SelectionBoxes.def(
+    SelectionBoxGroup.def(
         py::init(
             [](pyext::collections::Iterable<Amulet::SelectionBox> boxes) {
-                return Amulet::SelectionBoxes(boxes);
+                return Amulet::SelectionBoxGroup(boxes.begin(), boxes.end());
             }),
         py::arg("boxes"),
         py::doc(
-            "Create a SelectionBoxes from the boxes in the iterable.\n"
+            "Create a SelectionBoxGroup from the boxes in the iterable.\n"
             "\n"
-            ">>> SelectionBoxes([\n"
+            ">>> SelectionBoxGroup([\n"
             ">>>     SelectionBox(0, 0, 0, 1, 1, 1),\n"
             ">>>     SelectionBox(1, 1, 1, 1, 1, 1)\n"
             ">>> ])\n"));
 
     // Accessors
-    SelectionBoxes.def_property_readonly(
+    SelectionBoxGroup.def_property_readonly(
         "selection_boxes",
         py::cpp_function(
-            [](const Amulet::SelectionBoxes& self) {
+            [](const Amulet::SelectionBoxGroup& self) {
                 return py::make_iterator(self.selection_boxes().begin(), self.selection_boxes().end());
             },
             py::keep_alive<0, 1>()),
         py::doc("An iterator of the :class:`SelectionBox` instances stored for this group."));
 
     // Bounds
-    SelectionBoxes.def_property_readonly(
+    SelectionBoxGroup.def_property_readonly(
         "min_x",
-        &Amulet::SelectionBoxes::min_x,
+        &Amulet::SelectionBoxGroup::min_x,
         py::doc(
             "The minimum x coordinate in the selection.\n"
             "\n"
             ":raises RuntimeError: If there are no boxes in the selection."));
-    SelectionBoxes.def_property_readonly(
+    SelectionBoxGroup.def_property_readonly(
         "min_y",
-        &Amulet::SelectionBoxes::min_y,
+        &Amulet::SelectionBoxGroup::min_y,
         py::doc(
             "The minimum y coordinate in the selection.\n"
             "\n"
             ":raises RuntimeError: If there are no boxes in the selection."));
-    SelectionBoxes.def_property_readonly(
+    SelectionBoxGroup.def_property_readonly(
         "min_z",
-        &Amulet::SelectionBoxes::min_z,
+        &Amulet::SelectionBoxGroup::min_z,
         py::doc(
             "The minimum z coordinate in the selection.\n"
             "\n"
             ":raises RuntimeError: If there are no boxes in the selection."));
-    SelectionBoxes.def_property_readonly(
+    SelectionBoxGroup.def_property_readonly(
         "max_x",
-        &Amulet::SelectionBoxes::max_x,
+        &Amulet::SelectionBoxGroup::max_x,
         py::doc(
             "The maximum x coordinate in the selection.\n"
             "\n"
             ":raises RuntimeError: If there are no boxes in the selection."));
-    SelectionBoxes.def_property_readonly(
+    SelectionBoxGroup.def_property_readonly(
         "max_y",
-        &Amulet::SelectionBoxes::max_y,
+        &Amulet::SelectionBoxGroup::max_y,
         py::doc(
             "The maximum y coordinate in the selection.\n"
             "\n"
             ":raises RuntimeError: If there are no boxes in the selection."));
-    SelectionBoxes.def_property_readonly(
+    SelectionBoxGroup.def_property_readonly(
         "max_z",
-        &Amulet::SelectionBoxes::max_z,
+        &Amulet::SelectionBoxGroup::max_z,
         py::doc(
             "The maximum z coordinate in the selection.\n"
             "\n"
             ":raises RuntimeError: If there are no boxes in the selection."));
-    SelectionBoxes.def_property_readonly(
+    SelectionBoxGroup.def_property_readonly(
         "min",
-        [](const Amulet::SelectionBoxes& self) { return wrap_array(self.min()); },
+        [](const Amulet::SelectionBoxGroup& self) { return wrap_array(self.min()); },
         py::doc(
             "The minimum x, y and z coordinates in the selection.\n"
             "\n"
             ":raises RuntimeError: If there are no boxes in the selection."));
-    SelectionBoxes.def_property_readonly(
+    SelectionBoxGroup.def_property_readonly(
         "max",
-        [](const Amulet::SelectionBoxes& self) { return wrap_array(self.max()); },
+        [](const Amulet::SelectionBoxGroup& self) { return wrap_array(self.max()); },
         py::doc(
             "The maximum x, y and z coordinates in the selection.\n"
             "\n"
             ":raises RuntimeError: If there are no boxes in the selection."));
-    SelectionBoxes.def_property_readonly(
+    SelectionBoxGroup.def_property_readonly(
         "bounds",
-        [](const Amulet::SelectionBoxes& self) {
+        [](const Amulet::SelectionBoxGroup& self) {
             auto [point_1, point_2] = self.bounds();
             return std::make_pair(
                 wrap_array(point_1),
@@ -415,18 +415,18 @@ void init_selection_group(py::class_<Amulet::SelectionBoxes> SelectionBoxes)
             "The minimum and maximum x, y and z coordinates in the selection.\n"
             "\n"
             ":raises RuntimeError: If there are no boxes in the selection."));
-    SelectionBoxes.def_property_readonly(
+    SelectionBoxGroup.def_property_readonly(
         "bounding_box",
-        &Amulet::SelectionBoxes::bounding_box,
+        &Amulet::SelectionBoxGroup::bounding_box,
         py::doc(
             "A SelectionBox containing this entire selection.\n"
             "\n"
             ":raises RuntimeError: If there are no boxes in the selection."));
 
     // Contains and intersects
-    SelectionBoxes.def(
+    SelectionBoxGroup.def(
         "contains_block",
-        &Amulet::SelectionBoxes::contains_block,
+        &Amulet::SelectionBoxGroup::contains_block,
         py::arg("x"),
         py::arg("y"),
         py::arg("z"),
@@ -441,9 +441,9 @@ void init_selection_group(py::class_<Amulet::SelectionBoxes> SelectionBoxes)
             ":param y: The y coordinate of the block. Defined by the most negative corner.\n"
             ":param z: The z coordinate of the block. Defined by the most negative corner.\n"
             ":return: True if the block is in the selection."));
-    SelectionBoxes.def(
+    SelectionBoxGroup.def(
         "contains_point",
-        &Amulet::SelectionBoxes::contains_point,
+        &Amulet::SelectionBoxGroup::contains_point,
         py::arg("x"),
         py::arg("y"),
         py::arg("z"),
@@ -458,9 +458,9 @@ void init_selection_group(py::class_<Amulet::SelectionBoxes> SelectionBoxes)
             ":param y: The y coordinate of the point.\n"
             ":param z: The z coordinate of the point.\n"
             ":return: True if the point is in the selection."));
-    SelectionBoxes.def(
+    SelectionBoxGroup.def(
         "intersects",
-        [](const Amulet::SelectionBoxes& self, const Amulet::SelectionBox& other) {
+        [](const Amulet::SelectionBoxGroup& self, const Amulet::SelectionBox& other) {
             return self.intersects(other);
         },
         py::arg("other"),
@@ -469,22 +469,22 @@ void init_selection_group(py::class_<Amulet::SelectionBoxes> SelectionBoxes)
             "\n"
             ":param other: The other selection.\n"
             ":return: True if the selections intersect, False otherwise."));
-    SelectionBoxes.def(
+    SelectionBoxGroup.def(
         "intersects",
-        [](const Amulet::SelectionBoxes& self, const Amulet::SelectionBoxes& other) {
+        [](const Amulet::SelectionBoxGroup& self, const Amulet::SelectionBoxGroup& other) {
             return self.intersects(other);
         },
         py::arg("other"));
 
     // Transform
-    SelectionBoxes.def(
+    SelectionBoxGroup.def(
         "translate",
-        &Amulet::SelectionBoxes::translate,
+        &Amulet::SelectionBoxGroup::translate,
         py::arg("x"),
         py::arg("y"),
         py::arg("z"),
         py::doc(
-            "Create a new :class:`SelectionBoxes` based on this one with the coordinates moved by the given offset.\n"
+            "Create a new :class:`SelectionBoxGroup` based on this one with the coordinates moved by the given offset.\n"
             "\n"
             ":param x: The x offset.\n"
             ":param y: The y offset.\n"
@@ -492,10 +492,10 @@ void init_selection_group(py::class_<Amulet::SelectionBoxes> SelectionBoxes)
             ":return: The new selection with the given offset."));
 
     // Dunder methods
-    SelectionBoxes.def(
+    SelectionBoxGroup.def(
         "__repr__",
-        [](const Amulet::SelectionBoxes& self) {
-            std::string out = "SelectionBoxes([";
+        [](const Amulet::SelectionBoxGroup& self) {
+            std::string out = "SelectionBoxGroup([";
             bool comma = false;
             for (const auto& box : self.selection_boxes()) {
                 if (comma) {
@@ -520,9 +520,9 @@ void init_selection_group(py::class_<Amulet::SelectionBoxes> SelectionBoxes)
             out += "])";
             return out;
         });
-    SelectionBoxes.def(
+    SelectionBoxGroup.def(
         "__str__",
-        [](const Amulet::SelectionBoxes& self) {
+        [](const Amulet::SelectionBoxGroup& self) {
             std::string out = "[";
             bool comma = false;
             for (const auto& box : self.selection_boxes()) {
@@ -548,29 +548,29 @@ void init_selection_group(py::class_<Amulet::SelectionBoxes> SelectionBoxes)
             out += "]";
             return out;
         });
-    SelectionBoxes.def(
+    SelectionBoxGroup.def(
         "__iter__",
-        [](const Amulet::SelectionBoxes& self) {
+        [](const Amulet::SelectionBoxGroup& self) {
             return py::make_iterator(self.selection_boxes());
         },
         py::doc("An iterable of all the :class:`SelectionBox` classes in the group."),
         py::keep_alive<0, 1>());
-    SelectionBoxes.def(
+    SelectionBoxGroup.def(
         py::self == py::self,
         py::doc(
-            "Does the contents of this :class:`SelectionBoxes` match the other :class:`SelectionBoxes`.\n"
+            "Does the contents of this :class:`SelectionBoxGroup` match the other :class:`SelectionBoxGroup`.\n"
             "\n"
             "Note if the boxes do not exactly match this will return False even if the volume represented is the same.\n"
             "\n"
-            ":param other: The other :class:`SelectionBoxes` to compare with.\n"
+            ":param other: The other :class:`SelectionBoxGroup` to compare with.\n"
             ":return: True if the boxes contained match."));
-    SelectionBoxes.def(
+    SelectionBoxGroup.def(
         "__bool__",
-        &Amulet::SelectionBoxes::operator bool,
-        py::doc("The number of :class:`SelectionBox` classes in the group."));
-    SelectionBoxes.def(
+        &Amulet::SelectionBoxGroup::operator bool,
+        py::doc("Are there any selections in the group."));
+    SelectionBoxGroup.def(
         "__len__",
-        &Amulet::SelectionBoxes::count,
+        &Amulet::SelectionBoxGroup::count,
         py::doc("The number of :class:`SelectionBox` classes in the group."));
 }
 
@@ -579,24 +579,24 @@ void init_selection(py::module m_parent)
     auto m = pyext::def_subpackage(m_parent, "selection");
 
     auto selection_box_module = m.def_submodule("box");
-    auto selection_boxes_module = m.def_submodule("boxes");
+    auto selection_box_group_module = m.def_submodule("box_group");
     auto selection_group_module = m.def_submodule("group");
 
     py::class_<Amulet::SelectionBox> SelectionBox(selection_box_module, "SelectionBox",
         "The SelectionBox class represents a single cuboid selection.\n"
         "\n"
-        "When combined with :class:`~amulet.api.selection.SelectionBoxes` it can represent any arbitrary shape.");
-    py::class_<Amulet::SelectionBoxes> SelectionBoxes(selection_boxes_module, "SelectionBoxes",
+        "When combined with :class:`~amulet.api.selection.SelectionBoxGroup` it can represent any arbitrary shape.");
+    py::classh<Amulet::SelectionBoxGroup> SelectionBoxGroup(selection_box_group_module, "SelectionBoxGroup",
         "A container for zero or more :class:`SelectionBox` instances.\n"
         "\n"
         "This allows for non-rectangular and non-contiguous selections.");
 
     init_selection_box(SelectionBox);
-    init_selection_group(SelectionBoxes);
+    init_selection_box_group(SelectionBoxGroup);
 
     m.attr("SelectionBox") = selection_box_module.attr("SelectionBox");
-    m.attr("SelectionBoxes") = selection_boxes_module.attr("SelectionBoxes");
+    m.attr("SelectionBoxGroup") = selection_box_group_module.attr("SelectionBoxGroup");
     // Backwards compatibility
-    selection_group_module.attr("SelectionGroup") = selection_boxes_module.attr("SelectionBoxes");
+    selection_group_module.attr("SelectionGroup") = selection_box_group_module.attr("SelectionBoxGroup");
     m.attr("SelectionGroup") = selection_group_module.attr("SelectionGroup");
 }

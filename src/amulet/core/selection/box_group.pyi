@@ -6,9 +6,9 @@ import typing
 
 import amulet.core.selection.box
 
-__all__: list[str] = ["SelectionBoxes"]
+__all__: list[str] = ["SelectionBoxGroup"]
 
-class SelectionBoxes:
+class SelectionBoxGroup:
     """
     A container for zero or more :class:`SelectionBox` instances.
 
@@ -18,17 +18,17 @@ class SelectionBoxes:
     __hash__: typing.ClassVar[None] = None  # type: ignore
     def __bool__(self) -> bool:
         """
-        The number of :class:`SelectionBox` classes in the group.
+        Are there any selections in the group.
         """
 
     @typing.overload
-    def __eq__(self, arg0: SelectionBoxes) -> bool:
+    def __eq__(self, arg0: SelectionBoxGroup) -> bool:
         """
-        Does the contents of this :class:`SelectionBoxes` match the other :class:`SelectionBoxes`.
+        Does the contents of this :class:`SelectionBoxGroup` match the other :class:`SelectionBoxGroup`.
 
         Note if the boxes do not exactly match this will return False even if the volume represented is the same.
 
-        :param other: The other :class:`SelectionBoxes` to compare with.
+        :param other: The other :class:`SelectionBoxGroup` to compare with.
         :return: True if the boxes contained match.
         """
 
@@ -37,17 +37,17 @@ class SelectionBoxes:
     @typing.overload
     def __init__(self) -> None:
         """
-        Create an empty SelectionBoxes.
+        Create an empty SelectionBoxGroup.
 
-        >>> SelectionBoxes()
+        >>> SelectionBoxGroup()
         """
 
     @typing.overload
     def __init__(self, box: amulet.core.selection.box.SelectionBox) -> None:
         """
-        Create a SelectionBoxes containing the given box.
+        Create a SelectionBoxGroup containing the given box.
 
-        >>> SelectionBoxes(SelectionBox(0, 0, 0, 1, 1, 1))
+        >>> SelectionBoxGroup(SelectionBox(0, 0, 0, 1, 1, 1))
         """
 
     @typing.overload
@@ -55,9 +55,9 @@ class SelectionBoxes:
         self, boxes: collections.abc.Iterable[amulet.core.selection.box.SelectionBox]
     ) -> None:
         """
-        Create a SelectionBoxes from the boxes in the iterable.
+        Create a SelectionBoxGroup from the boxes in the iterable.
 
-        >>> SelectionBoxes([
+        >>> SelectionBoxGroup([
         >>>     SelectionBox(0, 0, 0, 1, 1, 1),
         >>>     SelectionBox(1, 1, 1, 1, 1, 1)
         >>> ])
@@ -119,12 +119,12 @@ class SelectionBoxes:
         """
 
     @typing.overload
-    def intersects(self, other: SelectionBoxes) -> bool: ...
+    def intersects(self, other: SelectionBoxGroup) -> bool: ...
     def translate(
         self, x: typing.SupportsInt, y: typing.SupportsInt, z: typing.SupportsInt
-    ) -> SelectionBoxes:
+    ) -> SelectionBoxGroup:
         """
-        Create a new :class:`SelectionBoxes` based on this one with the coordinates moved by the given offset.
+        Create a new :class:`SelectionBoxGroup` based on this one with the coordinates moved by the given offset.
 
         :param x: The x offset.
         :param y: The y offset.

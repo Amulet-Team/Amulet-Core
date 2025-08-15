@@ -7,9 +7,10 @@
 
 #include <amulet/core/dll.hpp>
 
+#include "box.hpp"
+
 namespace Amulet {
 
-class SelectionBox;
 
 class AMULET_CORE_EXPORT SelectionBoxes {
 private:

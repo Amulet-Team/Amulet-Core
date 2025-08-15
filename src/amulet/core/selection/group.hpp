@@ -1,9 +1,9 @@
 #pragma once
 
-#include "boxes.hpp"
+#include "box_group.hpp"
 
 namespace Amulet {
 
-using SelectionGroup = SelectionBoxes;
+using SelectionGroup = SelectionBoxGroup;
 
 }
