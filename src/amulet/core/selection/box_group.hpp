@@ -60,6 +60,14 @@ public:
     {
         return _boxes.size();
     }
+    std::set<SelectionBox>::const_iterator begin() const
+    {
+        return _boxes.begin();
+    }
+    std::set<SelectionBox>::const_iterator end() const
+    {
+        return _boxes.end();
+    }
 
     // Bounds
     std::int64_t min_x() const;
