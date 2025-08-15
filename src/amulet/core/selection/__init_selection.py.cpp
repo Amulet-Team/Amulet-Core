@@ -12,6 +12,7 @@
 #include <amulet/core/selection/box.hpp>
 #include <amulet/core/selection/box_group.hpp>
 #include <amulet/core/selection/shape.hpp>
+#include <amulet/core/selection/shape_group.hpp>
 
 namespace py = pybind11;
 namespace pyext = Amulet::pybind11_extensions;
@@ -584,17 +585,82 @@ void init_selection_box_group(py::classh<Amulet::SelectionBoxGroup> SelectionBox
         py::doc("The number of :class:`SelectionBox` classes in the group."));
 }
 
+void init_selection_shape_group(py::classh<Amulet::SelectionShapeGroup> SelectionShapeGroup)
+{
+    // Constructors
+    SelectionShapeGroup.def(
+        py::init<>(),
+        py::doc(
+            "Create an empty SelectionShapeGroup.\n"
+            "\n"
+            ">>> SelectionShapeGroup()"));
+    SelectionShapeGroup.def(
+        py::init<const Amulet::SelectionShape&>(),
+        py::arg("selection"),
+        py::doc(
+            "Create a SelectionShapeGroup containing the given selection.\n"
+            "\n"
+            ">>> SelectionShapeGroup(SelectionShape(0, 0, 0, 1, 1, 1))"));
+    SelectionShapeGroup.def(
+        py::init(
+            [](py::typing::Iterable<Amulet::SelectionShape> py_shapes) {
+                std::vector<std::unique_ptr<const Amulet::SelectionShape>> shapes;
+                for (const auto& py_shape : py_shapes) {
+                    shapes.push_back(py_shape.cast<const Amulet::SelectionShape&>().copy());
+                }
+                return Amulet::SelectionShapeGroup(std::move(shapes));
+            }),
+        py::arg("shapes"),
+        py::doc(
+            "Create a SelectionShapeGroup from the selections in the iterable.\n"
+            "\n"
+            ">>> SelectionShapeGroup([\n"
+            ">>>     SelectionBox(0, 0, 0, 1, 1, 1),\n"
+            ">>>     SelectionBox(1, 1, 1, 1, 1, 1)\n"
+            ">>> ])\n"));
+
+    // Accessors
+    SelectionShapeGroup.def_property_readonly(
+        "shapes",
+        py::cpp_function(
+            [](const Amulet::SelectionShapeGroup& self) {
+                return py::make_iterator(self.get_shapes());
+            },
+            py::keep_alive<0, 1>()),
+        py::doc("An iterator of the :class:`SelectionShape` instances stored for this group."));
+
+    // Dunder methods
+    SelectionShapeGroup.def(
+        "__iter__",
+        [](const Amulet::SelectionShapeGroup& self) {
+            return py::make_iterator(self.get_shapes());
+        },
+        py::doc("An iterable of all the :class:`SelectionShape` classes in the group."),
+        py::keep_alive<0, 1>());
+    SelectionShapeGroup.def(
+        "__bool__",
+        &Amulet::SelectionShapeGroup::operator bool,
+        py::doc("Are there any selections in the group."));
+    SelectionShapeGroup.def(
+        "__len__",
+        &Amulet::SelectionShapeGroup::count,
+        py::doc("The number of :class:`SelectionShape` classes in the group."));
+}
+
 void init_selection(py::module m_parent)
 {
     auto m = pyext::def_subpackage(m_parent, "selection");
 
     auto selection_shape_module = m.def_submodule("shape");
+    auto selection_shape_group_module = m.def_submodule("shape_group");
     auto selection_box_module = m.def_submodule("box");
     auto selection_box_group_module = m.def_submodule("box_group");
     auto selection_group_module = m.def_submodule("group");
 
     py::classh<Amulet::SelectionShape> SelectionShape(selection_shape_module, "SelectionShape",
         "A base class for selection classes.");
+    py::classh<Amulet::SelectionShapeGroup> SelectionShapeGroup(selection_shape_group_module, "SelectionShapeGroup",
+        "A group of selection shapes.");
     py::classh<Amulet::SelectionBox, Amulet::SelectionShape> SelectionBox(selection_box_module, "SelectionBox",
         "The SelectionBox class represents a single cuboid selection.\n"
         "\n"
@@ -605,10 +671,12 @@ void init_selection(py::module m_parent)
         "This allows for non-rectangular and non-contiguous selections.");
 
     init_selection_shape(SelectionShape);
+    init_selection_shape_group(SelectionShapeGroup);
     init_selection_box(SelectionBox);
     init_selection_box_group(SelectionBoxGroup);
 
     m.attr("SelectionShape") = selection_shape_module.attr("SelectionShape");
+    m.attr("SelectionShapeGroup") = selection_shape_group_module.attr("SelectionShapeGroup");
     m.attr("SelectionBox") = selection_box_module.attr("SelectionBox");
     m.attr("SelectionBoxGroup") = selection_box_group_module.attr("SelectionBoxGroup");
     // Backwards compatibility
