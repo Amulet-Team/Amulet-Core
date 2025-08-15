@@ -11,25 +11,38 @@
 
 namespace Amulet {
 
-
 class AMULET_CORE_EXPORT SelectionBoxGroup {
 private:
     std::set<SelectionBox> _boxes;
 
 public:
     // Constructors
-    SelectionBoxes() {};
-    SelectionBoxes(const SelectionBox& box)
+    // Default constructor
+    SelectionBoxGroup() { };
+
+    // Forwarding constructor
+    template <typename Boxes>
+    SelectionBoxGroup(Boxes&& boxes)
+        : _boxes(std::forward<Boxes>(boxes))
     {
-        _boxes.insert(box);
     }
 
-    template <typename Iterable>
-        requires std::ranges::input_range<Iterable> && std::convertible_to<std::ranges::range_value_t<Iterable>, const SelectionBox&>
-    SelectionBoxes(const Iterable& boxes)
+    // Construct from an object that can be cast to std::set<SelectionBox>
+    template <typename T>
+        requires std::constructible_from<std::set<SelectionBox>, T>
+    SelectionBoxGroup(const T& obj)
+        : _boxes(static_cast<std::set<SelectionBox>>(obj))
     {
-        for (const SelectionBox& box : boxes) {
-            _boxes.emplace(box);
+    }
+
+    // Construct from iterable of objects that can be cast to std::set<SelectionBox>
+    template <typename Iterator>
+        requires std::constructible_from<std::set<SelectionBox>, std::iter_value_t<Iterator>>
+    SelectionBoxGroup(const Iterator& begin, const Iterator& end)
+    {
+        for (auto it = begin; it != end; it++) {
+            auto boxes = static_cast<std::set<SelectionBox>>(*it);
+            _boxes.insert(boxes.begin(), boxes.end());
         }
     }
 
