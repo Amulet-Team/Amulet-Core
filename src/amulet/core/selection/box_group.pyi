@@ -5,6 +5,7 @@ import types
 import typing
 
 import amulet.core.selection.box
+import amulet.core.selection.shape
 
 __all__: list[str] = ["SelectionBoxGroup"]
 
@@ -43,16 +44,17 @@ class SelectionBoxGroup:
         """
 
     @typing.overload
-    def __init__(self, box: amulet.core.selection.box.SelectionBox) -> None:
+    def __init__(self, shape: amulet.core.selection.shape.SelectionShape) -> None:
         """
-        Create a SelectionBoxGroup containing the given box.
+        Convert the shape to a group of selection boxes.
 
         >>> SelectionBoxGroup(SelectionBox(0, 0, 0, 1, 1, 1))
         """
 
     @typing.overload
     def __init__(
-        self, boxes: collections.abc.Iterable[amulet.core.selection.box.SelectionBox]
+        self,
+        boxes: collections.abc.Iterable[amulet.core.selection.shape.SelectionShape],
     ) -> None:
         """
         Create a SelectionBoxGroup from the boxes in the iterable.
@@ -121,14 +123,14 @@ class SelectionBoxGroup:
     @typing.overload
     def intersects(self, other: SelectionBoxGroup) -> bool: ...
     def translate(
-        self, x: typing.SupportsInt, y: typing.SupportsInt, z: typing.SupportsInt
+        self, dx: typing.SupportsInt, dy: typing.SupportsInt, dz: typing.SupportsInt
     ) -> SelectionBoxGroup:
         """
         Create a new :class:`SelectionBoxGroup` based on this one with the coordinates moved by the given offset.
 
-        :param x: The x offset.
-        :param y: The y offset.
-        :param z: The z offset.
+        :param dx: The x offset.
+        :param dy: The y offset.
+        :param dz: The z offset.
         :return: The new selection with the given offset.
         """
 

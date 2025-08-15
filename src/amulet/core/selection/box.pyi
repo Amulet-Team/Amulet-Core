@@ -136,14 +136,14 @@ class SelectionBox(amulet.core.selection.shape.SelectionShape):
         """
 
     def translate(
-        self, x: typing.SupportsInt, y: typing.SupportsInt, z: typing.SupportsInt
+        self, dx: typing.SupportsInt, dy: typing.SupportsInt, dz: typing.SupportsInt
     ) -> SelectionBox:
         """
         Create a new :class:`SelectionBox` based on this one with the coordinates moved by the given offset.
 
-        :param x: The x offset.
-        :param y: The y offset.
-        :param z: The z offset.
+        :param dx: The x offset.
+        :param dy: The y offset.
+        :param dz: The z offset.
         :return: The new selection with the given offset.
         """
 

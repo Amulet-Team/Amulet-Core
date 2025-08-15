@@ -41,11 +41,10 @@ static void init_selection_shape(py::classh<Amulet::SelectionShape> SelectionSha
     SelectionShape.def(
         "voxelise",
         &Amulet::SelectionShape::voxelise,
-        py::doc("Convert the shape into unit voxels.")
-    );
+        py::doc("Convert the shape into unit voxels."));
 }
 
-static void init_selection_box(py::classh<Amulet::SelectionBox> SelectionBox)
+static void init_selection_box(py::classh<Amulet::SelectionBox, Amulet::SelectionShape> SelectionBox)
 {
     // Constructors
     SelectionBox.def(
@@ -254,13 +253,13 @@ static void init_selection_box(py::classh<Amulet::SelectionBox> SelectionBox)
         py::doc(
             "Create a new :class:`SelectionBox` based on this one with the coordinates moved by the given offset.\n"
             "\n"
-            ":param x: The x offset.\n"
-            ":param y: The y offset.\n"
-            ":param z: The z offset.\n"
+            ":param dx: The x offset.\n"
+            ":param dy: The y offset.\n"
+            ":param dz: The z offset.\n"
             ":return: The new selection with the given offset."),
-        py::arg("x"),
-        py::arg("y"),
-        py::arg("z"));
+        py::arg("dx"),
+        py::arg("dy"),
+        py::arg("dz"));
 
     // Dunder methods
     SelectionBox.def(py::self < py::self);
@@ -326,18 +325,23 @@ void init_selection_box_group(py::classh<Amulet::SelectionBoxGroup> SelectionBox
             "\n"
             ">>> SelectionBoxGroup()"));
     SelectionBoxGroup.def(
-        py::init<const Amulet::SelectionBox&>(),
-        py::arg("box"),
+        py::init<const Amulet::SelectionShape&>(),
+        py::arg("shape"),
         py::doc(
-            "Create a SelectionBoxGroup containing the given box.\n"
+            "Convert the shape to a group of selection boxes.\n"
             "\n"
             ">>> SelectionBoxGroup(SelectionBox(0, 0, 0, 1, 1, 1))"));
     static_assert(std::ranges::input_range<pyext::collections::Iterable<Amulet::SelectionBox>>);
     static_assert(std::convertible_to<std::ranges::range_value_t<pyext::collections::Iterable<Amulet::SelectionBox>>, const Amulet::SelectionBox&>);
     SelectionBoxGroup.def(
         py::init(
-            [](pyext::collections::Iterable<Amulet::SelectionBox> boxes) {
-                return Amulet::SelectionBoxGroup(boxes.begin(), boxes.end());
+            [](py::typing::Iterable<Amulet::SelectionShape> py_shapes) {
+                std::set<Amulet::SelectionBox> boxes;
+                for (const auto& py_shape : py_shapes) {
+                    auto shape_boxes = py_shape.cast<const Amulet::SelectionShape&>().voxelise();
+                    boxes.insert(shape_boxes.begin(), shape_boxes.end());
+                }
+                return Amulet::SelectionBoxGroup(std::move(boxes));
             }),
         py::arg("boxes"),
         py::doc(
@@ -492,15 +496,15 @@ void init_selection_box_group(py::classh<Amulet::SelectionBoxGroup> SelectionBox
     SelectionBoxGroup.def(
         "translate",
         &Amulet::SelectionBoxGroup::translate,
-        py::arg("x"),
-        py::arg("y"),
-        py::arg("z"),
+        py::arg("dx"),
+        py::arg("dy"),
+        py::arg("dz"),
         py::doc(
             "Create a new :class:`SelectionBoxGroup` based on this one with the coordinates moved by the given offset.\n"
             "\n"
-            ":param x: The x offset.\n"
-            ":param y: The y offset.\n"
-            ":param z: The z offset.\n"
+            ":param dx: The x offset.\n"
+            ":param dy: The y offset.\n"
+            ":param dz: The z offset.\n"
             ":return: The new selection with the given offset."));
 
     // Dunder methods
