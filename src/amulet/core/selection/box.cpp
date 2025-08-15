@@ -6,6 +6,16 @@
 
 namespace Amulet {
 
+std::set<SelectionBox> SelectionBox::voxelise() const
+{
+    return std::set<SelectionBox> { *this };
+}
+
+std::unique_ptr<SelectionShape> SelectionBox::copy() const
+{
+    return std::make_unique<SelectionBox>(*this);
+}
+
 // Contains and intersects
 bool SelectionBox::contains_block(std::int64_t x, std::int64_t y, std::int64_t z) const
 {
@@ -61,5 +71,40 @@ SelectionBox SelectionBox::translate(std::int64_t dx, std::int64_t dy, std::int6
         _size_z);
 }
 // SelectionBoxGroup SelectionBox::transform() const;
+
+std::strong_ordering SelectionBox::operator<=>(const SelectionBox& other) const
+{
+    return std::tie(
+               _min_x,
+               _min_y,
+               _min_z,
+               _size_x,
+               _size_y,
+               _size_z)
+        <=> std::tie(
+            other._min_x,
+            other._min_y,
+            other._min_z,
+            other._size_x,
+            other._size_y,
+            other._size_z);
+}
+bool SelectionBox::operator==(const SelectionBox& other) const
+{
+    return std::tie(
+               _min_x,
+               _min_y,
+               _min_z,
+               _size_x,
+               _size_y,
+               _size_z)
+        == std::tie(
+            other._min_x,
+            other._min_y,
+            other._min_z,
+            other._size_x,
+            other._size_y,
+            other._size_z);
+}
 
 } // namespace Amulet

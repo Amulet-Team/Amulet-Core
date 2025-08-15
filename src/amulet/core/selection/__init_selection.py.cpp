@@ -11,6 +11,7 @@
 
 #include <amulet/core/selection/box.hpp>
 #include <amulet/core/selection/box_group.hpp>
+#include <amulet/core/selection/shape.hpp>
 
 namespace py = pybind11;
 namespace pyext = Amulet::pybind11_extensions;
@@ -31,6 +32,15 @@ PyTuple<typename arrayT::value_type, std::tuple_size_v<arrayT>>::type wrap_array
         t[i] = py::cast(arr[i]);
     }
     return t;
+}
+
+static void init_selection_shape(py::classh<Amulet::SelectionShape> SelectionShape)
+{
+    SelectionShape.def(
+        "voxelise",
+        &Amulet::SelectionShape::voxelise,
+        py::doc("Convert the shape into unit voxels.")
+    );
 }
 
 static void init_selection_box(py::classh<Amulet::SelectionBox> SelectionBox)
@@ -578,10 +588,13 @@ void init_selection(py::module m_parent)
 {
     auto m = pyext::def_subpackage(m_parent, "selection");
 
+    auto selection_shape_module = m.def_submodule("shape");
     auto selection_box_module = m.def_submodule("box");
     auto selection_box_group_module = m.def_submodule("box_group");
     auto selection_group_module = m.def_submodule("group");
 
+    py::classh<Amulet::SelectionShape> SelectionShape(selection_shape_module, "SelectionShape",
+        "A base class for selection classes.");
     py::classh<Amulet::SelectionBox, Amulet::SelectionShape> SelectionBox(selection_box_module, "SelectionBox",
         "The SelectionBox class represents a single cuboid selection.\n"
         "\n"
@@ -591,9 +604,11 @@ void init_selection(py::module m_parent)
         "\n"
         "This allows for non-rectangular and non-contiguous selections.");
 
+    init_selection_shape(SelectionShape);
     init_selection_box(SelectionBox);
     init_selection_box_group(SelectionBoxGroup);
 
+    m.attr("SelectionShape") = selection_shape_module.attr("SelectionShape");
     m.attr("SelectionBox") = selection_box_module.attr("SelectionBox");
     m.attr("SelectionBoxGroup") = selection_box_group_module.attr("SelectionBoxGroup");
     // Backwards compatibility

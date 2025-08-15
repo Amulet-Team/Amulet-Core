@@ -4,10 +4,11 @@ import types
 import typing
 
 import amulet.core.selection.box_group
+import amulet.core.selection.shape
 
 __all__: list[str] = ["SelectionBox"]
 
-class SelectionBox:
+class SelectionBox(amulet.core.selection.shape.SelectionShape):
     """
     The SelectionBox class represents a single cuboid selection.
 
