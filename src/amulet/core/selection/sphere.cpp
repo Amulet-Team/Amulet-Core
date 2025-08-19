@@ -1,7 +1,7 @@
 #include <cmath>
 
-#include "sphere.hpp"
 #include "box.hpp"
+#include "sphere.hpp"
 
 namespace Amulet {
 
@@ -39,14 +39,26 @@ std::unique_ptr<SelectionShape> SelectionSphere::copy() const
     return std::make_unique<SelectionSphere>(*this);
 }
 
-SelectionSphere SelectionSphere::translate(double dx, double dy, double dz) const
+SelectionSphere SelectionSphere::translate_sphere(double dx, double dy, double dz) const
 {
     return SelectionSphere(_x + dx, _y + dy, _z + dz, _radius);
+}
+
+std::unique_ptr<SelectionShape> SelectionSphere::translate(double dx, double dy, double dz) const
+{
+    return std::make_unique<SelectionSphere>(translate_sphere(dx, dy, dz));
 }
 
 bool SelectionSphere::operator==(const SelectionSphere& other) const
 {
     return _x == other._x && _y == other._y && _z == other._z && _radius == other._radius;
+}
+
+bool SelectionSphere::operator==(const SelectionShape& other) const {
+    if (const auto* ptr = dynamic_cast<const SelectionSphere*>(&other)) {
+        return operator==(*ptr);
+    }
+    return false;
 }
 
 } // namespace Amulet

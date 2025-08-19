@@ -59,13 +59,15 @@ public:
     };
 
     // SelectionShape
-    std::set<SelectionBox> voxelise() const override;
     std::unique_ptr<SelectionShape> copy() const override;
+    std::set<SelectionBox> voxelise() const override;
 
     // Transform
-    SelectionSphere translate(double dx, double dy, double dz) const;
+    SelectionSphere translate_sphere(double dx, double dy, double dz) const;
+    std::unique_ptr<SelectionShape> translate(double dx, double dy, double dz) const override;
 
     bool operator==(const SelectionSphere&) const;
+    bool operator==(const SelectionShape&) const override;
 };
 
 } // namespace Amulet
