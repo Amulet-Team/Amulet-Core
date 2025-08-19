@@ -20,6 +20,11 @@ public:
     // Default constructor
     SelectionBoxGroup() { };
 
+    SelectionBoxGroup(const SelectionBox& box)
+        : _boxes({ box })
+    {
+    }
+
     // Forwarding constructor
     template <typename Boxes>
     SelectionBoxGroup(Boxes&& boxes)
