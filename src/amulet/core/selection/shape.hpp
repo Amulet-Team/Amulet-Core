@@ -5,6 +5,8 @@
 
 #include <amulet/core/dll.hpp>
 
+#include "box.hpp"
+
 namespace Amulet {
 
 class SelectionBox;
