@@ -6,16 +6,6 @@
 
 namespace Amulet {
 
-std::set<SelectionBox> SelectionBox::voxelise() const
-{
-    return std::set<SelectionBox> { *this };
-}
-
-std::unique_ptr<SelectionShape> SelectionBox::copy() const
-{
-    return std::make_unique<SelectionBox>(*this);
-}
-
 // Contains and intersects
 bool SelectionBox::contains_block(std::int64_t x, std::int64_t y, std::int64_t z) const
 {

@@ -4,14 +4,12 @@
 
 #include <amulet/core/dll.hpp>
 
-#include "shape.hpp"
-
 namespace Amulet {
 
 class SelectionBoxGroup;
 
-// The SelectionBox class represents a single cuboid selection.
-class AMULET_CORE_EXPORT SelectionBox : public SelectionShape {
+// An axis aligned cuboid selection box.
+class AMULET_CORE_EXPORT SelectionBox {
 private:
     std::int64_t _min_x;
     std::int64_t _min_y;
@@ -60,10 +58,6 @@ public:
     {
     }
 
-    // SelectionShape
-    std::set<SelectionBox> voxelise() const override;
-    std::unique_ptr<SelectionShape> copy() const override;
-
     // Accessors
     std::int64_t min_x() const { return _min_x; }
     std::int64_t min_y() const { return _min_y; }
@@ -98,7 +92,5 @@ public:
     std::strong_ordering operator<=>(const SelectionBox&) const;
     bool operator==(const SelectionBox&) const;
 };
-
-static_assert(std::constructible_from<std::set<SelectionBox>, SelectionBox>);
 
 } // namespace Amulet
