@@ -32,16 +32,17 @@ void init_selection(py::module m_parent)
         "\n"
         "This allows for non-rectangular and non-contiguous selections.");
 
+    // Shape base class
+    m.attr("SelectionShape") = init_selection_shape(m);
+
+    // Init box classes
     init_selection_box(SelectionBox);
     init_selection_box_group(SelectionBoxGroup);
 
     m.attr("SelectionBox") = SelectionBox;
     m.attr("SelectionBoxGroup") = SelectionBoxGroup;
 
-    // High level selection
-    m.attr("SelectionShape") = init_selection_shape(m);
+    // Init shape classes
     m.attr("SelectionShapeGroup") = init_selection_shape_group(m);
-
-    // Shapes
     m.attr("SelectionSphere") = init_selection_sphere(m);
 }

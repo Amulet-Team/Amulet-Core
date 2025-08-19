@@ -44,11 +44,19 @@ class SelectionBoxGroup:
         """
 
     @typing.overload
+    def __init__(self, shape: amulet.core.selection.box.SelectionBox) -> None:
+        """
+        Create a group contaning this selection box.
+
+        >>> SelectionBoxGroup(SelectionBox(0, 0, 0, 1, 1, 1))
+        """
+
+    @typing.overload
     def __init__(self, shape: amulet.core.selection.shape.SelectionShape) -> None:
         """
         Convert the shape to a group of selection boxes.
 
-        >>> SelectionBoxGroup(SelectionBox(0, 0, 0, 1, 1, 1))
+        >>> SelectionBoxGroup(SelectionSphere(0, 0, 0, 5))
         """
 
     @typing.overload
@@ -60,8 +68,8 @@ class SelectionBoxGroup:
         Create a SelectionBoxGroup from the boxes in the iterable.
 
         >>> SelectionBoxGroup([
-        >>>     SelectionBox(0, 0, 0, 1, 1, 1),
-        >>>     SelectionBox(1, 1, 1, 1, 1, 1)
+        >>>     SelectionSphere(0, 0, 0, 5),
+        >>>     SelectionSphere(0, 10, 0, 5)
         >>> ])
         """
 

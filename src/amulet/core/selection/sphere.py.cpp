@@ -29,7 +29,7 @@ py::object init_selection_sphere(py::module m_parent)
         &Amulet::SelectionSphere::get_radius);
     SelectionSphere.def(
         "translate",
-        &Amulet::SelectionSphere::translate,
+        &Amulet::SelectionSphere::translate_sphere,
         py::doc(
             "Create a new :class:`SelectionSphere` based on this one with the coordinates moved by the given offset.\n"
             "\n"
