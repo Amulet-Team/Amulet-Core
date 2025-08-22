@@ -19,6 +19,9 @@ inputs:
   io-specifier:
     description: 'The PEP 440 version specifier for the Amulet-IO library'
     required: true
+  utils-specifier:
+    description: 'The PEP 440 version specifier for the Amulet-Utils library'
+    required: true
   zlib-specifier:
     description: 'The PEP 440 version specifier for the Amulet-zlib library'
     required: true
@@ -68,6 +71,11 @@ runs:
           exit 1
         fi
 
+        if [ -z "${{ inputs.utils-specifier }}" ]; then
+          echo "utils-specifier is empty"
+          exit 1
+        fi
+
         if [ -z "${{ inputs.zlib-specifier }}" ]; then
           echo "zlib-specifier is empty"
           exit 1
@@ -86,7 +94,7 @@ runs:
     - name: Install Dependencies
       shell: bash
       run: |
-        python -m pip install --only-binary amulet-zlib,amulet-nbt amulet-compiler-version${{ inputs.compiler-specifier }} pybind11${{ inputs.pybind11-specifier }} amulet-pybind11-extensions${{ inputs.pybind11-extensions-specifier }} amulet-io${{ inputs.io-specifier }} amulet-zlib${{ inputs.zlib-specifier }} amulet-nbt${{ inputs.nbt-specifier }}
+        python -m pip install --only-binary amulet-utils,amulet-zlib,amulet-nbt amulet-compiler-version${{ inputs.compiler-specifier }} pybind11${{ inputs.pybind11-specifier }} amulet-pybind11-extensions${{ inputs.pybind11-extensions-specifier }} amulet-io${{ inputs.io-specifier }} amulet-utils${{ inputs.utils-specifier }} amulet-zlib${{ inputs.zlib-specifier }} amulet-nbt${{ inputs.nbt-specifier }}
 
 
     - name: Install Prebuilt
@@ -94,7 +102,7 @@ runs:
       shell: bash
       continue-on-error: true
       run: |
-        python -m pip install --only-binary amulet-core,amulet-zlib,amulet-nbt amulet-compiler-version${{ inputs.compiler-specifier }} pybind11${{ inputs.pybind11-specifier }} amulet-pybind11-extensions${{ inputs.pybind11-extensions-specifier }} amulet-io${{ inputs.io-specifier }} amulet-zlib${{ inputs.zlib-specifier }} amulet-nbt${{ inputs.nbt-specifier }} amulet-core${{ inputs.core-specifier }}
+        python -m pip install --only-binary amulet-core,amulet-utils,amulet-zlib,amulet-nbt amulet-compiler-version${{ inputs.compiler-specifier }} pybind11${{ inputs.pybind11-specifier }} amulet-pybind11-extensions${{ inputs.pybind11-extensions-specifier }} amulet-io${{ inputs.io-specifier }} amulet-utils${{ inputs.utils-specifier }} amulet-zlib${{ inputs.zlib-specifier }} amulet-nbt${{ inputs.nbt-specifier }} amulet-core${{ inputs.core-specifier }}
 
     - name: Build
       if: steps.install.outcome == 'failure'
@@ -104,6 +112,7 @@ runs:
         PYBIND11_REQUIREMENT: ${{ inputs.pybind11-specifier }}
         AMULET_PYBIND11_EXTENSIONS_REQUIREMENT: ${{ inputs.pybind11-extensions-specifier }}
         AMULET_IO_REQUIREMENT: ${{ inputs.io-specifier }}
+        AMULET_UTILS_REQUIREMENT: ${{ inputs.utils-specifier }}
         AMULET_ZLIB_REQUIREMENT: ${{ inputs.zlib-specifier }}
         AMULET_NBT_REQUIREMENT: ${{ inputs.nbt-specifier }}
       run: |
@@ -124,7 +133,7 @@ runs:
       run: |
         cache_dir=$(python -m pip cache dir)
         rm -rf "$cache_dir"/http*
-        python -m pip install --only-binary amulet-core,amulet-zlib,amulet-nbt amulet-compiler-version${{ inputs.compiler-specifier }} pybind11${{ inputs.pybind11-specifier }} amulet-pybind11-extensions${{ inputs.pybind11-extensions-specifier }} amulet-io${{ inputs.io-specifier }} amulet-zlib${{ inputs.zlib-specifier }} amulet-nbt${{ inputs.nbt-specifier }} amulet-core${{ inputs.core-specifier }}
+        python -m pip install --only-binary amulet-core,amulet-utils,amulet-zlib,amulet-nbt amulet-compiler-version${{ inputs.compiler-specifier }} pybind11${{ inputs.pybind11-specifier }} amulet-pybind11-extensions${{ inputs.pybind11-extensions-specifier }} amulet-io${{ inputs.io-specifier }} amulet-utils${{ inputs.utils-specifier }} amulet-zlib${{ inputs.zlib-specifier }} amulet-nbt${{ inputs.nbt-specifier }} amulet-core${{ inputs.core-specifier }}
 
     - name: Get __version__
       id: get-version

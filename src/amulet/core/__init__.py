@@ -23,6 +23,7 @@ def _init() -> None:
         raise RuntimeError(f"Unsupported platform {sys.platform}")
 
     # Import dependencies
+    import amulet.utils
     import amulet.zlib
     import amulet.nbt
 

@@ -38,6 +38,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
         username: ${{ secrets.PYPI_USERNAME }}
         compiler-version-password: ${{ secrets.AMULET_COMPILER_VERSION_PYPI_PASSWORD }}
+        utils-password: ${{ secrets.AMULET_UTILS_PYPI_PASSWORD }}
         zlib-password: ${{ secrets.AMULET_ZLIB_PYPI_PASSWORD }}
         nbt-password: ${{ secrets.AMULET_NBT_PYPI_PASSWORD }}
         rest-token: ${{ secrets.GITHUB_TOKEN }}
@@ -46,7 +47,7 @@ jobs:
       env:
         AMULET_FREEZE_COMPILER: 1
       run: |
-        pip install --only-binary amulet-compiler-version,amulet-zlib,amulet-nbt -v .[dev]
+        pip install --only-binary amulet-compiler-version,amulet-utils,amulet-zlib,amulet-nbt -v .[dev]
         python tools/compile_tests.py
 
     - name: Test with unittest

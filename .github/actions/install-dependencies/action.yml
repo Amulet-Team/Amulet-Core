@@ -10,6 +10,9 @@ inputs:
   compiler-version-password:
     description: 'The password for the compiler-version library'
     required: true
+  utils-password:
+    description: 'The password for the utils library'
+    required: true
   zlib-password:
     description: 'The password for the zlib library'
     required: true
@@ -37,6 +40,11 @@ runs:
 
         if [ -z "${{ inputs.compiler-version-password }}" ]; then
           echo "compiler-version-password is empty"
+          exit 1
+        fi
+
+        if [ -z "${{ inputs.utils-password }}" ]; then
+          echo "utils-password is empty"
           exit 1
         fi
 
@@ -85,13 +93,15 @@ runs:
       env:
         REST_TOKEN: ${{ inputs.rest-token }}
       run: |
-        python -c "import sys; sys.path.append(r'${{ github.action_path }}'); import dependency_resolver; import requirements; dependency_resolver.find_and_save_compatible_libraries([('amulet-nbt', 'Amulet-Team/Amulet-NBT'), ('amulet-zlib', 'Amulet-Team/Amulet-zlib')], requirements.get_runtime_dependencies())"
+        python -c "import sys; sys.path.append(r'${{ github.action_path }}'); import dependency_resolver; import requirements; dependency_resolver.find_and_save_compatible_libraries([('amulet-nbt', 'Amulet-Team/Amulet-NBT'), ('amulet-zlib', 'Amulet-Team/Amulet-zlib'), ('amulet-utils', 'Amulet-Team/Amulet-Utils')], requirements.get_runtime_dependencies())"
         pybind11=$(python -c "import os; f = open(os.path.join(r'${{ github.action_path }}', 'libraries.json'), encoding='utf-8'); import json; print(json.load(f)['pybind11'])")
         echo "pybind11=$pybind11" >> "$GITHUB_OUTPUT"
         pybind11_extensions=$(python -c "import os; f = open(os.path.join(r'${{ github.action_path }}', 'libraries.json'), encoding='utf-8'); import json; print(json.load(f)['amulet-pybind11-extensions'])")
         echo "pybind11_extensions=$pybind11_extensions" >> "$GITHUB_OUTPUT"
         io=$(python -c "import os; f = open(os.path.join(r'${{ github.action_path }}', 'libraries.json'), encoding='utf-8'); import json; print(json.load(f)['amulet-io'])")
         echo "io=$io" >> "$GITHUB_OUTPUT"
+        utils=$(python -c "import os; f = open(os.path.join(r'${{ github.action_path }}', 'libraries.json'), encoding='utf-8'); import json; print(json.load(f)['amulet-utils'])")
+        echo "utils=$utils" >> "$GITHUB_OUTPUT"
         zlib=$(python -c "import os; f = open(os.path.join(r'${{ github.action_path }}', 'libraries.json'), encoding='utf-8'); import json; print(json.load(f)['amulet-zlib'])")
         echo "zlib=$zlib" >> "$GITHUB_OUTPUT"
         nbt=$(python -c "import os; f = open(os.path.join(r'${{ github.action_path }}', 'libraries.json'), encoding='utf-8'); import json; print(json.load(f)['amulet-nbt'])")
@@ -107,11 +117,31 @@ runs:
         echo "pybind11_extensions=$pybind11_extensions" >> "$GITHUB_OUTPUT"
         io=$(python -c "import requirements; print(requirements.get_specifier_set('${{ steps.dep.outputs.io }}'))")
         echo "io=$io" >> "$GITHUB_OUTPUT"
+        utils=$(python -c "import requirements; print(requirements.get_specifier_set('${{ steps.dep.outputs.utils }}'))")
+        echo "utils=$utils" >> "$GITHUB_OUTPUT"
         zlib=$(python -c "import requirements; print(requirements.get_specifier_set('${{ steps.dep.outputs.zlib }}'))")
         echo "zlib=$zlib" >> "$GITHUB_OUTPUT"
         nbt=$(python -c "import requirements; print(requirements.get_specifier_set('${{ steps.dep.outputs.nbt }}'))")
         echo "nbt=$nbt" >> "$GITHUB_OUTPUT"
 
+
+    - name: Clone Amulet-Utils
+      uses: Amulet-Team/checkout-pep440@v2
+      with:
+        repository: 'Amulet-Team/Amulet-Utils'
+        specifier: '==${{ steps.dep.outputs.utils }}'
+        path: 'build/pylib/Amulet-Utils'
+        rest-token: ${{ inputs.rest-token }}
+
+    - name: Install Amulet-Utils
+      uses: ./build/pylib/Amulet-Utils/.github/actions/install
+      with:
+        twine-username: ${{ inputs.username }}
+        twine-password: ${{ inputs.utils-password }}
+        compiler-specifier: '==${{ steps.compiler.outputs.version }}'
+        pybind11-specifier: ${{ steps.dep2.outputs.pybind11 }}
+        pybind11-extensions-specifier: ${{ steps.dep2.outputs.pybind11_extensions }}
+        utils-specifier: ${{ steps.dep2.outputs.utils }}
 
     - name: Clone Amulet-zlib
       uses: Amulet-Team/checkout-pep440@v2

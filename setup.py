@@ -35,6 +35,7 @@ class CMakeBuild(cmdclass.get("build_ext", build_ext)):
         import pybind11
         import amulet.pybind11_extensions
         import amulet.io
+        import amulet.utils
         import amulet.nbt
 
         ext_dir = (
@@ -69,6 +70,7 @@ class CMakeBuild(cmdclass.get("build_ext", build_ext)):
                     f"-Dpybind11_DIR={fix_path(pybind11.get_cmake_dir())}",
                     f"-Damulet_pybind11_extensions_DIR={fix_path(amulet.pybind11_extensions.__path__[0])}",
                     f"-Damulet_io_DIR={fix_path(amulet.io.__path__[0])}",
+                    f"-Damulet_utils_DIR={fix_path(amulet.utils.__path__[0])}",
                     f"-Damulet_nbt_DIR={fix_path(amulet.nbt.__path__[0])}",
                     f"-Damulet_core_DIR={fix_path(core_src_dir)}",
                     f"-DAMULET_CORE_EXT_DIR={fix_path(ext_dir)}",
