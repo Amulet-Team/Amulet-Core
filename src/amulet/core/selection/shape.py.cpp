@@ -12,10 +12,34 @@ py::object init_selection_shape(py::module m_parent)
     py::classh<Amulet::SelectionShape> SelectionShape(m, "SelectionShape",
         "A base class for selection classes.");
 
+    SelectionShape.def_readwrite(
+        "matrix",
+        &Amulet::SelectionShape::matrix);
+
     SelectionShape.def(
         "voxelise",
         &Amulet::SelectionShape::voxelise,
         py::doc("Convert the shape into unit voxels."));
+
+    SelectionShape.def(
+        "translate",
+        &Amulet::SelectionShape::translate,
+        py::arg("dx"),
+        py::arg("dy"),
+        py::arg("dz"),
+        py::doc("Translate the shape by the given amount"));
+
+    SelectionShape.def(
+        "transform",
+        &Amulet::SelectionShape::transform,
+        py::arg("matrix"),
+        py::doc("Translate the shape by the given matrix"));
+
+    SelectionShape.def(
+        "almost_equal",
+        &Amulet::SelectionShape::almost_equal,
+        py::arg("other"),
+        py::doc("Check if this shape is equal or almost equal to another shape."));
 
     return SelectionShape;
 }

@@ -56,7 +56,7 @@ class SelectionBoxGroup:
         """
         Convert the shape to a group of selection boxes.
 
-        >>> SelectionBoxGroup(SelectionSphere(0, 0, 0, 5))
+        >>> SelectionBoxGroup(SelectionEllipsoid(0, 0, 0, 5))
         """
 
     @typing.overload
@@ -68,8 +68,8 @@ class SelectionBoxGroup:
         Create a SelectionBoxGroup from the boxes in the iterable.
 
         >>> SelectionBoxGroup([
-        >>>     SelectionSphere(0, 0, 0, 5),
-        >>>     SelectionSphere(0, 10, 0, 5)
+        >>>     SelectionEllipsoid(0, 0, 0, 5),
+        >>>     SelectionEllipsoid(0, 10, 0, 5)
         >>> ])
         """
 

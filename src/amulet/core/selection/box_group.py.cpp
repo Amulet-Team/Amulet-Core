@@ -50,7 +50,7 @@ void init_selection_box_group(py::classh<Amulet::SelectionBoxGroup> SelectionBox
         py::doc(
             "Convert the shape to a group of selection boxes.\n"
             "\n"
-            ">>> SelectionBoxGroup(SelectionSphere(0, 0, 0, 5))"));
+            ">>> SelectionBoxGroup(SelectionEllipsoid(0, 0, 0, 5))"));
     static_assert(std::ranges::input_range<pyext::collections::Iterable<Amulet::SelectionBox>>);
     static_assert(std::convertible_to<std::ranges::range_value_t<pyext::collections::Iterable<Amulet::SelectionBox>>, const Amulet::SelectionBox&>);
     SelectionBoxGroup.def(
@@ -68,8 +68,8 @@ void init_selection_box_group(py::classh<Amulet::SelectionBoxGroup> SelectionBox
             "Create a SelectionBoxGroup from the boxes in the iterable.\n"
             "\n"
             ">>> SelectionBoxGroup([\n"
-            ">>>     SelectionSphere(0, 0, 0, 5),\n"
-            ">>>     SelectionSphere(0, 10, 0, 5)\n"
+            ">>>     SelectionEllipsoid(0, 0, 0, 5),\n"
+            ">>>     SelectionEllipsoid(0, 10, 0, 5)\n"
             ">>> ])\n"));
 
     // Accessors

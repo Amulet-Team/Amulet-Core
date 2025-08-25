@@ -12,7 +12,7 @@ void init_selection_box(py::classh<Amulet::SelectionBox>);
 void init_selection_box_group(py::classh<Amulet::SelectionBoxGroup>);
 py::object init_selection_shape(py::module);
 py::object init_selection_shape_group(py::module);
-py::object init_selection_sphere(py::module m_parent);
+py::object init_selection_ellipsoid(py::module m_parent);
 
 void init_selection(py::module m_parent)
 {
@@ -44,5 +44,5 @@ void init_selection(py::module m_parent)
 
     // Init shape classes
     m.attr("SelectionShapeGroup") = init_selection_shape_group(m);
-    m.attr("SelectionSphere") = init_selection_sphere(m);
+    m.attr("SelectionEllipsoid") = init_selection_ellipsoid(m);
 }
