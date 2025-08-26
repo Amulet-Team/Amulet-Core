@@ -43,7 +43,7 @@ static const std::vector<std::array<double, 3>> SelectionEllipsoidBoundingBox {
     { 0.5, 0.5, 0.5 },
 };
 
-std::set<SelectionBox> SelectionEllipsoid::voxelise() const
+SelectionEllipsoid::operator std::set<SelectionBox>() const
 {
     // Find the transformed bounding box
     auto bounding_points = matrix * SelectionEllipsoidBoundingBox;

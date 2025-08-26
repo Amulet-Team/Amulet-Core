@@ -1,5 +1,4 @@
 #pragma once
-#include <array>
 #include <cstdint>
 
 #include <amulet/core/dll.hpp>
@@ -24,7 +23,7 @@ public:
     SelectionEllipsoid(const SelectionEllipsoid& other);
         
     std::unique_ptr<SelectionShape> copy() const override;
-    std::set<SelectionBox> voxelise() const override;
+    explicit operator std::set<SelectionBox>() const override;
 
     // Transform
     SelectionEllipsoid translate_ellipsoid(double dx, double dy, double dz) const;

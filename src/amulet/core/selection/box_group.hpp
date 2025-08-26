@@ -75,8 +75,10 @@ public:
     {
         return !_boxes.empty();
     }
+    std::strong_ordering operator<=>(const SelectionBoxGroup& other) const = default;
     bool operator==(const SelectionBoxGroup& rhs) const = default;
     bool operator!=(const SelectionBoxGroup& rhs) const = default;
+
     operator std::set<SelectionBox>() const
     {
         return _boxes;

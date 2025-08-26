@@ -9,6 +9,7 @@
 
 namespace Amulet {
 
+class SelectionBox;
 class SelectionBoxGroup;
 
 class AMULET_CORE_EXPORT SelectionShapeGroup {
@@ -52,10 +53,9 @@ public:
         return _shapes.size();
     }
 
-    SelectionBoxGroup voxelise() const;
-
     explicit operator SelectionBoxGroup() const;
     explicit operator std::set<SelectionBox>() const;
+    SelectionBoxGroup voxelise() const;
 };
 
 }

@@ -7,11 +7,10 @@
 
 #include <amulet/core/dll.hpp>
 
-#include "box.hpp"
-
 namespace Amulet {
 
 class SelectionBox;
+class SelectionBoxGroup;
 
 class AMULET_CORE_EXPORT SelectionShape {
 public:
@@ -33,12 +32,9 @@ public:
     }
 
     // Convert the shape into unit voxels.
-    virtual std::set<SelectionBox> voxelise() const = 0;
-
-    explicit operator std::set<SelectionBox>() const
-    {
-        return voxelise();
-    }
+    virtual explicit operator std::set<SelectionBox>() const = 0;
+    explicit operator SelectionBoxGroup() const;
+    SelectionBoxGroup voxelise() const;
 
     // translate and transform
     virtual std::unique_ptr<SelectionShape> transform(const Matrix4x4&) const = 0;
