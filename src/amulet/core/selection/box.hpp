@@ -73,7 +73,7 @@ public:
     std::uint64_t size_y() const { return _size_y; }
     std::uint64_t size_z() const { return _size_z; }
     std::array<std::uint64_t, 3> shape() const { return { _size_x, _size_y, _size_z }; }
-    size_t volume() const { return _size_x * _size_y * _size_z; }
+    std::uint64_t volume() const { return _size_x * _size_y * _size_z; }
 
     // Contains and intersects
     bool contains_block(std::int64_t x, std::int64_t y, std::int64_t z) const;
