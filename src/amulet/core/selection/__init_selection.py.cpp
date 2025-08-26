@@ -12,6 +12,7 @@ void init_selection_box(py::classh<Amulet::SelectionBox>);
 void init_selection_box_group(py::classh<Amulet::SelectionBoxGroup>);
 py::object init_selection_shape(py::module);
 py::object init_selection_shape_group(py::module);
+py::object init_selection_cuboid(py::module m_parent);
 py::object init_selection_ellipsoid(py::module m_parent);
 
 void init_selection(py::module m_parent)
@@ -22,7 +23,7 @@ void init_selection(py::module m_parent)
     auto selection_box_group_module = m.def_submodule("box_group");
 
     // Low level selection
-    // Both classes must be defined before methods can be added
+    // These classes must be defined before methods can be added
     py::classh<Amulet::SelectionBox> SelectionBox(selection_box_module, "SelectionBox",
         "The SelectionBox class represents a single cuboid selection.\n"
         "\n"
@@ -44,5 +45,6 @@ void init_selection(py::module m_parent)
 
     // Init shape classes
     m.attr("SelectionShapeGroup") = init_selection_shape_group(m);
+    m.attr("SelectionCuboid") = init_selection_cuboid(m);
     m.attr("SelectionEllipsoid") = init_selection_ellipsoid(m);
 }
