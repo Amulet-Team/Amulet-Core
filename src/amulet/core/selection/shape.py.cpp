@@ -2,6 +2,7 @@
 #include <pybind11/stl.h>
 #include <pybind11/typing.h>
 
+#include "box_group.hpp"
 #include "shape.hpp"
 
 namespace py = pybind11;
@@ -19,7 +20,7 @@ py::object init_selection_shape(py::module m_parent)
     SelectionShape.def(
         "voxelise",
         &Amulet::SelectionShape::voxelise,
-        py::doc("Convert the shape into unit voxels."));
+        py::doc("Convert the selection to a SelectionBoxGroup."));
 
     SelectionShape.def(
         "translate",

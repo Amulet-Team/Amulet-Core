@@ -9,7 +9,7 @@ __all__: list[str] = ["SelectionEllipsoid"]
 
 class SelectionEllipsoid(amulet.core.selection.shape.SelectionShape):
     """
-    The SelectionEllipsoid class represents a single spherical selection.
+    The SelectionEllipsoid class represents a single ellipsoid selection.
     """
 
     @typing.overload

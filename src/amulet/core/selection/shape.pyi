@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import typing
 
-import amulet.core.selection.box
+import amulet.core.selection.box_group
 import amulet.utils.matrix
 
 __all__: list[str] = ["SelectionShape"]
@@ -33,7 +33,7 @@ class SelectionShape:
         Translate the shape by the given amount
         """
 
-    def voxelise(self) -> set[amulet.core.selection.box.SelectionBox]:
+    def voxelise(self) -> amulet.core.selection.box_group.SelectionBoxGroup:
         """
-        Convert the shape into unit voxels.
+        Convert the selection to a SelectionBoxGroup.
         """

@@ -8,7 +8,7 @@ py::object init_selection_ellipsoid(py::module m_parent)
 {
     auto m = m_parent.def_submodule("ellipsoid");
     py::classh<Amulet::SelectionEllipsoid, Amulet::SelectionShape> SelectionEllipsoid(m, "SelectionEllipsoid",
-        "The SelectionEllipsoid class represents a single spherical selection.");
+        "The SelectionEllipsoid class represents a single ellipsoid selection.");
 
     SelectionEllipsoid.def(
         py::init<double, double, double, double>(),
