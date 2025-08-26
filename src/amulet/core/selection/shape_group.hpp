@@ -16,18 +16,10 @@ private:
     std::vector<std::unique_ptr<const SelectionShape>> _shapes;
 
 public:
-    // Default constructor
-    SelectionShapeGroup() { };
-
-    // Construct from a single shape
-    SelectionShapeGroup(const SelectionShape& selection)
-    {
-        _shapes.push_back(selection.copy());
-    }
-
-    // Move vector constructor
-    SelectionShapeGroup(std::vector<std::unique_ptr<const SelectionShape>>&& shapes)
-        : _shapes(std::move(shapes))
+    // Forwarding constructor
+    template <typename... Args>
+    SelectionShapeGroup(Args&&... args)
+        : _shapes(std::forward<Args>(args)...)
     {
     }
 
@@ -38,16 +30,6 @@ public:
     // Default move
     SelectionShapeGroup(SelectionShapeGroup&&) = default;
     SelectionShapeGroup& operator=(SelectionShapeGroup&&) = default;
-
-    // Construct from an iterable of shapes
-    template <typename Iterator>
-        requires std::constructible_from<std::unique_ptr<SelectionShape>, std::iter_value_t<Iterator>>
-    SelectionShapeGroup(const Iterator& begin, const Iterator& end)
-    {
-        for (auto it = begin(); it != end; it++) {
-            _shapes.emplace_back(static_cast<std::unique_ptr<SelectionShape>>(*it));
-        }
-    }
 
     const std::vector<std::unique_ptr<const SelectionShape>>& get_shapes() const
     {

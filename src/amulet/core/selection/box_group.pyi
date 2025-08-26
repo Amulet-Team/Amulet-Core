@@ -5,7 +5,6 @@ import types
 import typing
 
 import amulet.core.selection.box
-import amulet.core.selection.shape
 
 __all__: list[str] = ["SelectionBoxGroup"]
 
@@ -44,25 +43,8 @@ class SelectionBoxGroup:
         """
 
     @typing.overload
-    def __init__(self, shape: amulet.core.selection.box.SelectionBox) -> None:
-        """
-        Create a group contaning this selection box.
-
-        >>> SelectionBoxGroup(SelectionBox(0, 0, 0, 1, 1, 1))
-        """
-
-    @typing.overload
-    def __init__(self, shape: amulet.core.selection.shape.SelectionShape) -> None:
-        """
-        Convert the shape to a group of selection boxes.
-
-        >>> SelectionBoxGroup(SelectionEllipsoid(0, 0, 0, 5))
-        """
-
-    @typing.overload
     def __init__(
-        self,
-        boxes: collections.abc.Iterable[amulet.core.selection.shape.SelectionShape],
+        self, boxes: collections.abc.Iterable[amulet.core.selection.box.SelectionBox]
     ) -> None:
         """
         Create a SelectionBoxGroup from the boxes in the iterable.

@@ -26,14 +26,6 @@ class SelectionShapeGroup:
         """
 
     @typing.overload
-    def __init__(self, selection: amulet.core.selection.shape.SelectionShape) -> None:
-        """
-        Create a SelectionShapeGroup containing the given selection.
-
-        >>> SelectionShapeGroup(SelectionShape(0, 0, 0, 1, 1, 1))
-        """
-
-    @typing.overload
     def __init__(
         self,
         shapes: collections.abc.Iterable[amulet.core.selection.shape.SelectionShape],

@@ -38,30 +38,9 @@ void init_selection_box_group(py::classh<Amulet::SelectionBoxGroup> SelectionBox
             "\n"
             ">>> SelectionBoxGroup()"));
     SelectionBoxGroup.def(
-        py::init<const Amulet::SelectionBox&>(),
-        py::arg("shape"),
-        py::doc(
-            "Create a group contaning this selection box.\n"
-            "\n"
-            ">>> SelectionBoxGroup(SelectionBox(0, 0, 0, 1, 1, 1))"));
-    SelectionBoxGroup.def(
-        py::init<const Amulet::SelectionShape&>(),
-        py::arg("shape"),
-        py::doc(
-            "Convert the shape to a group of selection boxes.\n"
-            "\n"
-            ">>> SelectionBoxGroup(SelectionEllipsoid(0, 0, 0, 5))"));
-    static_assert(std::ranges::input_range<pyext::collections::Iterable<Amulet::SelectionBox>>);
-    static_assert(std::convertible_to<std::ranges::range_value_t<pyext::collections::Iterable<Amulet::SelectionBox>>, const Amulet::SelectionBox&>);
-    SelectionBoxGroup.def(
         py::init(
-            [](py::typing::Iterable<Amulet::SelectionShape> py_shapes) {
-                std::set<Amulet::SelectionBox> boxes;
-                for (const auto& py_shape : py_shapes) {
-                    auto shape_boxes = py_shape.cast<const Amulet::SelectionShape&>().voxelise();
-                    boxes.insert(shape_boxes.begin(), shape_boxes.end());
-                }
-                return Amulet::SelectionBoxGroup(std::move(boxes));
+            [](pyext::collections::Iterable<const Amulet::SelectionBox&> boxes) {
+                return Amulet::SelectionBoxGroup(boxes.begin(), boxes.end());
             }),
         py::arg("boxes"),
         py::doc(

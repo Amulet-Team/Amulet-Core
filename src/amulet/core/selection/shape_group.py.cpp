@@ -19,18 +19,11 @@ py::object init_selection_shape_group(py::module m_parent)
             "\n"
             ">>> SelectionShapeGroup()"));
     SelectionShapeGroup.def(
-        py::init<const Amulet::SelectionShape&>(),
-        py::arg("selection"),
-        py::doc(
-            "Create a SelectionShapeGroup containing the given selection.\n"
-            "\n"
-            ">>> SelectionShapeGroup(SelectionShape(0, 0, 0, 1, 1, 1))"));
-    SelectionShapeGroup.def(
         py::init(
-            [](py::typing::Iterable<Amulet::SelectionShape> py_shapes) {
+            [](pyext::collections::Iterable<const Amulet::SelectionShape&> py_shapes) {
                 std::vector<std::unique_ptr<const Amulet::SelectionShape>> shapes;
-                for (const auto& py_shape : py_shapes) {
-                    shapes.push_back(py_shape.cast<const Amulet::SelectionShape&>().copy());
+                for (const auto& shape : py_shapes) {
+                    shapes.push_back(shape.copy());
                 }
                 return Amulet::SelectionShapeGroup(std::move(shapes));
             }),

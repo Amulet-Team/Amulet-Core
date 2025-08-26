@@ -16,39 +16,11 @@ private:
     std::set<SelectionBox> _boxes;
 
 public:
-    // Constructors
-    // Default constructor
-    SelectionBoxGroup() { };
-
-    SelectionBoxGroup(const SelectionBox& box)
-        : _boxes({ box })
-    {
-    }
-
     // Forwarding constructor
-    template <typename Boxes>
-    SelectionBoxGroup(Boxes&& boxes)
-        : _boxes(std::forward<Boxes>(boxes))
+    template <typename... Args>
+    SelectionBoxGroup(Args&&... args)
+        : _boxes(std::forward<Args>(args)...)
     {
-    }
-
-    // Construct from an object that can be cast to std::set<SelectionBox>
-    template <typename T>
-        requires std::constructible_from<std::set<SelectionBox>, T>
-    SelectionBoxGroup(const T& obj)
-        : _boxes(static_cast<std::set<SelectionBox>>(obj))
-    {
-    }
-
-    // Construct from iterable of objects that can be cast to std::set<SelectionBox>
-    template <typename Iterator>
-        requires std::constructible_from<std::set<SelectionBox>, std::iter_value_t<Iterator>>
-    SelectionBoxGroup(const Iterator& begin, const Iterator& end)
-    {
-        for (auto it = begin; it != end; it++) {
-            auto boxes = static_cast<std::set<SelectionBox>>(*it);
-            _boxes.insert(boxes.begin(), boxes.end());
-        }
     }
 
     // Accessors
