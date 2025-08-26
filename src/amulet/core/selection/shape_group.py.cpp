@@ -1,9 +1,12 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/typing.h>
 
+#include <amulet/pybind11_extensions/collections.hpp>
+
 #include "shape_group.hpp"
 
 namespace py = pybind11;
+namespace pyext = Amulet::pybind11_extensions;
 
 py::object init_selection_shape_group(py::module m_parent)
 {
