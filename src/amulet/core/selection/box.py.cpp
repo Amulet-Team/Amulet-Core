@@ -2,6 +2,8 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/typing.h>
 
+#include <amulet/utils/matrix.hpp>
+
 #include "box.hpp"
 #include "box_group.hpp"
 
@@ -241,6 +243,11 @@ void init_selection_box(py::classh<Amulet::SelectionBox> SelectionBox)
         py::arg("dx"),
         py::arg("dy"),
         py::arg("dz"));
+    SelectionBox.def(
+        "transform",
+        &Amulet::SelectionBox::transform,
+        py::arg("matrix"),
+        py::doc("Transform this box by the given transformation matrix."));
 
     // Dunder methods
     SelectionBox.def(py::self < py::self);

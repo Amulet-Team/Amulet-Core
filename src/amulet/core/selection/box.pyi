@@ -4,6 +4,7 @@ import types
 import typing
 
 import amulet.core.selection.box_group
+import amulet.utils.matrix
 
 __all__: list[str] = ["SelectionBox"]
 
@@ -132,6 +133,13 @@ class SelectionBox:
 
         :param other: The other SelectionBox.
         :return: True if the two :class:`SelectionBox` instances touch or intersect, False otherwise.
+        """
+
+    def transform(
+        self, matrix: amulet.utils.matrix.Matrix4x4
+    ) -> amulet.core.selection.box_group.SelectionBoxGroup:
+        """
+        Transform this box by the given transformation matrix.
         """
 
     def translate(

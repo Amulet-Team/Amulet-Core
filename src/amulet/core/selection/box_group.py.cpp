@@ -4,6 +4,8 @@
 
 #include <amulet/pybind11_extensions/collections.hpp>
 
+#include <amulet/utils/matrix.hpp>
+
 #include "box_group.hpp"
 #include "shape_group.hpp"
 
@@ -205,6 +207,11 @@ void init_selection_box_group(py::classh<Amulet::SelectionBoxGroup> SelectionBox
             ":param dy: The y offset.\n"
             ":param dz: The z offset.\n"
             ":return: The new selection with the given offset."));
+    SelectionBoxGroup.def(
+        "transform",
+        &Amulet::SelectionBoxGroup::transform,
+        py::arg("matrix"),
+        py::doc("Transform the boxes in this group by the given transformation matrix."));
 
     // Dunder methods
     SelectionBoxGroup.def(

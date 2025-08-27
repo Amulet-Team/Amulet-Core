@@ -5,6 +5,7 @@ import types
 import typing
 
 import amulet.core.selection.box
+import amulet.utils.matrix
 
 __all__: list[str] = ["SelectionBoxGroup"]
 
@@ -112,6 +113,11 @@ class SelectionBoxGroup:
 
     @typing.overload
     def intersects(self, other: SelectionBoxGroup) -> bool: ...
+    def transform(self, matrix: amulet.utils.matrix.Matrix4x4) -> SelectionBoxGroup:
+        """
+        Transform the boxes in this group by the given transformation matrix.
+        """
+
     def translate(
         self, dx: typing.SupportsInt, dy: typing.SupportsInt, dz: typing.SupportsInt
     ) -> SelectionBoxGroup:
