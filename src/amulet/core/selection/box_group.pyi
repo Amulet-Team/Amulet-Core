@@ -50,8 +50,8 @@ class SelectionBoxGroup:
         Create a SelectionBoxGroup from the boxes in the iterable.
 
         >>> SelectionBoxGroup([
-        >>>     SelectionEllipsoid(0, 0, 0, 5),
-        >>>     SelectionEllipsoid(0, 10, 0, 5)
+        >>>     SelectionBox(0, 0, 0, 1, 1, 1),
+        >>>     SelectionBox(1, 1, 1, 1, 1, 1)
         >>> ])
         """
 

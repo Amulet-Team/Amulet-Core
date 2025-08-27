@@ -47,8 +47,8 @@ void init_selection_box_group(py::classh<Amulet::SelectionBoxGroup> SelectionBox
             "Create a SelectionBoxGroup from the boxes in the iterable.\n"
             "\n"
             ">>> SelectionBoxGroup([\n"
-            ">>>     SelectionEllipsoid(0, 0, 0, 5),\n"
-            ">>>     SelectionEllipsoid(0, 10, 0, 5)\n"
+            ">>>     SelectionBox(0, 0, 0, 1, 1, 1),\n"
+            ">>>     SelectionBox(1, 1, 1, 1, 1, 1)\n"
             ">>> ])\n"));
 
     // Accessors
