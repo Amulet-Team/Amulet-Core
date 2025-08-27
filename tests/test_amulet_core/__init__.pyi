@@ -11,7 +11,7 @@ from . import (
     test_chunk_components,
     test_entity_,
     test_palette,
-    test_selection_,
+    test_selection,
     test_version_,
 )
 
@@ -24,7 +24,7 @@ __all__: list[str] = [
     "test_chunk_components",
     "test_entity_",
     "test_palette",
-    "test_selection_",
+    "test_selection",
     "test_version_",
 ]
 
