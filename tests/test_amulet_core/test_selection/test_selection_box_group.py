@@ -44,7 +44,7 @@ class SelectionBoxGroupTestCase(unittest.TestCase):
     def test_attrs(self) -> None:
         boxes = {SelectionBox(0, 1, 2, 3, 4, 5), SelectionBox(1, 2, 3, 4, 5, 6)}
         group = SelectionBoxGroup(boxes)
-        it = group.selection_boxes
+        it = group.boxes
         group_ref = weakref.ref(group)
         del group
         gc.collect()

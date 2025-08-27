@@ -147,6 +147,12 @@ class SelectionBoxGroup:
         """
 
     @property
+    def boxes(self) -> collections.abc.Iterator[amulet.core.selection.box.SelectionBox]:
+        """
+        An iterator of the :class:`SelectionBox` instances stored for this group.
+        """
+
+    @property
     def max(self) -> tuple[int, int, int]:
         """
         The maximum x, y and z coordinates in the selection.
@@ -208,12 +214,4 @@ class SelectionBoxGroup:
         The minimum z coordinate in the selection.
 
         :raises RuntimeError: If there are no boxes in the selection.
-        """
-
-    @property
-    def selection_boxes(
-        self,
-    ) -> collections.abc.Iterator[amulet.core.selection.box.SelectionBox]:
-        """
-        An iterator of the :class:`SelectionBox` instances stored for this group.
         """

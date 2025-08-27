@@ -55,10 +55,10 @@ void init_selection_box_group(py::classh<Amulet::SelectionBoxGroup> SelectionBox
 
     // Accessors
     SelectionBoxGroup.def_property_readonly(
-        "selection_boxes",
+        "boxes",
         py::cpp_function(
             [](const Amulet::SelectionBoxGroup& self) {
-                return py::make_iterator(self.selection_boxes().begin(), self.selection_boxes().end());
+                return py::make_iterator(self.get_boxes().begin(), self.get_boxes().end());
             },
             py::keep_alive<0, 1>()),
         py::doc("An iterator of the :class:`SelectionBox` instances stored for this group."));
@@ -219,7 +219,7 @@ void init_selection_box_group(py::classh<Amulet::SelectionBoxGroup> SelectionBox
         [](const Amulet::SelectionBoxGroup& self) {
             std::string out = "SelectionBoxGroup([";
             bool comma = false;
-            for (const auto& box : self.selection_boxes()) {
+            for (const auto& box : self.get_boxes()) {
                 if (comma) {
                     out += ", ";
                 } else {
@@ -247,7 +247,7 @@ void init_selection_box_group(py::classh<Amulet::SelectionBoxGroup> SelectionBox
         [](const Amulet::SelectionBoxGroup& self) {
             std::string out = "[";
             bool comma = false;
-            for (const auto& box : self.selection_boxes()) {
+            for (const auto& box : self.get_boxes()) {
                 if (comma) {
                     out += ", ";
                 } else {
@@ -273,7 +273,7 @@ void init_selection_box_group(py::classh<Amulet::SelectionBoxGroup> SelectionBox
     SelectionBoxGroup.def(
         "__iter__",
         [](const Amulet::SelectionBoxGroup& self) {
-            return py::make_iterator(self.selection_boxes());
+            return py::make_iterator(self.get_boxes());
         },
         py::doc("An iterable of all the :class:`SelectionBox` classes in the group."),
         py::keep_alive<0, 1>());

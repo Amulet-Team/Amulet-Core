@@ -29,7 +29,7 @@ public:
     }
 
     // Accessors
-    const std::set<SelectionBox>& selection_boxes() const
+    const std::set<SelectionBox>& get_boxes() const
     {
         return _boxes;
     }
