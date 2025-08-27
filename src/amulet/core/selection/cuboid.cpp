@@ -1,6 +1,8 @@
 #include <cmath>
 #include <limits>
 
+#include <numbers>
+
 #include "box.hpp"
 #include "cuboid.hpp"
 
@@ -45,10 +47,12 @@ static const std::vector<std::array<double, 3>> SelectionCuboidBoundingBox {
     { 1, 1, 1 }
 };
 
+static const double half_pi = std::numbers::pi / 2;
+
 static bool almost_90(double angle)
 {
     // Find the nearest multiple of 90 degrees
-    double nearest = std::round(angle / 90.0) * 90.0;
+    double nearest = std::round(angle / half_pi) * half_pi;
     // Return if the difference is less than an error threshold
     return std::abs(angle - nearest) < 0.00001;
 }
