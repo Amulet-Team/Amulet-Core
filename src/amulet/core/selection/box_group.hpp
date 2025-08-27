@@ -69,6 +69,7 @@ public:
 
     // Transform
     SelectionBoxGroup translate(std::int64_t dx, std::int64_t dy, std::int64_t dz) const;
+    SelectionBoxGroup transform(const Matrix4x4&) const;
 
     // Operators
     operator bool() const

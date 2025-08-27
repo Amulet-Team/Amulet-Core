@@ -6,6 +6,7 @@
 
 namespace Amulet {
 
+class Matrix4x4;
 class SelectionBoxGroup;
 
 // An axis aligned cuboid selection box.
@@ -86,7 +87,7 @@ public:
 
     // Transform
     SelectionBox translate(std::int64_t dx, std::int64_t dy, std::int64_t dz) const;
-    // SelectionBoxGroup transform() const;
+    SelectionBoxGroup transform(const Matrix4x4&) const;
 
     // Operators
     std::strong_ordering operator<=>(const SelectionBox&) const;

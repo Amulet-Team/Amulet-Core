@@ -233,4 +233,13 @@ SelectionBoxGroup SelectionBoxGroup::translate(std::int64_t dx, std::int64_t dy,
     return group;
 }
 
+SelectionBoxGroup SelectionBoxGroup::transform(const Matrix4x4& matrix) const {
+    std::set<SelectionBox> boxes;
+    for (auto& box : _boxes) {
+        auto new_boxes = box.transform(matrix);
+        boxes.insert(new_boxes.begin(), new_boxes.end());
+    }
+    return boxes;
+}
+
 } // namespace Amulet

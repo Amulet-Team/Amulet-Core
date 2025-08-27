@@ -1,8 +1,11 @@
 #include <algorithm>
 #include <array>
 
+#include <amulet/utils/matrix.hpp>
+
 #include "box.hpp"
 #include "box_group.hpp"
+#include "cuboid.hpp"
 
 namespace Amulet {
 
@@ -60,7 +63,9 @@ SelectionBox SelectionBox::translate(std::int64_t dx, std::int64_t dy, std::int6
         _size_y,
         _size_z);
 }
-// SelectionBoxGroup SelectionBox::transform() const;
+SelectionBoxGroup SelectionBox::transform(const Matrix4x4& matrix) const {
+    return SelectionCuboid(_min_x, _min_y, _min_z, _size_x, _size_y, _size_z).transform(matrix)->voxelise();
+}
 
 std::strong_ordering SelectionBox::operator<=>(const SelectionBox& other) const
 {
