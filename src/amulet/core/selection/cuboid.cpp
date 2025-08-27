@@ -64,9 +64,9 @@ SelectionCuboid::operator std::set<SelectionBox>() const
     double min_tx = std::numeric_limits<double>::max();
     double min_ty = std::numeric_limits<double>::max();
     double min_tz = std::numeric_limits<double>::max();
-    double max_tx = std::numeric_limits<double>::min();
-    double max_ty = std::numeric_limits<double>::min();
-    double max_tz = std::numeric_limits<double>::min();
+    double max_tx = std::numeric_limits<double>::lowest();
+    double max_ty = std::numeric_limits<double>::lowest();
+    double max_tz = std::numeric_limits<double>::lowest();
 
     for (auto& [tx, ty, tz] : bounding_points) {
         min_tx = std::min(min_tx, tx);
@@ -80,6 +80,9 @@ SelectionCuboid::operator std::set<SelectionBox>() const
     min_tx = std::round(min_tx);
     min_ty = std::round(min_ty);
     min_tz = std::round(min_tz);
+    max_tx = std::round(max_tx);
+    max_ty = std::round(max_ty);
+    max_tz = std::round(max_tz);
 
     std::set<SelectionBox> boxes;
 
