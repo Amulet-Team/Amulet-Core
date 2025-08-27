@@ -23,6 +23,11 @@ public:
     {
     }
 
+    SelectionBoxGroup(std::initializer_list<SelectionBox> boxes)
+        : _boxes(boxes)
+    {
+    }
+
     // Accessors
     const std::set<SelectionBox>& selection_boxes() const
     {
