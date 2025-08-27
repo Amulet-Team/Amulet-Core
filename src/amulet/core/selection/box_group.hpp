@@ -33,11 +33,6 @@ public:
     {
         return _boxes;
     }
-    [[deprecated("Use count instead.")]]
-    size_t size() const
-    {
-        return _boxes.size();
-    }
     size_t count() const
     {
         return _boxes.size();
