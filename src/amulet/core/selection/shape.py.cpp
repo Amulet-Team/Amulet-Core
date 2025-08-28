@@ -15,7 +15,8 @@ py::object init_selection_shape(py::module m_parent)
 
     SelectionShape.def_property_readonly(
         "matrix",
-        &Amulet::SelectionShape::get_matrix);
+        &Amulet::SelectionShape::get_matrix,
+        py::return_value_policy::copy);
 
     SelectionShape.def(
         "voxelise",
