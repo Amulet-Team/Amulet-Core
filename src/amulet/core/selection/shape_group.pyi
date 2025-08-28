@@ -34,8 +34,8 @@ class SelectionShapeGroup:
         Create a SelectionShapeGroup from the selections in the iterable.
 
         >>> SelectionShapeGroup([
-        >>>     SelectionBox(0, 0, 0, 1, 1, 1),
-        >>>     SelectionBox(1, 1, 1, 1, 1, 1)
+        >>>     SelectionCuboid(0, 0, 0, 5, 5, 5),
+        >>>     SelectionEllipsoid(7.5, 0, 0, 2.5)
         >>> ])
         """
 

@@ -37,8 +37,8 @@ py::object init_selection_shape_group(py::module m_parent)
             "Create a SelectionShapeGroup from the selections in the iterable.\n"
             "\n"
             ">>> SelectionShapeGroup([\n"
-            ">>>     SelectionBox(0, 0, 0, 1, 1, 1),\n"
-            ">>>     SelectionBox(1, 1, 1, 1, 1, 1)\n"
+            ">>>     SelectionCuboid(0, 0, 0, 5, 5, 5),\n"
+            ">>>     SelectionEllipsoid(7.5, 0, 0, 2.5)\n"
             ">>> ])\n"));
 
     // Accessors
