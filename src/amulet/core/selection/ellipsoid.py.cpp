@@ -7,6 +7,8 @@ namespace py = pybind11;
 py::object init_selection_ellipsoid(py::module m_parent)
 {
     auto m = m_parent.def_submodule("ellipsoid");
+    std::string module_name = m.attr("__name__").cast<std::string>();
+
     py::classh<Amulet::SelectionEllipsoid, Amulet::SelectionShape> SelectionEllipsoid(m, "SelectionEllipsoid",
         "The SelectionEllipsoid class represents a single ellipsoid selection.");
 
@@ -43,6 +45,13 @@ py::object init_selection_ellipsoid(py::module m_parent)
             ":param matrix: The matrix to transform by.\n"
             ":return: The new selection with the added transform."),
         py::arg("matrix"));
+
+    auto repr = py::module::import("builtins").attr("repr");
+    SelectionEllipsoid.def(
+        "__repr__",
+        [module_name, repr](const Amulet::SelectionEllipsoid& self) {
+            return module_name + ".SelectionEllipsoid(" + repr(py::cast(self.get_matrix(), py::return_value_policy::reference)).cast<std::string>() + ")";
+        });
 
     return SelectionEllipsoid;
 }

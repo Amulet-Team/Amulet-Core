@@ -11,6 +11,8 @@ namespace pyext = Amulet::pybind11_extensions;
 py::object init_selection_shape_group(py::module m_parent)
 {
     auto m = m_parent.def_submodule("shape_group");
+    std::string module_name = m.attr("__name__").cast<std::string>();
+
     py::classh<Amulet::SelectionShapeGroup> SelectionShapeGroup(m, "SelectionShapeGroup",
         "A group of selection shapes.");
 
@@ -65,6 +67,24 @@ py::object init_selection_shape_group(py::module m_parent)
         "__len__",
         &Amulet::SelectionShapeGroup::count,
         py::doc("The number of :class:`SelectionShape` classes in the group."));
+    
+    auto repr = py::module::import("builtins").attr("repr");
+    SelectionShapeGroup.def(
+        "__repr__",
+        [module_name, repr](const Amulet::SelectionShapeGroup& self) { 
+            std::string s = module_name + ".SelectionGroup([";
+            bool is_first = true;
+            for (const auto& shape : self) {
+                if (is_first) {
+                    is_first = false;
+                } else {
+                    s += ", ";
+                }
+                s += repr(py::cast(*shape, py::return_value_policy::reference)).cast<std::string>();
+            }
+            s += "])";
+            return s;
+        });
 
     return SelectionShapeGroup;
 }
