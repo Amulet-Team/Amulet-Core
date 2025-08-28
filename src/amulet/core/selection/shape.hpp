@@ -13,15 +13,18 @@ class SelectionBox;
 class SelectionBoxGroup;
 
 class AMULET_CORE_EXPORT SelectionShape {
+private:
+    Matrix4x4 _matrix;
 public:
-    Matrix4x4 matrix;
 
     SelectionShape() = default;
     SelectionShape(const Matrix4x4& matrix)
-        : matrix(matrix)
+        : _matrix(matrix)
     {
     }
     virtual ~SelectionShape() = default;
+
+    const Matrix4x4& get_matrix() const;
 
     // Create a copy of the class.
     virtual std::unique_ptr<SelectionShape> copy() const = 0;

@@ -27,7 +27,7 @@ SelectionCuboid::SelectionCuboid(
 }
 
 SelectionCuboid::SelectionCuboid(const SelectionCuboid& other)
-    : SelectionShape(other.matrix)
+    : SelectionShape(other.get_matrix())
 {
 }
 
@@ -59,6 +59,7 @@ static bool almost_90(double angle)
 
 SelectionCuboid::operator std::set<SelectionBox>() const
 {
+    const auto& matrix = get_matrix();
     // Find the transformed bounding box
     auto bounding_points = matrix * SelectionCuboidBoundingBox;
     double min_tx = std::numeric_limits<double>::max();
@@ -177,11 +178,11 @@ SelectionCuboid::operator std::set<SelectionBox>() const
 
 SelectionCuboid SelectionCuboid::translate_cuboid(double dx, double dy, double dz) const
 {
-    return SelectionCuboid(matrix.translate(dx, dy, dz));
+    return SelectionCuboid(get_matrix().translate(dx, dy, dz));
 }
 SelectionCuboid SelectionCuboid::transform_cuboid(const Matrix4x4& m) const
 {
-    return SelectionCuboid(m * matrix);
+    return SelectionCuboid(m * get_matrix());
 }
 std::unique_ptr<SelectionShape> SelectionCuboid::transform(const Matrix4x4& m) const
 {
@@ -190,7 +191,7 @@ std::unique_ptr<SelectionShape> SelectionCuboid::transform(const Matrix4x4& m) c
 
 bool SelectionCuboid::almost_equal(const SelectionCuboid& other) const
 {
-    return matrix.almost_equal(other.matrix);
+    return get_matrix().almost_equal(other.get_matrix());
 }
 
 bool SelectionCuboid::almost_equal(const SelectionShape& other) const

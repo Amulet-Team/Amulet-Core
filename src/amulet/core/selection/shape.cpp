@@ -3,6 +3,11 @@
 
 namespace Amulet {
 
+const Matrix4x4& SelectionShape::get_matrix() const
+{
+    return _matrix;
+}
+
 SelectionShape::operator SelectionBoxGroup() const
 {
     return static_cast<std::set<SelectionBox>>(*this);

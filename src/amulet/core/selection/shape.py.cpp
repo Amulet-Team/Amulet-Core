@@ -13,9 +13,9 @@ py::object init_selection_shape(py::module m_parent)
     py::classh<Amulet::SelectionShape> SelectionShape(m, "SelectionShape",
         "A base class for selection classes.");
 
-    SelectionShape.def_readwrite(
+    SelectionShape.def_property_readonly(
         "matrix",
-        &Amulet::SelectionShape::matrix);
+        &Amulet::SelectionShape::get_matrix);
 
     SelectionShape.def(
         "voxelise",

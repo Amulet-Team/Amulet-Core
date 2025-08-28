@@ -23,7 +23,7 @@ SelectionEllipsoid::SelectionEllipsoid(
 }
 
 SelectionEllipsoid::SelectionEllipsoid(const SelectionEllipsoid& other)
-    : SelectionShape(other.matrix)
+    : SelectionShape(other.get_matrix())
 {
 }
 
@@ -45,6 +45,7 @@ static const std::vector<std::array<double, 3>> SelectionEllipsoidBoundingBox {
 
 SelectionEllipsoid::operator std::set<SelectionBox>() const
 {
+    const auto& matrix = get_matrix();
     // Find the transformed bounding box
     auto bounding_points = matrix * SelectionEllipsoidBoundingBox;
     double min_tx = std::numeric_limits<double>::max();
@@ -132,11 +133,11 @@ SelectionEllipsoid::operator std::set<SelectionBox>() const
 
 SelectionEllipsoid SelectionEllipsoid::translate_ellipsoid(double dx, double dy, double dz) const
 {
-    return SelectionEllipsoid(matrix.translate(dx, dy, dz));
+    return SelectionEllipsoid(get_matrix().translate(dx, dy, dz));
 }
 SelectionEllipsoid SelectionEllipsoid::transform_ellipsoid(const Matrix4x4& m) const
 {
-    return SelectionEllipsoid(m * matrix);
+    return SelectionEllipsoid(m * get_matrix());
 }
 std::unique_ptr<SelectionShape> SelectionEllipsoid::transform(const Matrix4x4& m) const
 {
@@ -145,7 +146,7 @@ std::unique_ptr<SelectionShape> SelectionEllipsoid::transform(const Matrix4x4& m
 
 bool SelectionEllipsoid::almost_equal(const SelectionEllipsoid& other) const
 {
-    return matrix.almost_equal(other.matrix);
+    return get_matrix().almost_equal(other.get_matrix());
 }
 
 bool SelectionEllipsoid::almost_equal(const SelectionShape& other) const
