@@ -118,4 +118,3 @@ venv*
 *.ilk
 
 /amulet_core-*
-/.github/actions/install-dependencies/*.json

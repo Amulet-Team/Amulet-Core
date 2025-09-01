@@ -13,7 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         python-version: [ '3.11', '3.12' ]
-        os: [ macos-14, windows-latest ]
+        os: [ macos-15, windows-2025 ]
 
     runs-on: ${{ matrix.os }}
     defaults:
@@ -24,26 +24,19 @@ jobs:
     - name: Clone
       uses: actions/checkout@v4
 
-    - name: Install dependencies
-      uses: ./.github/actions/install-dependencies
+    - name: Set up Python
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
-        username: ${{ secrets.PYPI_USERNAME }}
-        compiler-version-password: ${{ secrets.AMULET_COMPILER_VERSION_PYPI_PASSWORD }}
-        utils-password: ${{ secrets.AMULET_UTILS_PYPI_PASSWORD }}
-        zlib-password: ${{ secrets.AMULET_ZLIB_PYPI_PASSWORD }}
-        nbt-password: ${{ secrets.AMULET_NBT_PYPI_PASSWORD }}
-        rest-token: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Build SDist
+    - name: Install dependencies
+      shell: bash
       run: |
-        python -m build --sdist .
+        pip install build twine
 
-    - name: Build Wheel
-      env:
-        AMULET_FREEZE_COMPILER: 1
+    - name: Build
       run: |
-        python -m build --wheel .
+        python -m build .
 
     - name: Publish
       env:
