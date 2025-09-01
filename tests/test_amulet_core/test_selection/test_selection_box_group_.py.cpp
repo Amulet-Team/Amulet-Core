@@ -1,6 +1,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/typing.h>
 
+#include <list>
 #include <numbers>
 
 #include <amulet/test_utils/test_utils.hpp>
