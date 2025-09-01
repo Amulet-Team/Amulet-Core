@@ -13,14 +13,12 @@ on:
   pull_request:
 
 jobs:
-  unittests-first:
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-  
+  unittests:
     strategy:
       fail-fast: false
       matrix:
         python-version: [ '3.11', '3.12' ]
-        os: [ macos-latest, windows-latest ]
+        os: [ macos-15, windows-2025, ubuntu-24.04 ]
 
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
@@ -32,70 +30,15 @@ jobs:
     - name: Clone
       uses: actions/checkout@v4
 
-    - name: Install dependencies
-      uses: ./.github/actions/install-dependencies
+    - name: Set up Python
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
-        username: ${{ secrets.PYPI_USERNAME }}
-        compiler-version-password: ${{ secrets.AMULET_COMPILER_VERSION_PYPI_PASSWORD }}
-        zlib-password: ${{ secrets.AMULET_ZLIB_PYPI_PASSWORD }}
-        nbt-password: ${{ secrets.AMULET_NBT_PYPI_PASSWORD }}
-        rest-token: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Install
-      env:
-        AMULET_FREEZE_COMPILER: 1
+        
+    - name: Build
       run: |
-        pip install --only-binary amulet-compiler-version,amulet-zlib,amulet-nbt -v .[dev]
+        pip install -v .[dev]
         python tools/compile_tests.py
-
+        
     - name: Test with unittest
       run: python -m unittest discover -v -s tests
-
-  unittests-first-ubuntu:
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: [ '3.11', '3.12' ]
-        os: [ ubuntu-latest ]
-
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 30
-    defaults:
-      run:
-        shell: bash
-
-    steps:
-      - name: Clone
-        uses: actions/checkout@v4
-
-      - name: Build and run unittests
-        uses: ./.github/actions/unittests-src
-        with:
-          python-version: ${{ matrix.python-version }}
-
-  unittests-third:
-    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository
-
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: [ '3.11', '3.12' ]
-        os: [ windows-latest, macos-latest, ubuntu-latest ]
-
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 30
-    defaults:
-      run:
-        shell: bash
-
-    steps:
-      - name: Clone
-        uses: actions/checkout@v4
-
-      - name: Build and run unittests
-        uses: ./.github/actions/unittests-src
-        with:
-          python-version: ${{ matrix.python-version }}

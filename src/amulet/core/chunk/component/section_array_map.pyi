@@ -7,7 +7,7 @@ import typing
 import numpy
 import numpy.typing
 
-__all__ = ["IndexArray3D", "SectionArrayMap"]
+__all__: list[str] = ["IndexArray3D", "SectionArrayMap"]
 
 class IndexArray3D:
     """

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from . import component
 
-__all__ = [
+__all__: list[str] = [
     "Chunk",
     "ChunkDoesNotExist",
     "ChunkLoadError",

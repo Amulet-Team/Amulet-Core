@@ -39,7 +39,7 @@ dev = [
     "autoflake",
     "mypy",
     "types-pyinstaller",
-    "amulet-test-utils~=1.1",
+    "amulet-test-utils~=1.3",
 ]
 
 [project.urls]

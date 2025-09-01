@@ -6,9 +6,10 @@
 
 namespace Amulet {
 
-class SelectionGroup;
+class Matrix4x4;
+class SelectionBoxGroup;
 
-// The SelectionBox class represents a single cuboid selection.
+// An axis aligned cuboid selection box.
 class AMULET_CORE_EXPORT SelectionBox {
 private:
     std::int64_t _min_x;
@@ -47,6 +48,17 @@ public:
         _size_z = std::max(point_1[2], point_2[2]) - _min_z;
     }
 
+    SelectionBox(const SelectionBox& other)
+        : SelectionBox(
+              other.min_x(),
+              other.min_y(),
+              other.min_z(),
+              other.size_x(),
+              other.size_y(),
+              other.size_z())
+    {
+    }
+
     // Accessors
     std::int64_t min_x() const { return _min_x; }
     std::int64_t min_y() const { return _min_y; }
@@ -62,23 +74,24 @@ public:
     std::uint64_t size_y() const { return _size_y; }
     std::uint64_t size_z() const { return _size_z; }
     std::array<std::uint64_t, 3> shape() const { return { _size_x, _size_y, _size_z }; }
-    size_t volume() const { return _size_x * _size_y * _size_z; }
+    std::uint64_t volume() const { return _size_x * _size_y * _size_z; }
 
     // Contains and intersects
     bool contains_block(std::int64_t x, std::int64_t y, std::int64_t z) const;
     bool contains_point(double x, double y, double z) const;
     bool contains_box(const SelectionBox& other) const;
     bool intersects(const SelectionBox& other) const;
-    bool intersects(const SelectionGroup& other) const;
+    bool intersects(const SelectionBoxGroup& other) const;
     bool touches_or_intersects(const SelectionBox& other) const;
     bool touches(const SelectionBox& other) const;
 
     // Transform
     SelectionBox translate(std::int64_t dx, std::int64_t dy, std::int64_t dz) const;
-    // SelectionGroup transform() const;
+    SelectionBoxGroup transform(const Matrix4x4&) const;
 
     // Operators
-    auto operator<=>(const SelectionBox&) const = default;
+    std::strong_ordering operator<=>(const SelectionBox&) const;
+    bool operator==(const SelectionBox&) const;
 };
 
 } // namespace Amulet

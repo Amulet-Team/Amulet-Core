@@ -6,7 +6,7 @@ import typing
 import amulet.core.biome
 import amulet.core.version
 
-__all__ = ["BiomePalette"]
+__all__: list[str] = ["BiomePalette"]
 
 class BiomePalette(amulet.core.version.VersionRangeContainer):
     @typing.overload

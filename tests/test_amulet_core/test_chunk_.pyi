@@ -1,6 +1,10 @@
 from __future__ import annotations
 
-__all__ = ["test_chunk", "throw_chunk_does_not_exist", "throw_chunk_load_error"]
+__all__: list[str] = [
+    "test_chunk",
+    "throw_chunk_does_not_exist",
+    "throw_chunk_load_error",
+]
 
 def test_chunk() -> None: ...
 def throw_chunk_does_not_exist() -> None: ...

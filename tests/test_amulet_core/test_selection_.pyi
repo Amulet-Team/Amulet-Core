@@ -1,6 +1,0 @@
-from __future__ import annotations
-
-__all__ = ["test_selection_box", "test_selection_group"]
-
-def test_selection_box() -> None: ...
-def test_selection_group() -> None: ...

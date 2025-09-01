@@ -6,7 +6,7 @@ import typing
 import amulet.core.version
 import amulet.nbt
 
-__all__ = ["BlockEntity"]
+__all__: list[str] = ["BlockEntity"]
 
 class BlockEntity(amulet.core.version.PlatformVersionContainer):
     """

@@ -3,15 +3,16 @@ from __future__ import annotations
 import types
 import typing
 
-import amulet.core.selection.group
+import amulet.core.selection.box_group
+import amulet.utils.matrix
 
-__all__ = ["SelectionBox"]
+__all__: list[str] = ["SelectionBox"]
 
 class SelectionBox:
     """
     The SelectionBox class represents a single cuboid selection.
 
-    When combined with :class:`~amulet.api.selection.SelectionGroup` it can represent any arbitrary shape.
+    When combined with :class:`~amulet.api.selection.SelectionBoxGroup` it can represent any arbitrary shape.
     """
 
     @typing.overload
@@ -115,7 +116,9 @@ class SelectionBox:
         """
 
     @typing.overload
-    def intersects(self, other: amulet.core.selection.group.SelectionGroup) -> bool: ...
+    def intersects(
+        self, other: amulet.core.selection.box_group.SelectionBoxGroup
+    ) -> bool: ...
     def touches(self, other: SelectionBox) -> bool:
         """
         Method to check if this instance of :class:`SelectionBox` touches but does not intersect another SelectionBox.
@@ -132,15 +135,22 @@ class SelectionBox:
         :return: True if the two :class:`SelectionBox` instances touch or intersect, False otherwise.
         """
 
+    def transform(
+        self, matrix: amulet.utils.matrix.Matrix4x4
+    ) -> amulet.core.selection.box_group.SelectionBoxGroup:
+        """
+        Transform this box by the given transformation matrix.
+        """
+
     def translate(
-        self, x: typing.SupportsInt, y: typing.SupportsInt, z: typing.SupportsInt
+        self, dx: typing.SupportsInt, dy: typing.SupportsInt, dz: typing.SupportsInt
     ) -> SelectionBox:
         """
         Create a new :class:`SelectionBox` based on this one with the coordinates moved by the given offset.
 
-        :param x: The x offset.
-        :param y: The y offset.
-        :param z: The z offset.
+        :param dx: The x offset.
+        :param dy: The y offset.
+        :param dz: The z offset.
         :return: The new selection with the given offset.
         """
 

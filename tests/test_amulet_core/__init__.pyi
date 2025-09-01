@@ -11,11 +11,11 @@ from . import (
     test_chunk_components,
     test_entity_,
     test_palette,
-    test_selection_,
+    test_selection,
     test_version_,
 )
 
-__all__ = [
+__all__: list[str] = [
     "compiler_config",
     "test_biome_",
     "test_block_",
@@ -24,7 +24,7 @@ __all__ = [
     "test_chunk_components",
     "test_entity_",
     "test_palette",
-    "test_selection_",
+    "test_selection",
     "test_version_",
 ]
 

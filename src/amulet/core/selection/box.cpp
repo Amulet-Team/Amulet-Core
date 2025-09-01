@@ -1,8 +1,11 @@
 #include <algorithm>
 #include <array>
 
+#include <amulet/utils/matrix.hpp>
+
 #include "box.hpp"
-#include "group.hpp"
+#include "box_group.hpp"
+#include "cuboid.hpp"
 
 namespace Amulet {
 
@@ -34,7 +37,7 @@ bool SelectionBox::intersects(const SelectionBox& other) const
         && _min_y < other.max_y() && other._min_y < max_y()
         && _min_z < other.max_z() && other._min_z < max_z();
 }
-bool SelectionBox::intersects(const SelectionGroup& other) const
+bool SelectionBox::intersects(const SelectionBoxGroup& other) const
 {
     return other.intersects(*this);
 }
@@ -60,6 +63,43 @@ SelectionBox SelectionBox::translate(std::int64_t dx, std::int64_t dy, std::int6
         _size_y,
         _size_z);
 }
-// SelectionGroup SelectionBox::transform() const;
+SelectionBoxGroup SelectionBox::transform(const Matrix4x4& matrix) const {
+    return SelectionCuboid(_min_x, _min_y, _min_z, _size_x, _size_y, _size_z).transform(matrix)->voxelise();
+}
+
+std::strong_ordering SelectionBox::operator<=>(const SelectionBox& other) const
+{
+    return std::tie(
+               _min_x,
+               _min_y,
+               _min_z,
+               _size_x,
+               _size_y,
+               _size_z)
+        <=> std::tie(
+            other._min_x,
+            other._min_y,
+            other._min_z,
+            other._size_x,
+            other._size_y,
+            other._size_z);
+}
+bool SelectionBox::operator==(const SelectionBox& other) const
+{
+    return std::tie(
+               _min_x,
+               _min_y,
+               _min_z,
+               _size_x,
+               _size_y,
+               _size_z)
+        == std::tie(
+            other._min_x,
+            other._min_y,
+            other._min_z,
+            other._size_x,
+            other._size_y,
+            other._size_z);
+}
 
 } // namespace Amulet

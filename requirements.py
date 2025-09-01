@@ -1,14 +1,15 @@
 import os
 from packaging.version import Version
+import get_compiler
 
 AMULET_COMPILER_TARGET_REQUIREMENT = "==2.0"
-AMULET_COMPILER_VERSION_REQUIREMENT = "==3.0.0"
 
 PYBIND11_REQUIREMENT = "==3.0.0"
 AMULET_PYBIND11_EXTENSIONS_REQUIREMENT = "~=1.1.0.0a0"
 AMULET_IO_REQUIREMENT = "~=1.0"
-AMULET_ZLIB_REQUIREMENT = "~=1.0.1.0a0"
-AMULET_NBT_REQUIREMENT = "~=5.0.1.0a0"
+AMULET_UTILS_REQUIREMENT = "~=1.1.3.0a0"
+AMULET_ZLIB_REQUIREMENT = "~=1.0.8.0a0"
+AMULET_NBT_REQUIREMENT = "~=5.0.2.0a0"
 NUMPY_REQUIREMENT = "~=2.0"
 
 if os.environ.get("AMULET_PYBIND11_EXTENSIONS_REQUIREMENT", None):
@@ -17,6 +18,11 @@ if os.environ.get("AMULET_PYBIND11_EXTENSIONS_REQUIREMENT", None):
 if os.environ.get("AMULET_IO_REQUIREMENT", None):
     AMULET_IO_REQUIREMENT = (
         f"{AMULET_IO_REQUIREMENT},{os.environ['AMULET_IO_REQUIREMENT']}"
+    )
+
+if os.environ.get("AMULET_UTILS_REQUIREMENT", None):
+    AMULET_UTILS_REQUIREMENT = (
+        f"{AMULET_UTILS_REQUIREMENT},{os.environ['AMULET_UTILS_REQUIREMENT']}"
     )
 
 if os.environ.get("AMULET_ZLIB_REQUIREMENT", None):
@@ -41,40 +47,45 @@ def get_specifier_set(version_str: str) -> str:
     return f"~={version.major}.{version.minor}.{version.micro}.0{''.join(map(str, version.pre or ()))}"
 
 
-if os.environ.get("AMULET_FREEZE_COMPILER", None):
-    import get_compiler
+AMULET_COMPILER_VERSION_REQUIREMENT = get_compiler.main()
 
-    AMULET_COMPILER_VERSION_REQUIREMENT = get_compiler.main()
 
-    try:
-        import amulet.pybind11_extensions
-    except ImportError:
-        pass
-    else:
-        AMULET_PYBIND11_EXTENSIONS_REQUIREMENT = get_specifier_set(
-            amulet.pybind11_extensions.__version__
-        )
+try:
+    import amulet.pybind11_extensions
+except ImportError:
+    pass
+else:
+    AMULET_PYBIND11_EXTENSIONS_REQUIREMENT = get_specifier_set(
+        amulet.pybind11_extensions.__version__
+    )
 
-    try:
-        import amulet.io
-    except ImportError:
-        pass
-    else:
-        AMULET_IO_REQUIREMENT = get_specifier_set(amulet.io.__version__)
+try:
+    import amulet.io
+except ImportError:
+    pass
+else:
+    AMULET_IO_REQUIREMENT = get_specifier_set(amulet.io.__version__)
 
-    try:
-        import amulet.zlib
-    except ImportError:
-        pass
-    else:
-        AMULET_ZLIB_REQUIREMENT = get_specifier_set(amulet.zlib.__version__)
+try:
+    import amulet.utils
+except ImportError:
+    pass
+else:
+    AMULET_UTILS_REQUIREMENT = get_specifier_set(amulet.utils.__version__)
 
-    try:
-        import amulet.nbt
-    except ImportError:
-        pass
-    else:
-        AMULET_NBT_REQUIREMENT = get_specifier_set(amulet.nbt.__version__)
+try:
+    import amulet.zlib
+except ImportError:
+    pass
+else:
+    AMULET_ZLIB_REQUIREMENT = get_specifier_set(amulet.zlib.__version__)
+
+try:
+    import amulet.nbt
+except ImportError:
+    pass
+else:
+    AMULET_NBT_REQUIREMENT = get_specifier_set(amulet.nbt.__version__)
 
 
 def get_build_dependencies() -> list:
@@ -83,6 +94,7 @@ def get_build_dependencies() -> list:
         f"pybind11{PYBIND11_REQUIREMENT}",
         f"amulet-pybind11-extensions{AMULET_PYBIND11_EXTENSIONS_REQUIREMENT}",
         f"amulet-io{AMULET_IO_REQUIREMENT}",
+        f"amulet-utils{AMULET_UTILS_REQUIREMENT}",
         f"amulet-zlib{AMULET_ZLIB_REQUIREMENT}",
         f"amulet-nbt{AMULET_NBT_REQUIREMENT}",
     ] * (not os.environ.get("AMULET_SKIP_COMPILE", None))
@@ -95,6 +107,7 @@ def get_runtime_dependencies() -> list[str]:
         f"pybind11{PYBIND11_REQUIREMENT}",
         f"amulet-pybind11-extensions{AMULET_PYBIND11_EXTENSIONS_REQUIREMENT}",
         f"amulet-io{AMULET_IO_REQUIREMENT}",
+        f"amulet-utils{AMULET_UTILS_REQUIREMENT}",
         f"amulet-zlib{AMULET_ZLIB_REQUIREMENT}",
         f"amulet-nbt{AMULET_NBT_REQUIREMENT}",
         f"numpy{NUMPY_REQUIREMENT}",

@@ -13,8 +13,10 @@ if (WIN32)
 	add_definitions(-D_WIN32_WINNT=0x0601)
 elseif(APPLE)
     set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15")
-else()
+elseif(UNIX)
     set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+else()
+    message( FATAL_ERROR "Unsupported platform. Please submit a pull request to support this platform." )
 endif()
 
 # Find dependencies

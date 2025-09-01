@@ -5,10 +5,11 @@ import types
 import typing
 
 import amulet.core.selection.box
+import amulet.utils.matrix
 
-__all__ = ["SelectionGroup"]
+__all__: list[str] = ["SelectionBoxGroup"]
 
-class SelectionGroup:
+class SelectionBoxGroup:
     """
     A container for zero or more :class:`SelectionBox` instances.
 
@@ -18,17 +19,17 @@ class SelectionGroup:
     __hash__: typing.ClassVar[None] = None  # type: ignore
     def __bool__(self) -> bool:
         """
-        The number of :class:`SelectionBox` classes in the group.
+        Are there any selections in the group.
         """
 
     @typing.overload
-    def __eq__(self, arg0: SelectionGroup) -> bool:
+    def __eq__(self, arg0: SelectionBoxGroup) -> bool:
         """
-        Does the contents of this :class:`SelectionGroup` match the other :class:`SelectionGroup`.
+        Does the contents of this :class:`SelectionBoxGroup` match the other :class:`SelectionBoxGroup`.
 
         Note if the boxes do not exactly match this will return False even if the volume represented is the same.
 
-        :param other: The other :class:`SelectionGroup` to compare with.
+        :param other: The other :class:`SelectionBoxGroup` to compare with.
         :return: True if the boxes contained match.
         """
 
@@ -37,17 +38,9 @@ class SelectionGroup:
     @typing.overload
     def __init__(self) -> None:
         """
-        Create an empty SelectionGroup.
+        Create an empty SelectionBoxGroup.
 
-        >>> SelectionGroup()
-        """
-
-    @typing.overload
-    def __init__(self, box: amulet.core.selection.box.SelectionBox) -> None:
-        """
-        Create a SelectionGroup containing the given box.
-
-        >>> SelectionGroup(SelectionBox(0, 0, 0, 1, 1, 1))
+        >>> SelectionBoxGroup()
         """
 
     @typing.overload
@@ -55,9 +48,9 @@ class SelectionGroup:
         self, boxes: collections.abc.Iterable[amulet.core.selection.box.SelectionBox]
     ) -> None:
         """
-        Create a SelectionGroup from the boxes in the iterable.
+        Create a SelectionBoxGroup from the boxes in the iterable.
 
-        >>> SelectionGroup([
+        >>> SelectionBoxGroup([
         >>>     SelectionBox(0, 0, 0, 1, 1, 1),
         >>>     SelectionBox(1, 1, 1, 1, 1, 1)
         >>> ])
@@ -119,16 +112,21 @@ class SelectionGroup:
         """
 
     @typing.overload
-    def intersects(self, other: SelectionGroup) -> bool: ...
-    def translate(
-        self, x: typing.SupportsInt, y: typing.SupportsInt, z: typing.SupportsInt
-    ) -> SelectionGroup:
+    def intersects(self, other: SelectionBoxGroup) -> bool: ...
+    def transform(self, matrix: amulet.utils.matrix.Matrix4x4) -> SelectionBoxGroup:
         """
-        Create a new :class:`SelectionGroup` based on this one with the coordinates moved by the given offset.
+        Transform the boxes in this group by the given transformation matrix.
+        """
 
-        :param x: The x offset.
-        :param y: The y offset.
-        :param z: The z offset.
+    def translate(
+        self, dx: typing.SupportsInt, dy: typing.SupportsInt, dz: typing.SupportsInt
+    ) -> SelectionBoxGroup:
+        """
+        Create a new :class:`SelectionBoxGroup` based on this one with the coordinates moved by the given offset.
+
+        :param dx: The x offset.
+        :param dy: The y offset.
+        :param dz: The z offset.
         :return: The new selection with the given offset.
         """
 
@@ -146,6 +144,12 @@ class SelectionGroup:
         The minimum and maximum x, y and z coordinates in the selection.
 
         :raises RuntimeError: If there are no boxes in the selection.
+        """
+
+    @property
+    def boxes(self) -> collections.abc.Iterator[amulet.core.selection.box.SelectionBox]:
+        """
+        An iterator of the :class:`SelectionBox` instances stored for this group.
         """
 
     @property
@@ -210,12 +214,4 @@ class SelectionGroup:
         The minimum z coordinate in the selection.
 
         :raises RuntimeError: If there are no boxes in the selection.
-        """
-
-    @property
-    def selection_boxes(
-        self,
-    ) -> collections.abc.Iterator[amulet.core.selection.box.SelectionBox]:
-        """
-        An iterator of the :class:`SelectionBox` instances stored for this group.
         """

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-__all__ = ["test_version_number", "test_version_range"]
+__all__: list[str] = ["test_version_number", "test_version_range"]
 
 def test_version_number() -> None: ...
 def test_version_range() -> None: ...

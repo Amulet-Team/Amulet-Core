@@ -5,7 +5,7 @@ import typing
 
 import amulet.core.version
 
-__all__ = ["Biome"]
+__all__: list[str] = ["Biome"]
 
 class Biome(amulet.core.version.PlatformVersionContainer):
     """
