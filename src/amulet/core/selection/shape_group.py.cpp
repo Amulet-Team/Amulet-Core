@@ -89,7 +89,7 @@ void init_selection_shape_group(py::module m, py::classh<Amulet::SelectionShapeG
     SelectionShapeGroup.def(
         "__repr__",
         [module_name, repr](const Amulet::SelectionShapeGroup& self) {
-            std::string s = module_name + ".SelectionGroup([";
+            std::string s = module_name + ".SelectionShapeGroup([";
             bool is_first = true;
             for (const auto& shape : self) {
                 if (is_first) {
