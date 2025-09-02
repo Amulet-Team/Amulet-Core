@@ -12,7 +12,6 @@ class SelectionShape:
     A base class for selection classes.
     """
 
-    matrix: amulet.utils.matrix.Matrix4x4
     def almost_equal(self, other: SelectionShape) -> bool:
         """
         Check if this shape is equal or almost equal to another shape.
@@ -37,3 +36,6 @@ class SelectionShape:
         """
         Convert the selection to a SelectionBoxGroup.
         """
+
+    @property
+    def matrix(self) -> amulet.utils.matrix.Matrix4x4: ...
