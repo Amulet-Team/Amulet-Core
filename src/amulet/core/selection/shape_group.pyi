@@ -57,7 +57,7 @@ class SelectionShapeGroup:
         """
 
     def __repr__(self) -> str: ...
-    def almost_equal(self, arg0: SelectionShapeGroup) -> bool:
+    def almost_equal(self, other: SelectionShapeGroup) -> bool:
         """
         Returns True of the shape groups are equal or almost equal.
         """

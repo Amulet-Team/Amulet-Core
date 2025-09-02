@@ -65,6 +65,7 @@ void init_selection_shape_group(py::module m, py::classh<Amulet::SelectionShapeG
     SelectionShapeGroup.def(
         "almost_equal",
         &Amulet::SelectionShapeGroup::almost_equal,
+        py::arg("other"),
         py::doc("Returns True of the shape groups are equal or almost equal."));
 
     // Dunder methods
