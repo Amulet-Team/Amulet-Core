@@ -57,6 +57,11 @@ class SelectionShapeGroup:
         """
 
     def __repr__(self) -> str: ...
+    def voxelise(self) -> amulet.core.selection.box_group.SelectionBoxGroup:
+        """
+        Convert the shapes to a SelectionBoxGroup.
+        """
+
     @property
     def shapes(
         self,
