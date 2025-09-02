@@ -56,6 +56,7 @@ class SelectionShapeGroup:
         The number of :class:`SelectionShape` classes in the group.
         """
 
+    def __repr__(self) -> str: ...
     @property
     def shapes(
         self,
