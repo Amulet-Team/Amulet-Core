@@ -62,6 +62,11 @@ void init_selection_shape_group(py::module m, py::classh<Amulet::SelectionShapeG
         "voxelise",
         &Amulet::SelectionShapeGroup::voxelise,
         py::doc("Convert the shapes to a SelectionBoxGroup."));
+    SelectionShapeGroup.def(
+        "almost_equal",
+        &Amulet::SelectionShapeGroup::almost_equal,
+        py::doc("Returns True of the shape groups are equal or almost equal."));
+
     // Dunder methods
     SelectionShapeGroup.def(
         "__iter__",

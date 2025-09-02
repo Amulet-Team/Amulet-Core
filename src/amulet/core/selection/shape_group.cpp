@@ -24,4 +24,19 @@ SelectionBoxGroup SelectionShapeGroup::voxelise() const
     return static_cast<SelectionBoxGroup>(*this);
 }
 
+bool SelectionShapeGroup::almost_equal(const SelectionShapeGroup& other)
+{
+    if (count() != other.count()) {
+        return false;
+    }
+    auto& shapes1 = get_shapes();
+    auto& shapes2 = other.get_shapes();
+    for (size_t i = 0; i < shapes1.size(); i++) {
+        if (!shapes1[i]->almost_equal(*shapes2[i])) {
+            return false;
+        }
+    }
+    return true;
+}
+
 } // namespace Amulet

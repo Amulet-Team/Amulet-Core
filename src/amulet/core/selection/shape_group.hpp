@@ -56,6 +56,8 @@ public:
     explicit operator SelectionBoxGroup() const;
     explicit operator std::set<SelectionBox>() const;
     SelectionBoxGroup voxelise() const;
+
+    bool almost_equal(const SelectionShapeGroup&);
 };
 
 }

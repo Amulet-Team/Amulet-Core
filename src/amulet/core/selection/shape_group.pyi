@@ -57,6 +57,11 @@ class SelectionShapeGroup:
         """
 
     def __repr__(self) -> str: ...
+    def almost_equal(self, arg0: SelectionShapeGroup) -> bool:
+        """
+        Returns True of the shape groups are equal or almost equal.
+        """
+
     def voxelise(self) -> amulet.core.selection.box_group.SelectionBoxGroup:
         """
         Convert the shapes to a SelectionBoxGroup.
