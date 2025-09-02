@@ -3,6 +3,7 @@ from __future__ import annotations
 import collections.abc
 import typing
 
+import amulet.core.selection.box_group
 import amulet.core.selection.shape
 
 __all__: list[str] = ["SelectionShapeGroup"]
@@ -25,6 +26,10 @@ class SelectionShapeGroup:
         >>> SelectionShapeGroup()
         """
 
+    @typing.overload
+    def __init__(
+        self, arg0: amulet.core.selection.box_group.SelectionBoxGroup
+    ) -> None: ...
     @typing.overload
     def __init__(
         self,

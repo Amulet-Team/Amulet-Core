@@ -5,6 +5,7 @@ import types
 import typing
 
 import amulet.core.selection.box
+import amulet.core.selection.shape_group
 import amulet.utils.matrix
 
 __all__: list[str] = ["SelectionBoxGroup"]
@@ -43,6 +44,10 @@ class SelectionBoxGroup:
         >>> SelectionBoxGroup()
         """
 
+    @typing.overload
+    def __init__(
+        self, arg0: amulet.core.selection.shape_group.SelectionShapeGroup
+    ) -> None: ...
     @typing.overload
     def __init__(
         self, boxes: collections.abc.Iterable[amulet.core.selection.box.SelectionBox]

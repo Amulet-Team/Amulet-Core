@@ -3,18 +3,16 @@
 
 #include <amulet/pybind11_extensions/collections.hpp>
 
+#include "box_group.hpp"
+#include "cuboid.hpp"
 #include "shape_group.hpp"
 
 namespace py = pybind11;
 namespace pyext = Amulet::pybind11_extensions;
 
-py::object init_selection_shape_group(py::module m_parent)
+void init_selection_shape_group(py::module m, py::classh<Amulet::SelectionShapeGroup> SelectionShapeGroup)
 {
-    auto m = m_parent.def_submodule("shape_group");
     std::string module_name = m.attr("__name__").cast<std::string>();
-
-    py::classh<Amulet::SelectionShapeGroup> SelectionShapeGroup(m, "SelectionShapeGroup",
-        "A group of selection shapes.");
 
     // Constructors
     SelectionShapeGroup.def(
@@ -23,6 +21,15 @@ py::object init_selection_shape_group(py::module m_parent)
             "Create an empty SelectionShapeGroup.\n"
             "\n"
             ">>> SelectionShapeGroup()"));
+    SelectionShapeGroup.def(
+        py::init(
+            [](const Amulet::SelectionBoxGroup& boxes) {
+                std::vector<std::unique_ptr<const Amulet::SelectionShape>> shapes;
+                for (const auto& box : boxes) {
+                    shapes.push_back(std::make_unique<Amulet::SelectionCuboid>(box.min_x(), box.min_y(), box.min_z(), box.size_x(), box.size_y(), box.size_z()));
+                }
+                return Amulet::SelectionShapeGroup(std::move(shapes));
+            }));
     SelectionShapeGroup.def(
         py::init(
             [](pyext::collections::Iterable<const Amulet::SelectionShape&> py_shapes) {
@@ -67,11 +74,11 @@ py::object init_selection_shape_group(py::module m_parent)
         "__len__",
         &Amulet::SelectionShapeGroup::count,
         py::doc("The number of :class:`SelectionShape` classes in the group."));
-    
+
     auto repr = py::module::import("builtins").attr("repr");
     SelectionShapeGroup.def(
         "__repr__",
-        [module_name, repr](const Amulet::SelectionShapeGroup& self) { 
+        [module_name, repr](const Amulet::SelectionShapeGroup& self) {
             std::string s = module_name + ".SelectionGroup([";
             bool is_first = true;
             for (const auto& shape : self) {
@@ -85,6 +92,4 @@ py::object init_selection_shape_group(py::module m_parent)
             s += "])";
             return s;
         });
-
-    return SelectionShapeGroup;
 }
