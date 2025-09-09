@@ -1,3 +1,4 @@
+#include <pybind11/operators.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <pybind11/typing.h>
@@ -42,6 +43,7 @@ py::object init_selection_shape(py::module m_parent)
         &Amulet::SelectionShape::almost_equal,
         py::arg("other"),
         py::doc("Check if this shape is equal or almost equal to another shape."));
+    SelectionShape.def(py::self == py::self);
 
     return SelectionShape;
 }

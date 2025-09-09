@@ -202,4 +202,16 @@ bool SelectionCuboid::almost_equal(const SelectionShape& other) const
     return false;
 }
 
+bool SelectionCuboid::operator==(const SelectionCuboid& other) const
+{
+    return get_matrix() == other.get_matrix();
+}
+
+bool SelectionCuboid::operator==(const SelectionShape& other) const {
+    if (const auto* ptr = dynamic_cast<const SelectionCuboid*>(&other)) {
+        return *this == *ptr;
+    }
+    return false;
+}
+
 } // namespace Amulet

@@ -157,4 +157,17 @@ bool SelectionEllipsoid::almost_equal(const SelectionShape& other) const
     return false;
 }
 
+bool SelectionEllipsoid::operator==(const SelectionEllipsoid& other) const
+{
+    return get_matrix() == other.get_matrix();
+}
+
+bool SelectionEllipsoid::operator==(const SelectionShape& other) const
+{
+    if (const auto* ptr = dynamic_cast<const SelectionEllipsoid*>(&other)) {
+        return *this == *ptr;
+    }
+    return false;
+}
+
 } // namespace Amulet

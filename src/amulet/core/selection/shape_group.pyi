@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import collections.abc
+import types
 import typing
 
 import amulet.core.selection.box_group
@@ -18,6 +19,10 @@ class SelectionShapeGroup:
         Are there any selections in the group.
         """
 
+    @typing.overload
+    def __eq__(self, arg0: SelectionShapeGroup) -> bool: ...
+    @typing.overload
+    def __eq__(self, arg0: typing.Any) -> bool | types.NotImplementedType: ...
     @typing.overload
     def __init__(self) -> None:
         """

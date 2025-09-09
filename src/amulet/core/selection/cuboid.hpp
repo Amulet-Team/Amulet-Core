@@ -31,6 +31,8 @@ public:
 
     bool almost_equal(const SelectionCuboid&) const;
     bool almost_equal(const SelectionShape&) const override;
+    bool operator==(const SelectionCuboid&) const;
+    bool operator==(const SelectionShape&) const override;
 };
 
 } // namespace Amulet

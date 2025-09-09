@@ -48,6 +48,7 @@ public:
 
     // Equality
     virtual bool almost_equal(const SelectionShape&) const = 0;
+    virtual bool operator==(const SelectionShape&) const = 0;
 };
 
 } // namespace Amulet

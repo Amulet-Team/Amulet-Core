@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import types
 import typing
 
 import amulet.core.selection.box_group
@@ -12,6 +13,12 @@ class SelectionShape:
     A base class for selection classes.
     """
 
+    __hash__: typing.ClassVar[None] = None  # type: ignore
+
+    @typing.overload
+    def __eq__(self, arg0: SelectionShape) -> bool: ...
+    @typing.overload
+    def __eq__(self, arg0: typing.Any) -> bool | types.NotImplementedType: ...
     def almost_equal(self, other: SelectionShape) -> bool:
         """
         Check if this shape is equal or almost equal to another shape.

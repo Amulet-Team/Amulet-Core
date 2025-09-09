@@ -1,3 +1,4 @@
+#include <pybind11/operators.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/typing.h>
 
@@ -69,6 +70,7 @@ void init_selection_shape_group(py::module m, py::classh<Amulet::SelectionShapeG
         py::doc("Returns True of the shape groups are equal or almost equal."));
 
     // Dunder methods
+    SelectionShapeGroup.def(py::self == py::self);
     SelectionShapeGroup.def(
         "__iter__",
         [](const Amulet::SelectionShapeGroup& self) {

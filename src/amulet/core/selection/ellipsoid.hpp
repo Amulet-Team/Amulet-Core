@@ -32,6 +32,8 @@ public:
 
     bool almost_equal(const SelectionEllipsoid&) const;
     bool almost_equal(const SelectionShape&) const override;
+    bool operator==(const SelectionEllipsoid&) const;
+    bool operator==(const SelectionShape&) const override;
 };
 
 } // namespace Amulet
