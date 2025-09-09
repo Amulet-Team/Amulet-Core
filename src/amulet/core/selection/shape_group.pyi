@@ -14,6 +14,7 @@ class SelectionShapeGroup:
     A group of selection shapes.
     """
 
+    __hash__: typing.ClassVar[None] = None  # type: ignore
     @staticmethod
     def deserialise(arg0: str) -> SelectionShapeGroup: ...
     def __bool__(self) -> bool:
@@ -21,10 +22,16 @@ class SelectionShapeGroup:
         Are there any selections in the group.
         """
 
+    def __copy__(self) -> SelectionShapeGroup: ...
+    def __deepcopy__(self, memo: dict) -> SelectionShapeGroup: ...
+    def __delitem__(self, arg0: typing.SupportsInt) -> None: ...
     @typing.overload
     def __eq__(self, arg0: SelectionShapeGroup) -> bool: ...
     @typing.overload
     def __eq__(self, arg0: typing.Any) -> bool | types.NotImplementedType: ...
+    def __getitem__(
+        self, arg0: typing.SupportsInt
+    ) -> amulet.core.selection.shape.SelectionShape: ...
     @typing.overload
     def __init__(self) -> None:
         """
@@ -64,11 +71,20 @@ class SelectionShapeGroup:
         """
 
     def __repr__(self) -> str: ...
+    def __setitem__(
+        self,
+        index: typing.SupportsInt,
+        item: amulet.core.selection.shape.SelectionShape,
+    ) -> None: ...
     def almost_equal(self, other: SelectionShapeGroup) -> bool:
         """
         Returns True of the shape groups are equal or almost equal.
         """
 
+    def insert(
+        self, arg0: typing.SupportsInt, arg1: amulet.core.selection.shape.SelectionShape
+    ) -> None: ...
+    def serialise(self) -> str: ...
     def voxelise(self) -> amulet.core.selection.box_group.SelectionBoxGroup:
         """
         Convert the shapes to a SelectionBoxGroup.

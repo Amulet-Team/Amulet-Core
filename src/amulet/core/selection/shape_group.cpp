@@ -4,6 +4,25 @@
 
 namespace Amulet {
 
+SelectionShapeGroup::SelectionShapeGroup() { }
+SelectionShapeGroup::SelectionShapeGroup(std::vector<std::shared_ptr<SelectionShape>> shapes)
+    : _shapes(std::move(shapes))
+{
+}
+
+SelectionShapeGroup::SelectionShapeGroup(const SelectionShapeGroup& other) = default;
+SelectionShapeGroup& SelectionShapeGroup::operator=(const SelectionShapeGroup& other) = default;
+SelectionShapeGroup::SelectionShapeGroup(SelectionShapeGroup&&) = default;
+SelectionShapeGroup& SelectionShapeGroup::operator=(SelectionShapeGroup&&) = default;
+
+SelectionShapeGroup SelectionShapeGroup::deep_copy() const
+{
+    std::vector<std::shared_ptr<SelectionShape>> shapes;
+    for (const auto& shape : get_shapes()) {
+        shapes.push_back(shape->copy());
+    }
+    return shapes;
+}
 
 std::string SelectionShapeGroup::serialise() const
 {

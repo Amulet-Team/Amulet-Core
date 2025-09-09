@@ -1,7 +1,13 @@
 #include <pybind11/operators.h>
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 #include <pybind11/typing.h>
 
+#include <algorithm>
+#include <functional>
+#include <variant>
+
+#include <amulet/pybind11_extensions/builtins.hpp>
 #include <amulet/pybind11_extensions/collections.hpp>
 
 #include "box_group.hpp"
@@ -10,6 +16,28 @@
 
 namespace py = pybind11;
 namespace pyext = Amulet::pybind11_extensions;
+
+size_t sanitise_index(size_t size, Py_ssize_t index)
+{
+    if (index < 0) {
+        index += size;
+        if (index < 0) {
+            throw py::index_error();
+        }
+    } else if (size <= index) {
+        throw py::index_error();
+    }
+    return index;
+}
+
+inline std::shared_ptr<Amulet::SelectionShape> get_shape(py::handle obj)
+{
+    try {
+        return obj.cast<std::shared_ptr<Amulet::SelectionShape>>();
+    } catch (const std::runtime_error&) {
+        return obj.cast<const Amulet::SelectionShape&>().copy();
+    }
+}
 
 void init_selection_shape_group(py::module m, py::classh<Amulet::SelectionShapeGroup> SelectionShapeGroup)
 {
@@ -25,16 +53,22 @@ void init_selection_shape_group(py::module m, py::classh<Amulet::SelectionShapeG
     SelectionShapeGroup.def(
         py::init(
             [](const Amulet::SelectionBoxGroup& boxes) {
-                std::vector<std::unique_ptr<const Amulet::SelectionShape>> shapes;
+                std::vector<std::shared_ptr<Amulet::SelectionShape>> shapes;
                 for (const auto& box : boxes) {
-                    shapes.push_back(std::make_unique<Amulet::SelectionCuboid>(box.min_x(), box.min_y(), box.min_z(), box.size_x(), box.size_y(), box.size_z()));
+                    shapes.push_back(std::make_shared<Amulet::SelectionCuboid>(
+                        static_cast<double>(box.min_x()),
+                        static_cast<double>(box.min_y()),
+                        static_cast<double>(box.min_z()),
+                        static_cast<double>(box.size_x()),
+                        static_cast<double>(box.size_y()),
+                        static_cast<double>(box.size_z())));
                 }
                 return Amulet::SelectionShapeGroup(std::move(shapes));
             }));
     SelectionShapeGroup.def(
         py::init(
             [](pyext::collections::Iterable<const Amulet::SelectionShape&> py_shapes) {
-                std::vector<std::unique_ptr<const Amulet::SelectionShape>> shapes;
+                std::vector<std::shared_ptr<Amulet::SelectionShape>> shapes;
                 for (const auto& shape : py_shapes) {
                     shapes.push_back(shape.copy());
                 }
@@ -48,6 +82,17 @@ void init_selection_shape_group(py::module m, py::classh<Amulet::SelectionShapeG
             ">>>     SelectionCuboid(0, 0, 0, 5, 5, 5),\n"
             ">>>     SelectionEllipsoid(7.5, 0, 0, 2.5)\n"
             ">>> ])\n"));
+    SelectionShapeGroup.def(
+        "__copy__",
+        [](const Amulet::SelectionShapeGroup& self) {
+            return self;
+        });
+    SelectionShapeGroup.def(
+        "__deepcopy__",
+        [](const Amulet::SelectionShapeGroup& self, py::dict) {
+            return self.deep_copy();
+        },
+        py::arg("memo"));
 
     SelectionShapeGroup.def(
         "serialise",
@@ -87,6 +132,11 @@ void init_selection_shape_group(py::module m, py::classh<Amulet::SelectionShapeG
         py::doc("An iterable of all the :class:`SelectionShape` classes in the group."),
         py::keep_alive<0, 1>());
     SelectionShapeGroup.def(
+        "__getitem__",
+        [](const Amulet::SelectionShapeGroup& self, Py_ssize_t index) {
+            return self.get_shapes()[sanitise_index(self.count(), index)];
+        });
+    SelectionShapeGroup.def(
         "__bool__",
         &Amulet::SelectionShapeGroup::operator bool,
         py::doc("Are there any selections in the group."));
@@ -94,6 +144,37 @@ void init_selection_shape_group(py::module m, py::classh<Amulet::SelectionShapeG
         "__len__",
         &Amulet::SelectionShapeGroup::count,
         py::doc("The number of :class:`SelectionShape` classes in the group."));
+
+    // MutableSequence
+    SelectionShapeGroup.def(
+        "__setitem__",
+        [](
+            Amulet::SelectionShapeGroup& self,
+            Py_ssize_t index,
+            pyext::PyObjectCpp<Amulet::SelectionShape> item) {
+            self.get_shapes()[sanitise_index(self.count(), index)] = get_shape(item);
+        },
+        py::arg("index"),
+        py::arg("item"));
+    SelectionShapeGroup.def(
+        "__delitem__",
+        [](Amulet::SelectionShapeGroup& self, Py_ssize_t index) {
+            self.get_shapes().erase(self.get_shapes().begin() + sanitise_index(self.count(), index));
+        });
+    SelectionShapeGroup.def(
+        "insert",
+        [](
+            Amulet::SelectionShapeGroup& self,
+            Py_ssize_t index,
+            pyext::PyObjectCpp<Amulet::SelectionShape> item) {
+            if (index < 0) {
+                index += self.count();
+            }
+            index = std::max(static_cast<Py_ssize_t>(0), std::min(static_cast<Py_ssize_t>(self.count()), index));
+            self.get_shapes().insert(
+                self.get_shapes().begin() + index,
+                get_shape(item));
+        });
 
     auto repr = py::module::import("builtins").attr("repr");
     SelectionShapeGroup.def(
