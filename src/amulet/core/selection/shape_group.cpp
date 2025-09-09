@@ -4,6 +4,72 @@
 
 namespace Amulet {
 
+
+std::string SelectionShapeGroup::serialise() const
+{
+    std::string s = "SelectionShapeGroup([";
+    for (const auto& shape : get_shapes()) {
+        s += shape->serialise();
+        s += ",";
+    }
+    s += "])";
+    return s;
+}
+
+static void skip_whitespace(const std::string_view& data, size_t& index)
+{
+    while (index < data.size() && (data[index] == ' ' || data[index] == '\t' || data[index] == '\n' || data[index] == '\n')) {
+        index++;
+    }
+    return;
+}
+
+static void skip_character(const std::string_view& data, size_t& index, char c)
+{
+    if (index < data.size() && data[index] == c) {
+        index++;
+    } else {
+        throw std::runtime_error("Expected character " + std::string(1, c) + " at index " + std::to_string(index));
+    }
+}
+
+static void skip_optional_character(const std::string_view& data, size_t& index, char c)
+{
+    if (index < data.size() && data[index] == c) {
+        index++;
+    }
+}
+
+SelectionShapeGroup SelectionShapeGroup::deserialise(std::string_view s)
+{
+    size_t index = 0;
+    skip_whitespace(s, index);
+    const std::string prefix = "SelectionShapeGroup([";
+    if (s.substr(index, prefix.size()) != prefix) {
+        throw std::runtime_error("Invalid serialised string. Expected \"SelectionShapeGroup(\"");
+    }
+    index += prefix.size();
+    std::vector<std::shared_ptr<SelectionShape>> shapes;
+    while (true) {
+        skip_whitespace(s, index);
+        if (s.size() <= index || s[index] == ']') {
+            break;
+        }
+        shapes.push_back(SelectionShape::deserialise(s, index));
+        skip_whitespace(s, index);
+        if (s.size() <= index) {
+            break;
+        } else if (s[index] == ',') {
+            index++;
+        } else if (s[index] != ']') {
+            throw std::runtime_error("Expected ',' or ']' after element at index " + std::to_string(index));
+        }
+    }
+    skip_character(s, index, ']');
+    skip_character(s, index, ')');
+    return SelectionShapeGroup(std::move(shapes));
+}
+
 SelectionShapeGroup::operator std::set<SelectionBox>() const
 {
     std::set<SelectionBox> boxes;

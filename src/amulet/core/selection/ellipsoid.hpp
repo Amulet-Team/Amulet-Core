@@ -21,6 +21,8 @@ public:
         double radius);
         
     SelectionEllipsoid(const SelectionEllipsoid& other);
+
+    std::string serialise() const override;
         
     std::unique_ptr<SelectionShape> copy() const override;
     explicit operator std::set<SelectionBox>() const override;

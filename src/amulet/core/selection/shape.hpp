@@ -1,7 +1,13 @@
 #pragma once
 
+#include <functional>
+#include <list>
 #include <memory>
+#include <optional>
 #include <set>
+#include <string>
+#include <string_view>
+#include <utility>
 
 #include <amulet/utils/matrix.hpp>
 
@@ -15,8 +21,8 @@ class SelectionBoxGroup;
 class AMULET_CORE_EXPORT SelectionShape {
 private:
     Matrix4x4 _matrix;
-public:
 
+public:
     SelectionShape() = default;
     SelectionShape(const Matrix4x4& matrix)
         : _matrix(matrix)
@@ -25,6 +31,18 @@ public:
     virtual ~SelectionShape() = default;
 
     const Matrix4x4& get_matrix() const;
+
+    // Convert the class to human readable plain text.
+    virtual std::string serialise() const = 0;
+
+    // Deserialise the serialised data back to an object.
+    static std::unique_ptr<SelectionShape> deserialise(std::string_view, size_t&);
+    static std::unique_ptr<SelectionShape> deserialise(std::string_view);
+
+    using Deserialiser = std::function<
+        std::unique_ptr<SelectionShape>(std::string_view, size_t&)>;
+
+    static bool register_deserialiser(Deserialiser);
 
     // Create a copy of the class.
     virtual std::unique_ptr<SelectionShape> copy() const = 0;

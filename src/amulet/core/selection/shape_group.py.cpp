@@ -49,6 +49,14 @@ void init_selection_shape_group(py::module m, py::classh<Amulet::SelectionShapeG
             ">>>     SelectionEllipsoid(7.5, 0, 0, 2.5)\n"
             ">>> ])\n"));
 
+    SelectionShapeGroup.def(
+        "serialise",
+        &Amulet::SelectionShapeGroup::serialise);
+
+    SelectionShapeGroup.def_static(
+        "deserialise",
+        &Amulet::SelectionShapeGroup::deserialise);
+
     // Accessors
     SelectionShapeGroup.def_property_readonly(
         "shapes",

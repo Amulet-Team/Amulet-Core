@@ -14,6 +14,8 @@ class SelectionShapeGroup:
     A group of selection shapes.
     """
 
+    @staticmethod
+    def deserialise(arg0: str) -> SelectionShapeGroup: ...
     def __bool__(self) -> bool:
         """
         Are there any selections in the group.

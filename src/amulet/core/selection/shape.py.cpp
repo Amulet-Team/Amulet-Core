@@ -20,6 +20,17 @@ py::object init_selection_shape(py::module m_parent)
         py::return_value_policy::copy);
 
     SelectionShape.def(
+        "serialise",
+        &Amulet::SelectionShape::serialise,
+        py::doc("Convert the class to human readable plain text."));
+    SelectionShape.def_static(
+        "deserialise",
+        static_cast<std::unique_ptr<Amulet::SelectionShape> (*)(std::string_view)>(
+            &Amulet::SelectionShape::deserialise),
+        py::arg("s"),
+        py::doc("Deserialise the serialised data back to an object."));
+
+    SelectionShape.def(
         "voxelise",
         &Amulet::SelectionShape::voxelise,
         py::doc("Convert the selection to a SelectionBoxGroup."));

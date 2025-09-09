@@ -1,6 +1,8 @@
 #pragma once
 
 #include <memory>
+#include <string>
+#include <string_view>
 #include <vector>
 
 #include <amulet/core/dll.hpp>
@@ -31,6 +33,9 @@ public:
     // Default move
     SelectionShapeGroup(SelectionShapeGroup&&) = default;
     SelectionShapeGroup& operator=(SelectionShapeGroup&&) = default;
+
+    std::string serialise() const;
+    static SelectionShapeGroup deserialise(std::string_view);
 
     const std::vector<std::unique_ptr<const SelectionShape>>& get_shapes() const
     {
