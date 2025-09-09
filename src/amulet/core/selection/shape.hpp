@@ -31,6 +31,7 @@ public:
     virtual ~SelectionShape() = default;
 
     const Matrix4x4& get_matrix() const;
+    void set_matrix(const Matrix4x4&);
 
     // Convert the class to human readable plain text.
     virtual std::string serialise() const = 0;

@@ -14,10 +14,10 @@ py::object init_selection_shape(py::module m_parent)
     py::classh<Amulet::SelectionShape> SelectionShape(m, "SelectionShape",
         "A base class for selection classes.");
 
-    SelectionShape.def_property_readonly(
+    SelectionShape.def_property(
         "matrix",
         &Amulet::SelectionShape::get_matrix,
-        py::return_value_policy::copy);
+        &Amulet::SelectionShape::set_matrix);
 
     SelectionShape.def(
         "serialise",

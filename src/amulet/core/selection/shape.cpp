@@ -41,6 +41,10 @@ const Matrix4x4& SelectionShape::get_matrix() const
     return _matrix;
 }
 
+void SelectionShape::set_matrix(const Matrix4x4& matrix) {
+    _matrix = matrix;
+}
+
 SelectionShape::operator SelectionBoxGroup() const
 {
     return static_cast<std::set<SelectionBox>>(*this);

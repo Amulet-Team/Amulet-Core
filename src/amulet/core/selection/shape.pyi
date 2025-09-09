@@ -14,6 +14,7 @@ class SelectionShape:
     """
 
     __hash__: typing.ClassVar[None] = None  # type: ignore
+    matrix: amulet.utils.matrix.Matrix4x4
     @staticmethod
     def deserialise(s: str) -> SelectionShape:
         """
@@ -53,6 +54,3 @@ class SelectionShape:
         """
         Convert the selection to a SelectionBoxGroup.
         """
-
-    @property
-    def matrix(self) -> amulet.utils.matrix.Matrix4x4: ...
