@@ -43,7 +43,8 @@ void init_selection_box_group(py::classh<Amulet::SelectionBoxGroup> SelectionBox
         py::init(
             [](const Amulet::SelectionShapeGroup& shapes) {
                 return shapes.voxelise();
-            }));
+            }),
+        py::arg("shape_group"));
     SelectionBoxGroup.def(
         py::init(
             [](pyext::collections::Iterable<const Amulet::SelectionBox&> boxes) {

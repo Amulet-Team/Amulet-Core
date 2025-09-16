@@ -24,7 +24,7 @@ class SelectionBoxGroup:
         """
 
     @typing.overload
-    def __eq__(self, arg0: SelectionBoxGroup) -> bool:
+    def __eq__(self, other: SelectionBoxGroup) -> bool:
         """
         Does the contents of this :class:`SelectionBoxGroup` match the other :class:`SelectionBoxGroup`.
 
@@ -35,7 +35,7 @@ class SelectionBoxGroup:
         """
 
     @typing.overload
-    def __eq__(self, arg0: typing.Any) -> bool | types.NotImplementedType: ...
+    def __eq__(self, other: typing.Any) -> bool | types.NotImplementedType: ...
     @typing.overload
     def __init__(self) -> None:
         """
@@ -46,7 +46,7 @@ class SelectionBoxGroup:
 
     @typing.overload
     def __init__(
-        self, arg0: amulet.core.selection.shape_group.SelectionShapeGroup
+        self, shape_group: amulet.core.selection.shape_group.SelectionShapeGroup
     ) -> None: ...
     @typing.overload
     def __init__(
