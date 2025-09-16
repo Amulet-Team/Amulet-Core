@@ -105,16 +105,6 @@ void init_selection_shape_group(py::module m, py::classh<Amulet::SelectionShapeG
         &Amulet::SelectionShapeGroup::deserialise,
         py::arg("s"));
 
-    // Accessors
-    SelectionShapeGroup.def_property_readonly(
-        "shapes",
-        py::cpp_function(
-            [](const Amulet::SelectionShapeGroup& self) {
-                return py::make_iterator(self.get_shapes());
-            },
-            py::keep_alive<0, 1>()),
-        py::doc("An iterator of the :class:`SelectionShape` instances stored for this group."));
-
     SelectionShapeGroup.def(
         "voxelise",
         &Amulet::SelectionShapeGroup::voxelise,

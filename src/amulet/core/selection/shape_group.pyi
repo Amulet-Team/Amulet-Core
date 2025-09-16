@@ -116,11 +116,3 @@ class SelectionShapeGroup:
         """
         Convert the shapes to a SelectionBoxGroup.
         """
-
-    @property
-    def shapes(
-        self,
-    ) -> collections.abc.Iterator[amulet.core.selection.shape.SelectionShape]:
-        """
-        An iterator of the :class:`SelectionShape` instances stored for this group.
-        """
