@@ -9,6 +9,7 @@
 
 #include <amulet/pybind11_extensions/builtins.hpp>
 #include <amulet/pybind11_extensions/collections.hpp>
+#include <amulet/pybind11_extensions/mutable_sequence.hpp>
 
 #include "box_group.hpp"
 #include "cuboid.hpp"
@@ -121,16 +122,9 @@ void init_selection_shape_group(py::module m, py::classh<Amulet::SelectionShapeG
         &Amulet::SelectionShapeGroup::almost_equal,
         py::arg("other"),
         py::doc("Returns True of the shape groups are equal or almost equal."));
-
-    // Dunder methods
     SelectionShapeGroup.def(py::self == py::self);
-    SelectionShapeGroup.def(
-        "__iter__",
-        [](const Amulet::SelectionShapeGroup& self) {
-            return py::make_iterator(self.get_shapes());
-        },
-        py::doc("An iterable of all the :class:`SelectionShape` classes in the group."),
-        py::keep_alive<0, 1>());
+
+    // Sequence
     SelectionShapeGroup.def(
         "__getitem__",
         [](const Amulet::SelectionShapeGroup& self, Py_ssize_t index) {
@@ -175,6 +169,22 @@ void init_selection_shape_group(py::module m, py::classh<Amulet::SelectionShapeG
                 self.get_shapes().begin() + index,
                 get_shape(item));
         });
+
+    using ShapeSequence = pyext::collections::MutableSequence<Amulet::SelectionShape>;
+    ShapeSequence::def_getitem_slice(SelectionShapeGroup);
+    ShapeSequence::def_contains(SelectionShapeGroup);
+    ShapeSequence::def_iter(SelectionShapeGroup);
+    ShapeSequence::def_reversed(SelectionShapeGroup);
+    ShapeSequence::def_index(SelectionShapeGroup);
+    ShapeSequence::def_count(SelectionShapeGroup);
+    ShapeSequence::def_append(SelectionShapeGroup);
+    ShapeSequence::def_clear(SelectionShapeGroup);
+    ShapeSequence::def_reverse(SelectionShapeGroup);
+    ShapeSequence::def_extend(SelectionShapeGroup);
+    ShapeSequence::def_pop(SelectionShapeGroup);
+    ShapeSequence::def_remove(SelectionShapeGroup);
+    ShapeSequence::def_iadd(SelectionShapeGroup);
+    ShapeSequence::register_cls(SelectionShapeGroup);
 
     auto repr = py::module::import("builtins").attr("repr");
     SelectionShapeGroup.def(
