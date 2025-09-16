@@ -69,10 +69,10 @@ void init_selection_shape_group(py::module m, py::classh<Amulet::SelectionShapeG
         py::arg("box_group"));
     SelectionShapeGroup.def(
         py::init(
-            [](pyext::collections::Iterable<const Amulet::SelectionShape&> py_shapes) {
+            [](py::typing::Iterable<Amulet::SelectionShape> py_shapes) {
                 std::vector<std::shared_ptr<Amulet::SelectionShape>> shapes;
                 for (const auto& shape : py_shapes) {
-                    shapes.push_back(shape.copy());
+                    shapes.push_back(get_shape(shape));
                 }
                 return Amulet::SelectionShapeGroup(std::move(shapes));
             }),
