@@ -8,6 +8,7 @@ namespace Amulet {
 
 class AMULET_CORE_EXPORT SelectionCuboid : public SelectionShape {
 public:
+    SelectionCuboid();
     SelectionCuboid(const Matrix4x4&);
 
     SelectionCuboid(

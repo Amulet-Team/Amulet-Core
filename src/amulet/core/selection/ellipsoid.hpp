@@ -12,6 +12,7 @@ class SelectionBox;
 // The SelectionEllipsoid class represents a single spherical selection.
 class AMULET_CORE_EXPORT SelectionEllipsoid : public SelectionShape {
 public:
+    SelectionEllipsoid();
     SelectionEllipsoid(const Matrix4x4&);
 
     SelectionEllipsoid(

@@ -9,6 +9,11 @@
 
 namespace Amulet {
 
+SelectionEllipsoid::SelectionEllipsoid()
+    : SelectionShape()
+{
+}
+
 SelectionEllipsoid::SelectionEllipsoid(const Matrix4x4& matrix)
     : SelectionShape(matrix)
 {
@@ -42,7 +47,7 @@ static std::string double_to_string(double v)
     if (s[end] == '.') {
         end--;
     }
-    return s.substr(0, end+1);
+    return s.substr(0, end + 1);
 }
 
 std::string SelectionEllipsoid::serialise() const

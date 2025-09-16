@@ -10,6 +10,11 @@
 
 namespace Amulet {
 
+SelectionCuboid::SelectionCuboid()
+    : SelectionShape()
+{
+}
+
 SelectionCuboid::SelectionCuboid(const Matrix4x4& matrix)
     : SelectionShape(matrix)
 {
@@ -442,7 +447,8 @@ bool SelectionCuboid::operator==(const SelectionCuboid& other) const
     return get_matrix() == other.get_matrix();
 }
 
-bool SelectionCuboid::operator==(const SelectionShape& other) const {
+bool SelectionCuboid::operator==(const SelectionShape& other) const
+{
     if (const auto* ptr = dynamic_cast<const SelectionCuboid*>(&other)) {
         return *this == *ptr;
     }
