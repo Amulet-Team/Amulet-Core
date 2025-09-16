@@ -24,20 +24,20 @@ void init_test_selection_shape_group(py::module m_parent)
             tests.append(
                 py::cpp_function(
                     []() {
-                        std::vector<std::unique_ptr<const Amulet::SelectionShape>> shapes;
-                        shapes.push_back(std::make_unique<const Amulet::SelectionCuboid>(1, 2, 3, 4, 5, 6));
-                        shapes.push_back(std::make_unique<const Amulet::SelectionEllipsoid>(1, 2, 3, 4));
+                        std::vector<std::shared_ptr<Amulet::SelectionShape>> shapes;
+                        shapes.push_back(std::make_unique<Amulet::SelectionCuboid>(1, 2, 3, 4, 5, 6));
+                        shapes.push_back(std::make_unique<Amulet::SelectionEllipsoid>(1, 2, 3, 4));
 
                         Amulet::SelectionShapeGroup group(std::move(shapes));
                         ASSERT_EQUAL(size_t, 2, group.count());
 
                         auto it = group.begin();
-                        auto* cuboid = dynamic_cast<const Amulet::SelectionCuboid*>(it->get());
+                        auto* cuboid = dynamic_cast<Amulet::SelectionCuboid*>(it->get());
                         ASSERT_TRUE(cuboid);
                         ASSERT_TRUE(cuboid->almost_equal(Amulet::SelectionCuboid(1, 2, 3, 4, 5, 6)));
 
                         it++;
-                        auto* ellipsoid = dynamic_cast<const Amulet::SelectionEllipsoid*>(it->get());
+                        auto* ellipsoid = dynamic_cast<Amulet::SelectionEllipsoid*>(it->get());
                         ASSERT_TRUE(ellipsoid);
                         ASSERT_TRUE(ellipsoid->almost_equal(Amulet::SelectionEllipsoid(1, 2, 3, 4)));
                     },
@@ -46,21 +46,21 @@ void init_test_selection_shape_group(py::module m_parent)
             tests.append(
                 py::cpp_function(
                     []() {
-                        std::vector<std::unique_ptr<const Amulet::SelectionShape>> shapes;
-                        shapes.push_back(std::make_unique<const Amulet::SelectionCuboid>(1, 2, 3, 4, 5, 6));
-                        shapes.push_back(std::make_unique<const Amulet::SelectionEllipsoid>(1, 2, 3, 4));
+                        std::vector<std::shared_ptr<Amulet::SelectionShape>> shapes;
+                        shapes.push_back(std::make_unique<Amulet::SelectionCuboid>(1, 2, 3, 4, 5, 6));
+                        shapes.push_back(std::make_unique<Amulet::SelectionEllipsoid>(1, 2, 3, 4));
 
                         Amulet::SelectionShapeGroup group1(std::move(shapes));
                         Amulet::SelectionShapeGroup group2(std::move(group1));
                         ASSERT_EQUAL(size_t, 2, group2.count());
 
                         auto it = group2.begin();
-                        auto* cuboid = dynamic_cast<const Amulet::SelectionCuboid*>(it->get());
+                        auto* cuboid = dynamic_cast<Amulet::SelectionCuboid*>(it->get());
                         ASSERT_TRUE(cuboid);
                         ASSERT_TRUE(cuboid->almost_equal(Amulet::SelectionCuboid(1, 2, 3, 4, 5, 6)));
 
                         it++;
-                        auto* ellipsoid = dynamic_cast<const Amulet::SelectionEllipsoid*>(it->get());
+                        auto* ellipsoid = dynamic_cast<Amulet::SelectionEllipsoid*>(it->get());
                         ASSERT_TRUE(ellipsoid);
                         ASSERT_TRUE(ellipsoid->almost_equal(Amulet::SelectionEllipsoid(1, 2, 3, 4)));
                     },
@@ -69,21 +69,21 @@ void init_test_selection_shape_group(py::module m_parent)
             tests.append(
                 py::cpp_function(
                     []() {
-                        std::vector<std::unique_ptr<const Amulet::SelectionShape>> shapes;
-                        shapes.push_back(std::make_unique<const Amulet::SelectionCuboid>(1, 2, 3, 4, 5, 6));
-                        shapes.push_back(std::make_unique<const Amulet::SelectionEllipsoid>(1, 2, 3, 4));
+                        std::vector<std::shared_ptr<Amulet::SelectionShape>> shapes;
+                        shapes.push_back(std::make_unique<Amulet::SelectionCuboid>(1, 2, 3, 4, 5, 6));
+                        shapes.push_back(std::make_unique<Amulet::SelectionEllipsoid>(1, 2, 3, 4));
 
                         Amulet::SelectionShapeGroup group(std::move(shapes));
                         const auto& shapes_view = group.get_shapes();
                         ASSERT_EQUAL(size_t, 2, shapes_view.size());
 
                         auto it = shapes_view.begin();
-                        auto* cuboid = dynamic_cast<const Amulet::SelectionCuboid*>(it->get());
+                        auto* cuboid = dynamic_cast<Amulet::SelectionCuboid*>(it->get());
                         ASSERT_TRUE(cuboid);
                         ASSERT_TRUE(cuboid->almost_equal(Amulet::SelectionCuboid(1, 2, 3, 4, 5, 6)));
 
                         it++;
-                        auto* ellipsoid = dynamic_cast<const Amulet::SelectionEllipsoid*>(it->get());
+                        auto* ellipsoid = dynamic_cast<Amulet::SelectionEllipsoid*>(it->get());
                         ASSERT_TRUE(ellipsoid);
                         ASSERT_TRUE(ellipsoid->almost_equal(Amulet::SelectionEllipsoid(1, 2, 3, 4)));
                     },
@@ -92,20 +92,20 @@ void init_test_selection_shape_group(py::module m_parent)
             tests.append(
                 py::cpp_function(
                     []() {
-                        std::vector<std::unique_ptr<const Amulet::SelectionShape>> shapes;
-                        shapes.push_back(std::make_unique<const Amulet::SelectionCuboid>(1, 2, 3, 4, 5, 6));
-                        shapes.push_back(std::make_unique<const Amulet::SelectionEllipsoid>(1, 2, 3, 4));
+                        std::vector<std::shared_ptr<Amulet::SelectionShape>> shapes;
+                        shapes.push_back(std::make_unique<Amulet::SelectionCuboid>(1, 2, 3, 4, 5, 6));
+                        shapes.push_back(std::make_unique<Amulet::SelectionEllipsoid>(1, 2, 3, 4));
 
                         Amulet::SelectionShapeGroup group(std::move(shapes));
                         ASSERT_EQUAL(size_t, 2, group.count());
 
                         auto it = group.begin();
-                        auto* cuboid = dynamic_cast<const Amulet::SelectionCuboid*>(it->get());
+                        auto* cuboid = dynamic_cast<Amulet::SelectionCuboid*>(it->get());
                         ASSERT_TRUE(cuboid);
                         ASSERT_TRUE(cuboid->almost_equal(Amulet::SelectionCuboid(1, 2, 3, 4, 5, 6)));
 
                         it++;
-                        auto* ellipsoid = dynamic_cast<const Amulet::SelectionEllipsoid*>(it->get());
+                        auto* ellipsoid = dynamic_cast<Amulet::SelectionEllipsoid*>(it->get());
                         ASSERT_TRUE(ellipsoid);
                         ASSERT_TRUE(ellipsoid->almost_equal(Amulet::SelectionEllipsoid(1, 2, 3, 4)));
                     },
@@ -116,8 +116,8 @@ void init_test_selection_shape_group(py::module m_parent)
                     []() {
                         ASSERT_FALSE(Amulet::SelectionShapeGroup());
 
-                        std::vector<std::unique_ptr<const Amulet::SelectionShape>> shapes;
-                        shapes.push_back(std::make_unique<const Amulet::SelectionCuboid>(1, 2, 3, 4, 5, 6));
+                        std::vector<std::shared_ptr<Amulet::SelectionShape>> shapes;
+                        shapes.push_back(std::make_unique<Amulet::SelectionCuboid>(1, 2, 3, 4, 5, 6));
                         ASSERT_TRUE(Amulet::SelectionShapeGroup(std::move(shapes)));
                     },
                     py::name("test_operator_bool")));
@@ -127,15 +127,15 @@ void init_test_selection_shape_group(py::module m_parent)
                     []() {
                         ASSERT_EQUAL(size_t, 0, Amulet::SelectionShapeGroup().count());
                         {
-                            std::vector<std::unique_ptr<const Amulet::SelectionShape>> shapes;
-                            shapes.push_back(std::make_unique<const Amulet::SelectionCuboid>(1, 2, 3, 4, 5, 6));
+                            std::vector<std::shared_ptr<Amulet::SelectionShape>> shapes;
+                            shapes.push_back(std::make_unique<Amulet::SelectionCuboid>(1, 2, 3, 4, 5, 6));
                             Amulet::SelectionShapeGroup group(std::move(shapes));
                             ASSERT_EQUAL(size_t, 1, group.count());
                         }
                         {
-                            std::vector<std::unique_ptr<const Amulet::SelectionShape>> shapes;
-                            shapes.push_back(std::make_unique<const Amulet::SelectionCuboid>(1, 2, 3, 4, 5, 6));
-                            shapes.push_back(std::make_unique<const Amulet::SelectionEllipsoid>(1, 2, 3, 4));
+                            std::vector<std::shared_ptr<Amulet::SelectionShape>> shapes;
+                            shapes.push_back(std::make_unique<Amulet::SelectionCuboid>(1, 2, 3, 4, 5, 6));
+                            shapes.push_back(std::make_unique<Amulet::SelectionEllipsoid>(1, 2, 3, 4));
                             Amulet::SelectionShapeGroup group(std::move(shapes));
                             ASSERT_EQUAL(size_t, 2, group.count());
                         }
@@ -145,9 +145,9 @@ void init_test_selection_shape_group(py::module m_parent)
             tests.append(
                 py::cpp_function(
                     []() {
-                        std::vector<std::unique_ptr<const Amulet::SelectionShape>> shapes;
-                        shapes.push_back(std::make_unique<const Amulet::SelectionCuboid>(1, 2, 3, 4, 5, 6));
-                        shapes.push_back(std::make_unique<const Amulet::SelectionEllipsoid>(1, 2, 3, 4));
+                        std::vector<std::shared_ptr<Amulet::SelectionShape>> shapes;
+                        shapes.push_back(std::make_unique<Amulet::SelectionCuboid>(1, 2, 3, 4, 5, 6));
+                        shapes.push_back(std::make_unique<Amulet::SelectionEllipsoid>(1, 2, 3, 4));
 
                         Amulet::SelectionShapeGroup shape_group(std::move(shapes));
 
@@ -159,9 +159,9 @@ void init_test_selection_shape_group(py::module m_parent)
             tests.append(
                 py::cpp_function(
                     []() {
-                        std::vector<std::unique_ptr<const Amulet::SelectionShape>> shapes;
-                        shapes.push_back(std::make_unique<const Amulet::SelectionCuboid>(1, 2, 3, 4, 5, 6));
-                        shapes.push_back(std::make_unique<const Amulet::SelectionEllipsoid>(1, 2, 3, 4));
+                        std::vector<std::shared_ptr<Amulet::SelectionShape>> shapes;
+                        shapes.push_back(std::make_unique<Amulet::SelectionCuboid>(1, 2, 3, 4, 5, 6));
+                        shapes.push_back(std::make_unique<Amulet::SelectionEllipsoid>(1, 2, 3, 4));
 
                         Amulet::SelectionShapeGroup shape_group(std::move(shapes));
 
@@ -173,9 +173,9 @@ void init_test_selection_shape_group(py::module m_parent)
             tests.append(
                 py::cpp_function(
                     []() {
-                        std::vector<std::unique_ptr<const Amulet::SelectionShape>> shapes;
-                        shapes.push_back(std::make_unique<const Amulet::SelectionCuboid>(1, 2, 3, 4, 5, 6));
-                        shapes.push_back(std::make_unique<const Amulet::SelectionEllipsoid>(1, 2, 3, 4));
+                        std::vector<std::shared_ptr<Amulet::SelectionShape>> shapes;
+                        shapes.push_back(std::make_unique<Amulet::SelectionCuboid>(1, 2, 3, 4, 5, 6));
+                        shapes.push_back(std::make_unique<Amulet::SelectionEllipsoid>(1, 2, 3, 4));
 
                         Amulet::SelectionShapeGroup shape_group(std::move(shapes));
 
@@ -187,26 +187,26 @@ void init_test_selection_shape_group(py::module m_parent)
             tests.append(
                 py::cpp_function(
                     []() {
-                        std::vector<std::unique_ptr<const Amulet::SelectionShape>> shapes;
+                        std::vector<std::shared_ptr<Amulet::SelectionShape>> shapes;
 
                         Amulet::SelectionShapeGroup group_empty_1;
                         Amulet::SelectionShapeGroup group_empty_2;
                         ASSERT_TRUE(group_empty_1.almost_equal(group_empty_2));
 
-                        shapes.push_back(std::make_unique<const Amulet::SelectionCuboid>(1, 2, 3, 4, 5, 6));
+                        shapes.push_back(std::make_unique<Amulet::SelectionCuboid>(1, 2, 3, 4, 5, 6));
                         Amulet::SelectionShapeGroup group_3(std::move(shapes));
-                        shapes.push_back(std::make_unique<const Amulet::SelectionCuboid>(1, 2, 3, 4, 5, 6));
+                        shapes.push_back(std::make_unique<Amulet::SelectionCuboid>(1, 2, 3, 4, 5, 6));
                         Amulet::SelectionShapeGroup group_4(std::move(shapes));
                         ASSERT_TRUE(group_3.almost_equal(group_4));
                         ASSERT_FALSE(group_empty_1.almost_equal(group_3));
                         ASSERT_FALSE(group_3.almost_equal(group_empty_1));
 
-                        shapes.push_back(std::make_unique<const Amulet::SelectionEllipsoid>(1, 2, 3, 4));
+                        shapes.push_back(std::make_unique<Amulet::SelectionEllipsoid>(1, 2, 3, 4));
                         Amulet::SelectionShapeGroup group_5(std::move(shapes));
                         ASSERT_FALSE(group_3.almost_equal(group_5));
                         ASSERT_FALSE(group_5.almost_equal(group_3));
 
-                        shapes.push_back(std::make_unique<const Amulet::SelectionCuboid>(1, 2, 3, 4, 5, 7));
+                        shapes.push_back(std::make_unique<Amulet::SelectionCuboid>(1, 2, 3, 4, 5, 7));
                         Amulet::SelectionShapeGroup group_6(std::move(shapes));
                         ASSERT_FALSE(group_3.almost_equal(group_6));
                         ASSERT_FALSE(group_6.almost_equal(group_3));
