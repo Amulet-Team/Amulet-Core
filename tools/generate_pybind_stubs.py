@@ -58,18 +58,18 @@ def eq_sub_func(match: re.Match) -> str:
         else:
             return "\n".join(
                 [
-                    f"{match.group('indent')}def __eq__(self, arg0: {match.group('other')}) -> {match.group('return')}:{match.group('ellipsis_docstring')}",
+                    f"{match.group('indent')}def __eq__(self, other: {match.group('other')}) -> {match.group('return')}:{match.group('ellipsis_docstring')}",
                     f"{match.group('indent')}@typing.overload",
-                    f"{match.group('indent')}def __eq__(self, arg0: typing.Any) -> bool | types.NotImplementedType: ...",
+                    f"{match.group('indent')}def __eq__(self, other: typing.Any) -> bool | types.NotImplementedType: ...",
                 ]
             )
     else:
         return "\n".join(
             [
                 f"{match.group('indent')}@typing.overload",
-                f"{match.group('indent')}def __eq__(self, arg0: {match.group('other')}) -> {match.group('return')}:{match.group('ellipsis_docstring')}",
+                f"{match.group('indent')}def __eq__(self, other: {match.group('other')}) -> {match.group('return')}:{match.group('ellipsis_docstring')}",
                 f"{match.group('indent')}@typing.overload",
-                f"{match.group('indent')}def __eq__(self, arg0: typing.Any) -> bool | types.NotImplementedType: ...",
+                f"{match.group('indent')}def __eq__(self, other: typing.Any) -> bool | types.NotImplementedType: ...",
             ]
         )
 
