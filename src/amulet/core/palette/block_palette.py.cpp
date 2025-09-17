@@ -48,7 +48,7 @@ void init_block_palette(py::module block_palette_module)
             bounds_check(self.size(), index);
             return self.index_to_block_stack(index);
         });
-    pyext::collections::def_Sequence_getitem_slice(BlockPalette);
+    
     BlockPalette.def(
         "__contains__",
         [](const Amulet::BlockPalette& self, Py_ssize_t index) {
@@ -57,11 +57,13 @@ void init_block_palette(py::module block_palette_module)
     BlockPalette.def(
         "__contains__",
         &Amulet::BlockPalette::contains_block);
-    pyext::collections::def_Sequence_iter<Amulet::BlockStack>(BlockPalette);
-    pyext::collections::def_Sequence_reversed<Amulet::BlockStack>(BlockPalette);
-    pyext::collections::def_Sequence_index(BlockPalette);
-    pyext::collections::def_Sequence_count(BlockPalette);
-    pyext::collections::register_Sequence(BlockPalette);
+    using BlockSequence = pyext::collections::Sequence<Amulet::BlockStack>;
+    BlockSequence::def_getitem_slice(BlockPalette);
+    BlockSequence::def_iter(BlockPalette);
+    BlockSequence::def_reversed(BlockPalette);
+    BlockSequence::def_index(BlockPalette);
+    BlockSequence::def_count(BlockPalette);
+    BlockSequence::register_cls(BlockPalette);
 
     BlockPalette.def(
         "index_to_block_stack",

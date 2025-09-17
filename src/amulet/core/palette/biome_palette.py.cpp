@@ -48,7 +48,7 @@ void init_biome_palette(py::module biome_palette_module)
             bounds_check(self.size(), index);
             return self.index_to_biome(index);
         });
-    pyext::collections::def_Sequence_getitem_slice(BiomePalette);
+    
     BiomePalette.def(
         "__contains__",
         [](const Amulet::BiomePalette& self, Py_ssize_t index) {
@@ -57,11 +57,13 @@ void init_biome_palette(py::module biome_palette_module)
     BiomePalette.def(
         "__contains__",
         &Amulet::BiomePalette::contains_biome);
-    pyext::collections::def_Sequence_iter(BiomePalette);
-    pyext::collections::def_Sequence_reversed(BiomePalette);
-    pyext::collections::def_Sequence_index(BiomePalette);
-    pyext::collections::def_Sequence_count(BiomePalette);
-    pyext::collections::register_Sequence(BiomePalette);
+    using BiomeSequence = pyext::collections::Sequence<Amulet::Biome>;
+    BiomeSequence::def_getitem_slice(BiomePalette);
+    BiomeSequence::def_iter(BiomePalette);
+    BiomeSequence::def_reversed(BiomePalette);
+    BiomeSequence::def_index(BiomePalette);
+    BiomeSequence::def_count(BiomePalette);
+    BiomeSequence::register_cls(BiomePalette);
 
     BiomePalette.def(
         "index_to_biome",

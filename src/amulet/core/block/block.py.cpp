@@ -6,8 +6,8 @@
 #include <memory>
 #include <span>
 
-#include <amulet/pybind11_extensions/types.hpp>
 #include <amulet/pybind11_extensions/py_module.hpp>
+#include <amulet/pybind11_extensions/types.hpp>
 
 #include <amulet/pybind11_extensions/sequence.hpp>
 
@@ -278,8 +278,7 @@ void init_block(py::module m_parent)
                 if (index < 0) {
                     throw py::index_error("");
                 }
-            }
-            if (index >= self.size()) {
+            } else if (index >= self.size()) {
                 throw py::index_error("");
             }
             return self.at(index);
@@ -300,13 +299,14 @@ void init_block(py::module m_parent)
                 return Amulet::deserialise<Amulet::BlockStack>(state.cast<std::string>());
             }));
 
-    pyext::collections::def_Sequence_getitem_slice(BlockStack);
-    pyext::collections::def_Sequence_contains(BlockStack);
-    pyext::collections::def_Sequence_iter<Amulet::Block>(BlockStack);
-    pyext::collections::def_Sequence_reversed<Amulet::Block>(BlockStack);
-    pyext::collections::def_Sequence_index(BlockStack);
-    pyext::collections::def_Sequence_count(BlockStack);
-    pyext::collections::register_Sequence(BlockStack);
+    using BlockSequence = pyext::collections::Sequence<Amulet::Block>;
+    BlockSequence::def_getitem_slice(BlockStack);
+    BlockSequence::def_contains(BlockStack);
+    BlockSequence::def_iter(BlockStack);
+    BlockSequence::def_reversed(BlockStack);
+    BlockSequence::def_index(BlockStack);
+    BlockSequence::def_count(BlockStack);
+    BlockSequence::register_cls(BlockStack);
 
     BlockStack.def(py::self == py::self);
     BlockStack.def(py::self > py::self);

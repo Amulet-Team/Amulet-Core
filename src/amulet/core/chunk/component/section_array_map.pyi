@@ -40,7 +40,7 @@ class SectionArrayMap:
 
     def __contains__(self, arg0: typing.SupportsInt) -> bool: ...
     def __delitem__(self, arg0: typing.SupportsInt) -> None: ...
-    def __eq__(self, arg0: typing.Any) -> bool | types.NotImplementedType: ...
+    def __eq__(self, other: typing.Any) -> bool | types.NotImplementedType: ...
     def __getitem__(
         self, arg0: typing.SupportsInt
     ) -> numpy.typing.NDArray[numpy.uint32]: ...
@@ -48,40 +48,61 @@ class SectionArrayMap:
     def __init__(
         self,
         array_shape: tuple[typing.SupportsInt, typing.SupportsInt, typing.SupportsInt],
-        default_array: (
-            typing.SupportsInt
-            | amulet.core.chunk.component.section_array_map.IndexArray3D
-            | collections.abc.Buffer
-        ),
+        default_array: typing.SupportsInt | IndexArray3D | collections.abc.Buffer,
     ) -> None: ...
     def __iter__(self) -> collections.abc.Iterator[int]: ...
     def __len__(self) -> int: ...
     def __setitem__(
-        self,
-        arg0: typing.SupportsInt,
-        arg1: (
-            amulet.core.chunk.component.section_array_map.IndexArray3D
-            | collections.abc.Buffer
-        ),
+        self, arg0: typing.SupportsInt, arg1: IndexArray3D | collections.abc.Buffer
     ) -> None: ...
+    @typing.overload
     def get(
-        self,
-        key: typing.SupportsInt,
-        default: numpy.typing.NDArray[numpy.uint32] | None = None,
+        self, key: typing.SupportsInt
     ) -> numpy.typing.NDArray[numpy.uint32] | None: ...
+    @typing.overload
+    def get(
+        self, key: typing.SupportsInt, default: numpy.typing.NDArray[numpy.uint32]
+    ) -> numpy.typing.NDArray[numpy.uint32]: ...
+    @typing.overload
+    def get[T](
+        self, key: typing.SupportsInt, default: T
+    ) -> numpy.typing.NDArray[numpy.uint32] | T: ...
     def items(
         self,
     ) -> collections.abc.ItemsView[int, numpy.typing.NDArray[numpy.uint32]]: ...
     def keys(self) -> collections.abc.KeysView[int]: ...
+    @typing.overload
+    def pop(self, key: typing.SupportsInt) -> numpy.typing.NDArray[numpy.uint32]: ...
+    @typing.overload
     def pop(
-        self, key: typing.SupportsInt, default: numpy.typing.NDArray[numpy.uint32] = ...
+        self, key: typing.SupportsInt, default: numpy.typing.NDArray[numpy.uint32]
     ) -> numpy.typing.NDArray[numpy.uint32]: ...
+    @typing.overload
+    def pop[T](
+        self, key: typing.SupportsInt, default: T
+    ) -> numpy.typing.NDArray[numpy.uint32] | T: ...
     def popitem(self) -> tuple[int, numpy.typing.NDArray[numpy.uint32]]: ...
     def populate(self, arg0: typing.SupportsInt) -> None: ...
+    @typing.overload
     def setdefault(
-        self, arg0: typing.SupportsInt, arg1: numpy.typing.NDArray[numpy.uint32] | None
-    ) -> numpy.typing.NDArray[numpy.uint32] | None: ...
-    def update(self, other: typing.Any = (), **kwargs: typing.Any) -> None: ...
+        self, key: typing.SupportsInt
+    ) -> numpy.typing.NDArray[numpy.uint32]: ...
+    @typing.overload
+    def setdefault(
+        self, key: typing.SupportsInt, default: numpy.typing.NDArray[numpy.uint32]
+    ) -> numpy.typing.NDArray[numpy.uint32]: ...
+    def update(
+        self,
+        other: (
+            collections.abc.Mapping[
+                typing.SupportsInt, numpy.typing.NDArray[numpy.uint32]
+            ]
+            | collections.abc.Iterable[
+                tuple[typing.SupportsInt, numpy.typing.NDArray[numpy.uint32]]
+            ]
+        ) = (),
+        **kwargs: numpy.typing.NDArray[numpy.uint32],
+    ) -> None: ...
     def values(
         self,
     ) -> collections.abc.ValuesView[numpy.typing.NDArray[numpy.uint32]]: ...
@@ -91,10 +112,5 @@ class SectionArrayMap:
     def default_array(self) -> int | numpy.ndarray: ...
     @default_array.setter
     def default_array(
-        self,
-        arg1: (
-            typing.SupportsInt
-            | amulet.core.chunk.component.section_array_map.IndexArray3D
-            | collections.abc.Buffer
-        ),
+        self, arg1: typing.SupportsInt | IndexArray3D | collections.abc.Buffer
     ) -> None: ...
