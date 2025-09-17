@@ -157,11 +157,13 @@ class SelectionShapeGroupTestCase(unittest.TestCase):
         group_6 = SelectionShapeGroup(
             [SelectionCuboid(0, 1, 2, 3, 4, 5), SelectionCuboid(6, 7, 8, 9, 10.1, 11)]
         )
-        group_7 = SelectionShapeGroup(
-            [SelectionCuboid(0, 1, 2, 3, 4, 5)]
-        )
+        group_7 = SelectionShapeGroup([SelectionCuboid(0, 1, 2, 3, 4, 5)])
         group_8 = SelectionShapeGroup(
-            [SelectionCuboid(0, 1, 2, 3, 4, 5), SelectionCuboid(6, 7, 8, 9, 10, 11), SelectionCuboid(12, 13, 14, 15, 16, 17)]
+            [
+                SelectionCuboid(0, 1, 2, 3, 4, 5),
+                SelectionCuboid(6, 7, 8, 9, 10, 11),
+                SelectionCuboid(12, 13, 14, 15, 16, 17),
+            ]
         )
         self.assertTrue(group_1.almost_equal(SelectionShapeGroup(group_2)))
         self.assertFalse(group_1.almost_equal(SelectionShapeGroup(group_3)))
@@ -177,8 +179,20 @@ class SelectionShapeGroupTestCase(unittest.TestCase):
 
     def test_len(self) -> None:
         self.assertEqual(0, len(SelectionShapeGroup()))
-        self.assertEqual(1, len(SelectionShapeGroup([SelectionCuboid(0, 1, 2, 3, 4, 5)])))
-        self.assertEqual(2, len(SelectionShapeGroup([SelectionCuboid(0, 1, 2, 3, 4, 5), SelectionCuboid(6, 7, 8, 9, 10, 11)])))
+        self.assertEqual(
+            1, len(SelectionShapeGroup([SelectionCuboid(0, 1, 2, 3, 4, 5)]))
+        )
+        self.assertEqual(
+            2,
+            len(
+                SelectionShapeGroup(
+                    [
+                        SelectionCuboid(0, 1, 2, 3, 4, 5),
+                        SelectionCuboid(6, 7, 8, 9, 10, 11),
+                    ]
+                )
+            ),
+        )
 
     def test_getitem(self) -> None:
         group_1 = SelectionShapeGroup()
@@ -296,13 +310,13 @@ class SelectionShapeGroupTestCase(unittest.TestCase):
         self.assertIs(cuboid_3, group[5])
 
     def test_repr(self) -> None:
-        group = SelectionShapeGroup([
-            SelectionCuboid(0, 1, 2, 3, 4, 5),
-            SelectionEllipsoid(6, 7, 8, 9)
-        ])
+        group = SelectionShapeGroup(
+            [SelectionCuboid(0, 1, 2, 3, 4, 5), SelectionEllipsoid(6, 7, 8, 9)]
+        )
         r = repr(group)
         self.assertIsInstance(r, str)
         import amulet
+
         self.assertTrue(group.almost_equal(eval(r, {"amulet": amulet})))
 
 
