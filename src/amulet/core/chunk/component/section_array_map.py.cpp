@@ -221,17 +221,18 @@ py::module init_section_array_map(py::module m_parent)
     SectionArrayMap.def(
         "__contains__",
         &Amulet::SectionArrayMap::contains_section);
-    pyext::collections::def_Mapping_keys<std::int64_t>(SectionArrayMap);
-    pyext::collections::def_Mapping_values<pyext::numpy::array_t<std::uint32_t>>(SectionArrayMap);
-    pyext::collections::def_Mapping_items<std::int64_t, pyext::numpy::array_t<std::uint32_t>>(SectionArrayMap);
-    pyext::collections::def_Mapping_get<std::int64_t, pyext::numpy::array_t<std::uint32_t>>(SectionArrayMap);
-    pyext::collections::def_Mapping_eq(SectionArrayMap);
-    pyext::collections::def_Mapping_hash(SectionArrayMap);
-    pyext::collections::def_MutableMapping_pop<std::int64_t, pyext::numpy::array_t<std::uint32_t>>(SectionArrayMap);
-    pyext::collections::def_MutableMapping_popitem<std::int64_t, pyext::numpy::array_t<std::uint32_t>>(SectionArrayMap);
-    pyext::collections::def_MutableMapping_update(SectionArrayMap);
-    pyext::collections::def_MutableMapping_setdefault<std::int64_t, pyext::numpy::array_t<std::uint32_t>>(SectionArrayMap);
-    pyext::collections::register_MutableMapping(SectionArrayMap);
+    using SectionMap = pyext::collections::MutableMapping<std::int64_t, pyext::numpy::array_t<std::uint32_t>>;
+    SectionMap::def_keys(SectionArrayMap);
+    SectionMap::def_values(SectionArrayMap);
+    SectionMap::def_items(SectionArrayMap);
+    SectionMap::def_get(SectionArrayMap);
+    SectionMap::def_eq(SectionArrayMap);
+    SectionMap::def_hash(SectionArrayMap);
+    SectionMap::def_pop(SectionArrayMap);
+    SectionMap::def_popitem(SectionArrayMap);
+    SectionMap::def_update(SectionArrayMap);
+    SectionMap::def_setdefault(SectionArrayMap);
+    SectionMap::register_cls(SectionArrayMap);
 
     SectionArrayMap.def(
         py::pickle(
