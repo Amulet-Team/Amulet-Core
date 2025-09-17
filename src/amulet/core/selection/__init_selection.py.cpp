@@ -4,6 +4,7 @@
 
 #include "box.hpp"
 #include "box_group.hpp"
+#include "shape_group.hpp"
 
 namespace py = pybind11;
 namespace pyext = Amulet::pybind11_extensions;
@@ -11,7 +12,7 @@ namespace pyext = Amulet::pybind11_extensions;
 void init_selection_box(py::classh<Amulet::SelectionBox>);
 void init_selection_box_group(py::classh<Amulet::SelectionBoxGroup>);
 py::object init_selection_shape(py::module);
-py::object init_selection_shape_group(py::module);
+void init_selection_shape_group(py::module, py::classh<Amulet::SelectionShapeGroup>);
 py::object init_selection_cuboid(py::module m_parent);
 py::object init_selection_ellipsoid(py::module m_parent);
 
@@ -21,6 +22,7 @@ void init_selection(py::module m_parent)
 
     auto selection_box_module = m.def_submodule("box");
     auto selection_box_group_module = m.def_submodule("box_group");
+    auto selection_shape_group_module = m.def_submodule("shape_group");
 
     // Low level selection
     // These classes must be defined before methods can be added
@@ -32,6 +34,8 @@ void init_selection(py::module m_parent)
         "A container for zero or more :class:`SelectionBox` instances.\n"
         "\n"
         "This allows for non-rectangular and non-contiguous selections.");
+    py::classh<Amulet::SelectionShapeGroup> SelectionShapeGroup(selection_shape_group_module, "SelectionShapeGroup",
+        "A group of selection shapes.");
 
     // Shape base class
     m.attr("SelectionShape") = init_selection_shape(m);
@@ -42,9 +46,10 @@ void init_selection(py::module m_parent)
 
     m.attr("SelectionBox") = SelectionBox;
     m.attr("SelectionBoxGroup") = SelectionBoxGroup;
+    m.attr("SelectionShapeGroup") = SelectionShapeGroup;
 
     // Init shape classes
-    m.attr("SelectionShapeGroup") = init_selection_shape_group(m);
+    init_selection_shape_group(selection_shape_group_module, SelectionShapeGroup);
     m.attr("SelectionCuboid") = init_selection_cuboid(m);
     m.attr("SelectionEllipsoid") = init_selection_ellipsoid(m);
 }

@@ -1,3 +1,4 @@
+#include <pybind11/operators.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <pybind11/typing.h>
@@ -13,10 +14,21 @@ py::object init_selection_shape(py::module m_parent)
     py::classh<Amulet::SelectionShape> SelectionShape(m, "SelectionShape",
         "A base class for selection classes.");
 
-    SelectionShape.def_property_readonly(
+    SelectionShape.def_property(
         "matrix",
         &Amulet::SelectionShape::get_matrix,
-        py::return_value_policy::copy);
+        &Amulet::SelectionShape::set_matrix);
+
+    SelectionShape.def(
+        "serialise",
+        &Amulet::SelectionShape::serialise,
+        py::doc("Convert the class to human readable plain text."));
+    SelectionShape.def_static(
+        "deserialise",
+        static_cast<std::unique_ptr<Amulet::SelectionShape> (*)(std::string_view)>(
+            &Amulet::SelectionShape::deserialise),
+        py::arg("s"),
+        py::doc("Deserialise the serialised data back to an object."));
 
     SelectionShape.def(
         "voxelise",
@@ -42,6 +54,7 @@ py::object init_selection_shape(py::module m_parent)
         &Amulet::SelectionShape::almost_equal,
         py::arg("other"),
         py::doc("Check if this shape is equal or almost equal to another shape."));
+    SelectionShape.def(py::self == py::self);
 
     return SelectionShape;
 }

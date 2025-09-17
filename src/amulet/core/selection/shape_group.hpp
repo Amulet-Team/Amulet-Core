@@ -1,6 +1,8 @@
 #pragma once
 
 #include <memory>
+#include <string>
+#include <string_view>
 #include <vector>
 
 #include <amulet/core/dll.hpp>
@@ -14,33 +16,40 @@ class SelectionBoxGroup;
 
 class AMULET_CORE_EXPORT SelectionShapeGroup {
 private:
-    std::vector<std::unique_ptr<const SelectionShape>> _shapes;
+    std::vector<std::shared_ptr<SelectionShape>> _shapes;
 
 public:
-    // Forwarding constructor
-    template <typename... Args>
-    SelectionShapeGroup(Args&&... args)
-        : _shapes(std::forward<Args>(args)...)
-    {
-    }
+    SelectionShapeGroup();
+    SelectionShapeGroup(std::vector<std::shared_ptr<SelectionShape>> shapes);
 
-    // Disable copying
-    SelectionShapeGroup(const SelectionShapeGroup&) = delete;
-    SelectionShapeGroup& operator=(const SelectionShapeGroup&) = delete;
+    SelectionShapeGroup(const SelectionShapeGroup&);
+    SelectionShapeGroup& operator=(const SelectionShapeGroup&);
 
-    // Default move
-    SelectionShapeGroup(SelectionShapeGroup&&) = default;
-    SelectionShapeGroup& operator=(SelectionShapeGroup&&) = default;
+    SelectionShapeGroup(SelectionShapeGroup&&);
+    SelectionShapeGroup& operator=(SelectionShapeGroup&&);
 
-    const std::vector<std::unique_ptr<const SelectionShape>>& get_shapes() const
+    SelectionShapeGroup deep_copy() const;
+
+    std::string serialise() const;
+    static SelectionShapeGroup deserialise(std::string_view);
+
+    const std::vector<std::shared_ptr<SelectionShape>>& get_shapes() const
     {
         return _shapes;
     }
-    std::vector<std::unique_ptr<const SelectionShape>>::const_iterator begin() const
+    std::vector<std::shared_ptr<SelectionShape>>& get_shapes()
+    {
+        return _shapes;
+    }
+    void set_shapes(std::vector<std::shared_ptr<SelectionShape>> shapes)
+    {
+        _shapes = std::move(shapes);
+    }
+    std::vector<std::shared_ptr<SelectionShape>>::const_iterator begin() const
     {
         return _shapes.begin();
     }
-    std::vector<std::unique_ptr<const SelectionShape>>::const_iterator end() const
+    std::vector<std::shared_ptr<SelectionShape>>::const_iterator end() const
     {
         return _shapes.end();
     }
@@ -56,6 +65,9 @@ public:
     explicit operator SelectionBoxGroup() const;
     explicit operator std::set<SelectionBox>() const;
     SelectionBoxGroup voxelise() const;
+
+    bool almost_equal(const SelectionShapeGroup&) const;
+    bool operator==(const SelectionShapeGroup&) const;
 };
 
 }
