@@ -12,6 +12,13 @@
 
 namespace py = pybind11;
 
+Amulet::SelectionCuboid& get_cuboid_ref(const Amulet::SelectionCuboid& cuboid_src)
+{
+    static Amulet::SelectionCuboid cuboid;
+    cuboid = cuboid_src;
+    return cuboid;
+}
+
 void init_test_selection_shape_group(py::module m_parent)
 {
     auto m = m_parent.def_submodule("test_selection_shape_group_");
@@ -215,4 +222,6 @@ void init_test_selection_shape_group(py::module m_parent)
 
             return tests;
         });
+
+    m.def("get_cuboid_ref", &get_cuboid_ref, py::return_value_policy::reference);
 }
