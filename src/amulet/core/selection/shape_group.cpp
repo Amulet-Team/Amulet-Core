@@ -27,9 +27,14 @@ SelectionShapeGroup SelectionShapeGroup::deep_copy() const
 std::string SelectionShapeGroup::serialise() const
 {
     std::string s = "SelectionShapeGroup([";
+    bool is_first = true;
     for (const auto& shape : get_shapes()) {
+        if (is_first) {
+            is_first = false;
+        } else {
+            s += ",";
+        }
         s += shape->serialise();
-        s += ",";
     }
     s += "])";
     return s;
