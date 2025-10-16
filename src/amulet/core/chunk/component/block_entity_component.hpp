@@ -79,12 +79,12 @@ public:
         }
         if (!(
                 get_version_range().contains(
-                    block_entity->get_platform(),
-                    block_entity->get_version()))) {
+                    block_entity_ptr->get_platform(),
+                    block_entity_ptr->get_version()))) {
             throw std::invalid_argument(
                 "BlockEntity is incompatible with VersionRange.");
         }
-        _block_entities.insert_or_assign(coord, std::move(block_entity));
+        _block_entities.insert_or_assign(coord, std::move(block_entity_ptr));
     }
 
     void del(const BlockEntityChunkCoord& coord)
