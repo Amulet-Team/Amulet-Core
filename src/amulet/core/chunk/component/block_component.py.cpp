@@ -16,9 +16,9 @@ py::module init_block_component(py::module m_parent)
 {
     auto m = m_parent.def_submodule("block_component");
 
-    py::class_<Amulet::BlockComponentData, std::shared_ptr<Amulet::BlockComponentData>>
-        BlockComponentData(m, "BlockComponentData");
-    BlockComponentData.def(
+    py::class_<Amulet::BlockStorage, std::shared_ptr<Amulet::BlockStorage>>
+        BlockStorage(m, "BlockStorage");
+    BlockStorage.def(
         py::init<
             const Amulet::VersionRange&,
             const Amulet::SectionShape&,
@@ -26,12 +26,12 @@ py::module init_block_component(py::module m_parent)
         py::arg("version_range"),
         py::arg("array_shape"),
         py::arg("default_block"));
-    BlockComponentData.def_property_readonly(
+    BlockStorage.def_property_readonly(
         "palette",
-        &Amulet::BlockComponentData::get_palette_ptr);
-    BlockComponentData.def_property_readonly(
+        &Amulet::BlockStorage::get_palette_ptr);
+    BlockStorage.def_property_readonly(
         "sections",
-        &Amulet::BlockComponentData::get_sections_ptr);
+        &Amulet::BlockStorage::get_sections_ptr);
 
     py::class_<Amulet::BlockComponent, std::shared_ptr<Amulet::BlockComponent>>
         BlockComponent(m, "BlockComponent");
@@ -39,9 +39,9 @@ py::module init_block_component(py::module m_parent)
         "ComponentID",
         &Amulet::BlockComponent::ComponentID);
     BlockComponent.def_property(
-        "block",
-        &Amulet::BlockComponent::get_block,
-        &Amulet::BlockComponent::set_block);
+        "block_storage",
+        &Amulet::BlockComponent::get_block_storage_ptr,
+        &Amulet::BlockComponent::set_block_storage);
 
     return m;
 }

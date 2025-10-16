@@ -17,6 +17,6 @@ void init_chunk_components(py::module m_parent)
     m.attr("SectionArrayMap") = m_section_array_map.attr("SectionArrayMap");
 
     auto m_block_component = init_block_component(m);
-    m.attr("BlockComponentData") = m_block_component.attr("BlockComponentData");
+    m.attr("BlockStorage") = m_block_component.attr("BlockStorage");
     m.attr("BlockComponent") = m_block_component.attr("BlockComponent");
 }

@@ -7,13 +7,13 @@ import amulet.core.chunk.component.section_array_map
 import amulet.core.palette.block_palette
 import amulet.core.version
 
-__all__: list[str] = ["BlockComponent", "BlockComponentData"]
+__all__: list[str] = ["BlockComponent", "BlockStorage"]
 
 class BlockComponent:
     ComponentID: typing.ClassVar[str] = "Amulet::BlockComponent"
-    block: BlockComponentData
+    block_storage: BlockStorage
 
-class BlockComponentData:
+class BlockStorage:
     def __init__(
         self,
         version_range: amulet.core.version.VersionRange,
