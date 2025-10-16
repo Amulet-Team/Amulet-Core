@@ -40,7 +40,7 @@ py::module init_block_component(py::module m_parent)
         &Amulet::BlockComponent::ComponentID);
     BlockComponent.def_property(
         "block_storage",
-        &Amulet::BlockComponent::get_block_storage_ptr,
+        &Amulet::BlockComponent::get_block_storage,
         &Amulet::BlockComponent::set_block_storage);
 
     return m;

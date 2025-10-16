@@ -94,8 +94,7 @@ protected:
 
 public:
     AMULET_CORE_EXPORT static const std::string ComponentID;
-    AMULET_CORE_EXPORT std::shared_ptr<BlockStorage> get_block_storage_ptr();
-    AMULET_CORE_EXPORT BlockStorage& get_block_storage();
+    AMULET_CORE_EXPORT std::shared_ptr<BlockStorage> get_block_storage();
     AMULET_CORE_EXPORT void set_block_storage(std::shared_ptr<BlockStorage> component);
 };
 
