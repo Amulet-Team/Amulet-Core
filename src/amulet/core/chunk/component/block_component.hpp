@@ -16,14 +16,14 @@
 
 namespace Amulet {
 
-class BlockComponentData {
+class BlockStorage {
 private:
     std::shared_ptr<BlockPalette> _palette;
     std::shared_ptr<SectionArrayMap> _sections;
 
 public:
     template <typename PaletteT, typename SectionsT>
-    BlockComponentData(
+    BlockStorage(
         PaletteT&& palette,
         SectionsT&& sections)
         : _palette(
@@ -46,11 +46,11 @@ public:
     }
 
     template <typename VersionRangeT>
-    BlockComponentData(
+    BlockStorage(
         VersionRangeT&& version_range,
         const SectionShape& array_shape,
         const BlockStack& default_block)
-        : BlockComponentData(
+        : BlockStorage(
               std::make_shared<BlockPalette>(std::forward<VersionRangeT>(version_range)),
               std::make_shared<SectionArrayMap>(array_shape, static_cast<std::uint32_t>(0)))
     {
@@ -58,7 +58,7 @@ public:
     }
 
     AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
-    AMULET_CORE_EXPORT static BlockComponentData deserialise(BinaryReader&);
+    AMULET_CORE_EXPORT static BlockStorage deserialise(BinaryReader&);
 
     BlockPalette& get_palette() const { return *_palette; }
     std::shared_ptr<BlockPalette> get_palette_ptr() const { return _palette; }
@@ -68,7 +68,7 @@ public:
 
 class BlockComponent {
 private:
-    std::optional<std::shared_ptr<BlockComponentData>> _value;
+    std::optional<std::shared_ptr<BlockStorage>> _value;
 
 protected:
     // Null constructor
@@ -81,7 +81,7 @@ protected:
         const SectionShape& array_shape,
         const BlockStack& default_block)
     {
-        _value = std::make_shared<BlockComponentData>(
+        _value = std::make_shared<BlockStorage>(
             std::forward<VersionRangeT>(version_range),
             array_shape,
             default_block);
@@ -94,8 +94,8 @@ protected:
 
 public:
     AMULET_CORE_EXPORT static const std::string ComponentID;
-    AMULET_CORE_EXPORT std::shared_ptr<BlockComponentData> get_block();
-    AMULET_CORE_EXPORT void set_block(std::shared_ptr<BlockComponentData> component);
+    AMULET_CORE_EXPORT std::shared_ptr<BlockStorage> get_block_storage();
+    AMULET_CORE_EXPORT void set_block_storage(std::shared_ptr<BlockStorage> component);
 };
 
 } // namespace Amulet

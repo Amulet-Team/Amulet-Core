@@ -244,7 +244,7 @@ def main() -> None:
         pyi = EqPattern.sub(eq_sub_func, pyi)
         pyi = pyi.replace("**kwargs)", "**kwargs: typing.Any)")
         pyi_split = [l.rstrip("\r") for l in pyi.split("\n")]
-        for hidden_import in ["amulet.nbt"]:
+        for hidden_import in []:
             if hidden_import in pyi and f"import {hidden_import}" not in pyi_split:
                 pyi_split.insert(2, f"import {hidden_import}")
         if "import typing" not in pyi_split:

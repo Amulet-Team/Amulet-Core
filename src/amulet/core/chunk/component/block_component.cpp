@@ -4,15 +4,15 @@
 
 namespace Amulet {
 
-// BlockComponentData
-void BlockComponentData::serialise(BinaryWriter& writer) const
+// BlockStorage
+void BlockStorage::serialise(BinaryWriter& writer) const
 {
     writer.write_numeric<std::uint8_t>(1);
     get_palette().serialise(writer);
     get_sections().serialise(writer);
 }
 
-BlockComponentData BlockComponentData::deserialise(BinaryReader& reader)
+BlockStorage BlockStorage::deserialise(BinaryReader& reader)
 {
     auto version = reader.read_numeric<std::uint8_t>();
     switch (version) {
@@ -22,7 +22,7 @@ BlockComponentData BlockComponentData::deserialise(BinaryReader& reader)
         return { palette, sections };
     }
     default:
-        throw std::invalid_argument("Unsupported BlockComponentData version " + std::to_string(version));
+        throw std::invalid_argument("Unsupported BlockStorage version " + std::to_string(version));
     }
 }
 
@@ -39,7 +39,7 @@ std::optional<std::string> BlockComponent::serialise() const
 void BlockComponent::deserialise(std::optional<std::string> data)
 {
     if (data) {
-        _value = std::make_shared<BlockComponentData>(Amulet::deserialise<BlockComponentData>(*data));
+        _value = std::make_shared<BlockStorage>(Amulet::deserialise<BlockStorage>(*data));
     } else {
         _value = std::nullopt;
     }
@@ -47,7 +47,7 @@ void BlockComponent::deserialise(std::optional<std::string> data)
 
 const std::string BlockComponent::ComponentID = "Amulet::BlockComponent";
 
-std::shared_ptr<BlockComponentData> BlockComponent::get_block()
+std::shared_ptr<BlockStorage> BlockComponent::get_block_storage()
 {
     if (_value) {
         return *_value;
@@ -55,7 +55,7 @@ std::shared_ptr<BlockComponentData> BlockComponent::get_block()
     throw std::runtime_error("BlockComponent has not been loaded.");
 }
 
-void BlockComponent::set_block(std::shared_ptr<BlockComponentData> component)
+void BlockComponent::set_block_storage(std::shared_ptr<BlockStorage> component)
 {
     if (_value) {
         auto& old_data = **_value;

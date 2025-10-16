@@ -4,9 +4,9 @@
 
 namespace Amulet {
 
-// BlockEntityComponentData
+// BlockEntityStorage
 
-void BlockEntityComponentData::serialise(BinaryWriter& writer) const
+void BlockEntityStorage::serialise(BinaryWriter& writer) const
 {
     writer.write_numeric<std::uint8_t>(1);
     get_version_range().serialise(writer);
@@ -21,7 +21,7 @@ void BlockEntityComponentData::serialise(BinaryWriter& writer) const
         block_entity->serialise(writer);
     }
 }
-BlockEntityComponentData BlockEntityComponentData::deserialise(BinaryReader& reader)
+BlockEntityStorage BlockEntityStorage::deserialise(BinaryReader& reader)
 {
     auto version_number = reader.read_numeric<std::uint8_t>();
     switch (version_number) {
@@ -29,7 +29,7 @@ BlockEntityComponentData BlockEntityComponentData::deserialise(BinaryReader& rea
         auto version_range = VersionRange::deserialise(reader);
         auto x_size = reader.read_numeric<std::uint16_t>();
         auto z_size = reader.read_numeric<std::uint16_t>();
-        BlockEntityComponentData block_entities {
+        BlockEntityStorage block_entities {
             std::move(version_range),
             x_size,
             z_size
@@ -45,7 +45,7 @@ BlockEntityComponentData BlockEntityComponentData::deserialise(BinaryReader& rea
         return block_entities;
     }
     default:
-        throw std::invalid_argument("Unsupported BlockEntityComponentData version " + std::to_string(version_number));
+        throw std::invalid_argument("Unsupported BlockEntityStorage version " + std::to_string(version_number));
     }
 }
 
@@ -55,7 +55,7 @@ AMULET_CORE_EXPORT void BlockEntityComponent::init(
     std::uint16_t x_size,
     std::uint16_t z_size)
 {
-    _value = std::make_shared<BlockEntityComponentData>(version_range, x_size, z_size);
+    _value = std::make_shared<BlockEntityStorage>(version_range, x_size, z_size);
 }
 
 std::optional<std::string> BlockEntityComponent::serialise() const
@@ -70,7 +70,7 @@ std::optional<std::string> BlockEntityComponent::serialise() const
 void BlockEntityComponent::deserialise(std::optional<std::string> data)
 {
     if (data) {
-        _value = std::make_shared<BlockEntityComponentData>(Amulet::deserialise<BlockEntityComponentData>(*data));
+        _value = std::make_shared<BlockEntityStorage>(Amulet::deserialise<BlockEntityStorage>(*data));
     } else {
         _value = std::nullopt;
     }
@@ -78,7 +78,7 @@ void BlockEntityComponent::deserialise(std::optional<std::string> data)
 
 const std::string BlockEntityComponent::ComponentID = "Amulet::BlockEntityComponent";
 
-AMULET_CORE_EXPORT std::shared_ptr<BlockEntityComponentData> BlockEntityComponent::get_block_entity()
+AMULET_CORE_EXPORT std::shared_ptr<BlockEntityStorage> BlockEntityComponent::get_block_entities()
 {
     if (_value) {
         return *_value;
@@ -86,7 +86,7 @@ AMULET_CORE_EXPORT std::shared_ptr<BlockEntityComponentData> BlockEntityComponen
     throw std::runtime_error("BlockEntityComponent has not been loaded.");
 }
 
-AMULET_CORE_EXPORT void BlockEntityComponent::set_block_entity(std::shared_ptr<BlockEntityComponentData> component)
+AMULET_CORE_EXPORT void BlockEntityComponent::set_block_entities(std::shared_ptr<BlockEntityStorage> component)
 {
     if (_value) {
         auto& old_data = **_value;

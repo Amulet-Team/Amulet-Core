@@ -199,7 +199,7 @@ SectionArrayMap SectionArrayMap::deserialise(BinaryReader& reader)
         return self;
     }
     default:
-        throw std::invalid_argument("Unsupported BlockComponentData version " + std::to_string(version));
+        throw std::invalid_argument("Unsupported BlockStorage version " + std::to_string(version));
     }
 }
 
