@@ -85,9 +85,9 @@ class SelectionShapeGroupTestCase(unittest.TestCase):
 
     def test_constructor_errors(self) -> None:
         with self.assertRaises(RuntimeError):
-            SelectionShapeGroup(["test"]) # type: ignore
+            SelectionShapeGroup(["test"])  # type: ignore
         with self.assertRaises(RuntimeError):
-            SelectionShapeGroup([5]) # type: ignore
+            SelectionShapeGroup([5])  # type: ignore
 
     def test_copy(self) -> None:
         cuboid = SelectionCuboid(0, 1, 2, 3, 4, 5)
