@@ -15,6 +15,19 @@ class VersionNumberTestCase(unittest.TestCase):
 
         test_version_number()
 
+    def test_constructor(self) -> None:
+        v0 = VersionNumber()
+        v1 = VersionNumber(5)
+        v2 = VersionNumber(5, 6)
+        v3 = VersionNumber(5, 6, 7)
+        v10 = VersionNumber(5, 6, 7, 8, 9, 10, 11, 12, 13, 14)
+
+        self.assertEqual(0, len(v0))
+        self.assertEqual(1, len(v1))
+        self.assertEqual(2, len(v2))
+        self.assertEqual(3, len(v3))
+        self.assertEqual(10, len(v10))
+
     def test_subclass(self) -> None:
         self.assertTrue(issubclass(VersionNumber, Sequence))
         self.assertIsInstance(VersionNumber(1, 0, 0), Sequence)

@@ -34,6 +34,7 @@ public:
     // Constructors
     template <typename... Args>
         requires std::is_constructible_v<std::vector<std::int64_t>, Args...>
+        && (!(sizeof...(Args) > 0 && (std::is_integral_v<std::decay_t<Args>> && ...)))
     VersionNumber(Args&&... args)
         : _vec(std::forward<Args>(args)...)
     {
@@ -57,7 +58,8 @@ public:
     size_t size() const { return _vec.size(); }
 
     // Element access
-    std::int64_t operator[](size_t index) const {
+    std::int64_t operator[](size_t index) const
+    {
         if (index >= _vec.size()) {
             return 0;
         }
