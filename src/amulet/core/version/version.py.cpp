@@ -232,7 +232,9 @@ void init_version(py::module m_parent)
     VersionRange.def(
         "contains",
         &Amulet::VersionRange::contains,
-        py::doc("Check if the platform is equal and the version number is within the range."));
+        py::doc("Check if the platform is equal and the version number is within the range."),
+        py::arg("platform"),
+        py::arg("version"));
     VersionRange.def(pybind11::self == pybind11::self);
     VersionRange.def(
         "__repr__",
@@ -256,7 +258,7 @@ void init_version(py::module m_parent)
             const Amulet::VersionRange&>(),
         py::arg("version_range"));
     VersionRangeContainer.def_property_readonly(
-        "version_range", 
+        "version_range",
         &Amulet::VersionRangeContainer::get_version_range,
         py::doc("The version range."));
     VersionRangeContainer.def(

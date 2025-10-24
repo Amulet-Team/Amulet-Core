@@ -101,7 +101,7 @@ class VersionRange:
         self, platform: str, min_version: VersionNumber, max_version: VersionNumber
     ) -> None: ...
     def __repr__(self) -> str: ...
-    def contains(self, arg0: str, arg1: VersionNumber) -> bool:
+    def contains(self, platform: str, version: VersionNumber) -> bool:
         """
         Check if the platform is equal and the version number is within the range.
         """
