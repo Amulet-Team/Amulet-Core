@@ -202,7 +202,7 @@ py::module init_section_array_map(py::module m_parent)
         &Amulet::SectionArrayMap::del_section);
     SectionArrayMap.def(
         "__getitem__",
-        [asarray](const Amulet::SectionArrayMap& self, std::int64_t cy) -> pyext::numpy::array_t<std::uint32_t> {
+        [asarray](const Amulet::SectionArrayMap& self, std::int64_t cy) -> pyext::PyObjectCpp<pyext::numpy::array_t<std::uint32_t>> {
             try {
                 return asarray(py::cast(self.get_section(cy)));
             } catch (const std::out_of_range&) {
