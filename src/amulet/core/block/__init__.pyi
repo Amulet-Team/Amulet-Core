@@ -37,7 +37,7 @@ class Block(amulet.core.version.PlatformVersionContainer):
     >>> )
     """
 
-    PropertyValue: typing.ClassVar[typing.TypeAlias] = (
+    PropertyValue: typing.TypeAlias = (
         amulet.nbt.ByteTag
         | amulet.nbt.ShortTag
         | amulet.nbt.IntTag
