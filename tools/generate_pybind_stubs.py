@@ -26,7 +26,7 @@ ClassVarUnionPattern = re.compile(
 
 
 def class_var_union_sub_func(match: re.Match) -> str:
-    return f'{match.group("variable")}: typing.ClassVar[typing.TypeAlias] = {match.group("value")}'
+    return f'{match.group("variable")}: typing.TypeAlias = {match.group("value")}'
 
 
 VersionPattern = re.compile(r"(?P<var>[a-zA-Z0-9_].*): str = '.*?'")
