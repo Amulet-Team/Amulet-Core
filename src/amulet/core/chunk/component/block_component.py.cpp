@@ -16,7 +16,7 @@ py::module init_block_component(py::module m_parent)
 {
     auto m = m_parent.def_submodule("block_component");
 
-    py::class_<Amulet::BlockStorage, std::shared_ptr<Amulet::BlockStorage>>
+    py::classh<Amulet::BlockStorage>
         BlockStorage(m, "BlockStorage");
     BlockStorage.def(
         py::init<
@@ -33,7 +33,7 @@ py::module init_block_component(py::module m_parent)
         "sections",
         &Amulet::BlockStorage::get_sections_ptr);
 
-    py::class_<Amulet::BlockComponent, std::shared_ptr<Amulet::BlockComponent>>
+    py::classh<Amulet::BlockComponent>
         BlockComponent(m, "BlockComponent");
     BlockComponent.def_readonly_static(
         "ComponentID",

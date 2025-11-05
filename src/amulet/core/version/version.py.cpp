@@ -19,7 +19,7 @@ void init_version(py::module m_parent)
 
     m.attr("PlatformType") = py::module::import("builtins").attr("str");
 
-    py::class_<Amulet::VersionNumber> VersionNumber(m, "VersionNumber",
+    py::classh<Amulet::VersionNumber> VersionNumber(m, "VersionNumber",
         "This class is designed to store semantic versions and data versions and allow comparisons between them.\n"
         "It is a wrapper around std::vector<std::int64_t> with special comparison handling.\n"
         "The version can contain zero to max(int64) values.\n"
@@ -172,7 +172,7 @@ void init_version(py::module m_parent)
 
     py::module::import("collections.abc").attr("Sequence").attr("register")(VersionNumber);
 
-    py::class_<Amulet::PlatformVersionContainer, std::shared_ptr<Amulet::PlatformVersionContainer>>
+    py::classh<Amulet::PlatformVersionContainer>
         PlatformVersionContainer(m, "PlatformVersionContainer",
             "A class storing platform identifier and version number.\n"
             "Thread safe.");
@@ -206,7 +206,7 @@ void init_version(py::module m_parent)
                 return Amulet::deserialise<Amulet::PlatformVersionContainer>(state.cast<std::string>());
             }));
 
-    py::class_<Amulet::VersionRange> VersionRange(m, "VersionRange",
+    py::classh<Amulet::VersionRange> VersionRange(m, "VersionRange",
         "A class storing platform identifier and minimum and maximum version numbers.\n"
         "Thread safe.");
     VersionRange.def(
@@ -250,7 +250,7 @@ void init_version(py::module m_parent)
                 return Amulet::deserialise<Amulet::VersionRange>(state.cast<std::string>());
             }));
 
-    py::class_<Amulet::VersionRangeContainer, std::shared_ptr<Amulet::VersionRangeContainer>>
+    py::classh<Amulet::VersionRangeContainer>
         VersionRangeContainer(m, "VersionRangeContainer",
             "A class that contains a version range.");
     VersionRangeContainer.def(

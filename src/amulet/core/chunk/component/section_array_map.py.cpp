@@ -24,7 +24,7 @@ py::module init_section_array_map(py::module m_parent)
     auto m = m_parent.def_submodule("section_array_map");
 
     // 3D index array
-    py::class_<Amulet::IndexArray3D, std::shared_ptr<Amulet::IndexArray3D>>
+    py::class<Amulet::IndexArray3D>
         IndexArray3D(m, "IndexArray3D", py::buffer_protocol(),
             "A 3D index array.");
     // Constructors
@@ -114,7 +114,7 @@ py::module init_section_array_map(py::module m_parent)
     });
 
     // Section Array Map
-    py::class_<Amulet::SectionArrayMap, std::shared_ptr<Amulet::SectionArrayMap>>
+    py::classh<Amulet::SectionArrayMap>
         SectionArrayMap(m, "SectionArrayMap",
             "A container of sub-chunk arrays.");
     SectionArrayMap.def(
