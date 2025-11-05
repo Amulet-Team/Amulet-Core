@@ -22,7 +22,7 @@ void init_block_entity(py::module m_parent)
 {
     auto m = pyext::def_subpackage(m_parent, "block_entity");
 
-    py::class_<Amulet::BlockEntity, Amulet::PlatformVersionContainer, std::shared_ptr<Amulet::BlockEntity>> BlockEntity(m, "BlockEntity",
+    py::classh<Amulet::BlockEntity, Amulet::PlatformVersionContainer> BlockEntity(m, "BlockEntity",
         "A class to contain all the data to define a BlockEntity.");
     BlockEntity.def(
         py::init<

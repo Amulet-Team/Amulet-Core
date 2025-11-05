@@ -21,7 +21,7 @@ void init_entity(py::module m_parent)
 {
     auto m = pyext::def_subpackage(m_parent, "entity");
 
-    py::class_<Amulet::Entity, Amulet::PlatformVersionContainer, std::shared_ptr<Amulet::Entity>> Entity(m, "Entity",
+    py::classh<Amulet::Entity, Amulet::PlatformVersionContainer> Entity(m, "Entity",
         "A class to contain all the data to define an Entity.");
     Entity.def(
         py::init<

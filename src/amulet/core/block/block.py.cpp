@@ -31,7 +31,7 @@ void init_block(py::module m_parent)
     py::object LongTag = amulet_nbt.attr("LongTag");
     py::object StringTag = amulet_nbt.attr("StringTag");
 
-    py::class_<Amulet::Block, Amulet::PlatformVersionContainer, std::shared_ptr<Amulet::Block>> Block(m, "Block",
+    py::classh<Amulet::Block, Amulet::PlatformVersionContainer> Block(m, "Block",
         "A class to manage the state of a block.\n"
         "\n"
         "It is an immutable object that contains the platform, version, namespace, base name and properties.\n"
@@ -216,7 +216,7 @@ void init_block(py::module m_parent)
             "\n"
             ":return: The SNBT blockstate string"));
 
-    py::class_<Amulet::BlockStack, std::shared_ptr<Amulet::BlockStack>> BlockStack(m, "BlockStack",
+    py::classh<Amulet::BlockStack> BlockStack(m, "BlockStack",
         "A stack of block objects.\n"
         "\n"
         "Java 1.13 added the concept of waterlogging blocks whereby some blocks have a `waterlogged` property.\n"

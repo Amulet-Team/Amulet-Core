@@ -17,7 +17,7 @@ void init_chunk(py::module m_parent)
     auto m = pyext::def_subpackage(m_parent, "chunk");
     init_chunk_components(m);
 
-    py::class_<Amulet::Chunk, std::shared_ptr<Amulet::Chunk>> Chunk(m, "Chunk",
+    py::classh<Amulet::Chunk> Chunk(m, "Chunk",
         "A base class for all chunk classes.");
     Chunk.def_property_readonly(
         "chunk_id",

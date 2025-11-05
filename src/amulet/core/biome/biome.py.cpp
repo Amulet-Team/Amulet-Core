@@ -16,7 +16,7 @@ namespace pyext = Amulet::pybind11_extensions;
 void init_biome(py::module m_parent)
 {
     auto m = pyext::def_subpackage(m_parent, "biome");
-    py::class_<Amulet::Biome, Amulet::PlatformVersionContainer, std::shared_ptr<Amulet::Biome>> Biome(m, "Biome",
+    py::classh<Amulet::Biome, Amulet::PlatformVersionContainer> Biome(m, "Biome",
         "A class to manage the state of a biome.\n"
         "\n"
         "It is an immutable object that contains the platform, version, namespace and base name.\n"
