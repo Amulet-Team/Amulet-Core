@@ -24,7 +24,7 @@ py::module init_section_array_map(py::module m_parent)
     auto m = m_parent.def_submodule("section_array_map");
 
     // 3D index array
-    py::class<Amulet::IndexArray3D>
+    py::classh<Amulet::IndexArray3D>
         IndexArray3D(m, "IndexArray3D", py::buffer_protocol(),
             "A 3D index array.");
     // Constructors
