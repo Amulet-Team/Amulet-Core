@@ -18,7 +18,7 @@ def fix_path(path: str) -> str:
 RootDir = fix_path(os.path.dirname(os.path.dirname(__file__)))
 
 
-def main():
+def main() -> None:
     platform_args = []
     if sys.platform == "win32":
         platform_args.extend(["-G", "Visual Studio 17 2022"])

@@ -1,3 +1,5 @@
+# mypy: disable-error-code=no-redef
+
 from typing import Union, Mapping
 
 from setuptools import build_meta
