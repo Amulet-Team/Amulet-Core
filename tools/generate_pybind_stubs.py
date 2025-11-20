@@ -7,16 +7,28 @@ import re
 import pybind11_stubgen
 from pybind11_stubgen.structs import Identifier
 from pybind11_stubgen.parser.mixins.filter import FilterClassMembers
-from pybind11_stubgen import main as pybind11_stubgen_main
+
+
+ForwardRefPattern = re.compile(r"ForwardRef\('(?P<variable>[a-zA-Z_][a-zA-Z0-9_]*)'\)")
+
+QuotePattern = re.compile(r"'(?P<variable>[a-zA-Z_][a-zA-Z0-9_]*)'")
+
+
+def fix_value(value: str) -> str:
+    value = value.replace("NoneType", "None")
+    value = ForwardRefPattern.sub(lambda match: match.group("variable"), value)
+    value = QuotePattern.sub(lambda match: match.group("variable"), value)
+    return value
+
 
 UnionPattern = re.compile(
-    r"^(?P<variable>[a-zA-Z_][a-zA-Z0-9_]*): types\.UnionType\s*#\s*value = (?P<value>.*)$",
+    r"^(?P<variable>[a-zA-Z_][a-zA-Z0-9_]*): (types\.UnionType|typing\._UnionGenericAlias)\s*#\s*value = (?P<value>.*)$",
     flags=re.MULTILINE,
 )
 
 
 def union_sub_func(match: re.Match[str]) -> str:
-    return f'{match.group("variable")}: typing.TypeAlias = {match.group("value")}'
+    return f'{match.group("variable")}: typing.TypeAlias = {fix_value(match.group("value"))}'
 
 
 ClassVarUnionPattern = re.compile(
@@ -26,7 +38,7 @@ ClassVarUnionPattern = re.compile(
 
 
 def class_var_union_sub_func(match: re.Match) -> str:
-    return f'{match.group("variable")}: typing.TypeAlias = {match.group("value")}'
+    return f'{match.group("variable")}: typing.TypeAlias = {fix_value(match.group("value"))}'
 
 
 VersionPattern = re.compile(r"(?P<var>[a-zA-Z0-9_].*): str = '.*?'")
@@ -87,7 +99,7 @@ GenericAliasPattern = re.compile(
 
 
 def generic_alias_sub_func(match: re.Match) -> str:
-    return f"{match.group('variable')}: typing.TypeAlias = {match.group('value')}"
+    return f'{match.group("variable")}: typing.TypeAlias = {fix_value(match.group("value"))}'
 
 
 def get_module_path(name: str) -> str:

@@ -144,7 +144,7 @@ py::module init_section_array_map(py::module m_parent)
     py::object asarray = py::module::import("numpy").attr("asarray");
     SectionArrayMap.def_property(
         "default_array",
-        [asarray](const Amulet::SectionArrayMap& self) {
+        [asarray](Amulet::SectionArrayMap& self) {
             return std::visit([asarray](auto&& arg) -> std::variant<std::uint32_t, py::array> {
                 using T = std::decay_t<decltype(arg)>;
                 if constexpr (std::is_same_v<T, std::uint32_t>) {
@@ -202,7 +202,7 @@ py::module init_section_array_map(py::module m_parent)
         &Amulet::SectionArrayMap::del_section);
     SectionArrayMap.def(
         "__getitem__",
-        [asarray](const Amulet::SectionArrayMap& self, std::int64_t cy) -> pyext::PyObjectCpp<pyext::numpy::array_t<std::uint32_t>> {
+        [asarray](Amulet::SectionArrayMap& self, std::int64_t cy) -> pyext::PyObjectCpp<pyext::numpy::array_t<std::uint32_t>> {
             try {
                 return asarray(py::cast(self.get_section(cy)));
             } catch (const std::out_of_range&) {
@@ -214,7 +214,7 @@ py::module init_section_array_map(py::module m_parent)
         &Amulet::SectionArrayMap::get_size);
     SectionArrayMap.def(
         "__iter__",
-        [](const Amulet::SectionArrayMap& self) -> pyext::collections::Iterator<std::int64_t> {
+        [](Amulet::SectionArrayMap& self) -> pyext::collections::Iterator<std::int64_t> {
             return pyext::make_iterator(pyext::detail::MapIterator(self.get_arrays()));
         },
         py::keep_alive<0, 1>());

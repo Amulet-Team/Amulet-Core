@@ -14,6 +14,8 @@
 #include <amulet/io/binary_reader.hpp>
 #include <amulet/io/binary_writer.hpp>
 
+#include <amulet/utils/view/map_view.hpp>
+
 #include <amulet/core/dll.hpp>
 
 namespace Amulet {
@@ -41,9 +43,10 @@ public:
     AMULET_CORE_EXPORT static IndexArray3D deserialise(BinaryReader&);
 
     const SectionShape& get_shape() const { return _shape; }
-    const size_t& get_size() const { return _size; }
-    std::uint32_t* get_buffer() const { return _buffer; }
-    std::span<std::uint32_t> get_span() const { return { _buffer, _size }; }
+    size_t get_size() const { return _size; }
+    std::uint32_t* get_buffer() { return _buffer; }
+    const std::uint32_t* get_buffer() const { return _buffer; }
+    std::span<std::uint32_t> get_span() { return { _buffer, _size }; }
 };
 
 class SectionArrayMap {
@@ -84,18 +87,43 @@ public:
 
     const SectionShape& get_array_shape() const { return _array_shape; }
 
-    std::variant<std::uint32_t, std::shared_ptr<IndexArray3D>> get_default_array() const
+    std::variant<std::uint32_t, std::shared_ptr<const IndexArray3D>> get_default_array() const
+    {
+        return std::visit(
+            [](auto&& arg) -> std::variant<std::uint32_t, std::shared_ptr<const IndexArray3D>> {
+                return arg;
+            },
+            _default_array);
+    }
+
+    std::variant<std::uint32_t, std::shared_ptr<IndexArray3D>> get_default_array()
     {
         return _default_array;
     }
 
-    void set_default_array(std::variant<std::uint32_t, std::shared_ptr<IndexArray3D>> default_array)
+    void set_default_array(std::uint32_t default_array)
     {
-        validate_array_shape(default_array);
+        _default_array = default_array;
+    }
+
+    void set_default_array(std::shared_ptr<IndexArray3D> default_array)
+    {
+        validate_array_shape(*default_array);
         _default_array = std::move(default_array);
     }
 
-    const std::unordered_map<std::int64_t, std::shared_ptr<IndexArray3D>>& get_arrays() const
+    void set_default_array(const IndexArray3D& default_array)
+    {
+        validate_array_shape(default_array);
+        _default_array = std::make_shared<IndexArray3D>(default_array);
+    }
+
+    const std::unordered_map<std::int64_t, std::shared_ptr<IndexArray3D>>& get_arrays()
+    {
+        return _arrays;
+    }
+
+    const MapView<std::unordered_map<std::int64_t, std::shared_ptr<IndexArray3D>>, std::shared_ptr<const IndexArray3D>> get_arrays() const
     {
         return _arrays;
     }
@@ -107,15 +135,36 @@ public:
         return _arrays.contains(cy);
     }
 
-    std::shared_ptr<IndexArray3D> get_section(std::int64_t cy) const
+    std::shared_ptr<IndexArray3D> get_section(std::int64_t cy)
     {
         return _arrays.at(cy);
+    }
+
+    std::shared_ptr<const IndexArray3D> get_section(std::int64_t cy) const
+    {
+        return _arrays.at(cy);
+    }
+
+    IndexArray3D& get_section_ref(std::int64_t cy)
+    {
+        return *_arrays.at(cy);
+    }
+
+    const IndexArray3D& get_section_ref(std::int64_t cy) const
+    {
+        return *_arrays.at(cy);
     }
 
     void set_section(std::int64_t cy, std::shared_ptr<IndexArray3D> section)
     {
         validate_array_shape(*section);
         _arrays.insert_or_assign(cy, std::move(section));
+    }
+
+    void set_section(std::int64_t cy, const IndexArray3D& section)
+    {
+        validate_array_shape(section);
+        _arrays.insert_or_assign(cy, std::make_shared<IndexArray3D>(section));
     }
 
     AMULET_CORE_EXPORT void populate_section(std::int64_t cy);

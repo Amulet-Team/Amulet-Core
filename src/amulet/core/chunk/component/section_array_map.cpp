@@ -153,9 +153,8 @@ void SectionArrayMap::serialise(BinaryWriter& writer) const
         get_default_array());
 
     // Write arrays
-    const auto& arrays = get_arrays();
-    writer.write_numeric<std::uint64_t>(arrays.size());
-    for (const auto& [cy, arr] : arrays) {
+    writer.write_numeric<std::uint64_t>(_arrays.size());
+    for (const auto& [cy, arr] : _arrays) {
         writer.write_numeric<std::int64_t>(cy);
         arr->serialise(writer);
     }
