@@ -57,7 +57,7 @@ public:
             }
         }
         size_t index = _index_to_block.size();
-        _index_to_block.push_back(block_stack);
+        _index_to_block.emplace_back(block_stack);
         _block_to_index.emplace(block_stack, index);
         return index;
     }
