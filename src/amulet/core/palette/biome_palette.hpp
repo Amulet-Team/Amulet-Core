@@ -51,7 +51,7 @@ public:
                 "Biome(\"" + biome.get_platform() + "\", " + biome.get_version().toString() + ") is incompatible with VersionRange(\"" + version_range.get_platform() + "\", " + version_range.get_min_version().toString() + ", " + version_range.get_max_version().toString() + ").");
         }
         size_t index = _index_to_biome.size();
-        _index_to_biome.push_back(biome);
+        _index_to_biome.emplace_back(biome);
         _biome_to_index[biome] = index;
         return index;
     }
