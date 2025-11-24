@@ -21,7 +21,6 @@ typedef std::string PlatformType;
 // It is a wrapper around std::vector<std::int64_t> with special comparison handling.
 // The version can contain zero to max(int64) values.
 // Undefined trailing values are implied zeros. 1.1 == 1.1.0
-// All methods are thread safe.
 class VersionNumber {
 private:
     std::vector<std::int64_t> _vec;
