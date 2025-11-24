@@ -21,7 +21,6 @@ typedef std::string PlatformType;
 // It is a wrapper around std::vector<std::int64_t> with special comparison handling.
 // The version can contain zero to max(int64) values.
 // Undefined trailing values are implied zeros. 1.1 == 1.1.0
-// All methods are thread safe.
 class VersionNumber {
 private:
     std::vector<std::int64_t> _vec;
@@ -43,6 +42,23 @@ public:
     VersionNumber(std::initializer_list<std::int64_t> args)
         : _vec(args)
     {
+    }
+
+    // Copy
+    VersionNumber(const VersionNumber&) = default;
+    VersionNumber& operator=(const VersionNumber&) = default;
+
+    // Move
+    VersionNumber(VersionNumber&&) = default;
+    VersionNumber& operator=(VersionNumber&&) = default;
+
+    // Assign from vector
+    template <typename Arg>
+        requires std::is_assignable_v<std::vector<std::int64_t>&, Arg>
+    VersionNumber& operator=(Arg&& arg)
+    {
+        _vec = std::forward<Arg>(arg);
+        return *this;
     }
 
     AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
@@ -86,6 +102,7 @@ public:
         // equal
         return std::strong_ordering::equal;
     }
+
     bool operator==(const VersionNumber& other) const
     {
         return (*this <=> other) == 0;
@@ -178,7 +195,7 @@ public:
     AMULET_CORE_EXPORT static VersionRange deserialise(BinaryReader&);
 
     // Check if the platform is equal and the version number is within the range.
-    AMULET_CORE_EXPORT bool contains(const PlatformType& platform_, const VersionNumber& version) const;
+    AMULET_CORE_EXPORT bool contains(const PlatformType& platform, const VersionNumber& version) const;
 
     // Equality operator
     AMULET_CORE_EXPORT bool operator==(const VersionRange&) const;
