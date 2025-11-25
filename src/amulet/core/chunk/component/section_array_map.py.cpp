@@ -204,7 +204,7 @@ py::module init_section_array_map(py::module m_parent)
         "__getitem__",
         [asarray](Amulet::SectionArrayMap& self, std::int64_t cy) -> pyext::PyObjectCpp<pyext::numpy::array_t<std::uint32_t>> {
             try {
-                return asarray(py::cast(self.get_section(cy)));
+                return asarray(py::cast(self.get_section_ptr(cy)));
             } catch (const std::out_of_range&) {
                 throw py::key_error(std::to_string(cy));
             }

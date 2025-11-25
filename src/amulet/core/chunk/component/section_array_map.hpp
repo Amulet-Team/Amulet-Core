@@ -2,12 +2,12 @@
 
 #include <cstdint>
 #include <cstdlib>
+#include <map>
 #include <memory>
 #include <span>
 #include <stdexcept>
 #include <tuple>
 #include <type_traits>
-#include <unordered_map>
 #include <variant>
 #include <vector>
 
@@ -43,9 +43,12 @@ public:
     AMULET_CORE_EXPORT static IndexArray3D deserialise(BinaryReader&);
 
     const SectionShape& get_shape() const { return _shape; }
+
     size_t get_size() const { return _size; }
+
     std::uint32_t* get_buffer() { return _buffer; }
     const std::uint32_t* get_buffer() const { return _buffer; }
+
     std::span<std::uint32_t> get_span() { return { _buffer, _size }; }
 };
 
@@ -53,7 +56,7 @@ class SectionArrayMap {
 private:
     SectionShape _array_shape;
     std::variant<std::uint32_t, std::shared_ptr<IndexArray3D>> _default_array;
-    std::unordered_map<std::int64_t, std::shared_ptr<IndexArray3D>> _arrays;
+    std::map<std::int64_t, std::shared_ptr<IndexArray3D>> _arrays;
 
     void validate_array_shape(const IndexArray3D& array)
     {
@@ -118,39 +121,62 @@ public:
         _default_array = std::make_shared<IndexArray3D>(default_array);
     }
 
-    const std::unordered_map<std::int64_t, std::shared_ptr<IndexArray3D>>& get_arrays()
+    const std::map<std::int64_t, std::shared_ptr<IndexArray3D>>& get_arrays()
     {
         return _arrays;
     }
 
-    const MapView<std::unordered_map<std::int64_t, std::shared_ptr<IndexArray3D>>, std::shared_ptr<const IndexArray3D>> get_arrays() const
+    const MapView<std::map<std::int64_t, std::shared_ptr<IndexArray3D>>, std::shared_ptr<const IndexArray3D>> get_arrays() const
     {
         return _arrays;
     }
 
-    size_t get_size() const { return _arrays.size(); }
+    std::map<std::int64_t, std::shared_ptr<IndexArray3D>>::const_iterator begin()
+    {
+        return _arrays.begin();
+    }
+
+    MapViewIterator<std::map<std::int64_t, std::shared_ptr<IndexArray3D>>, std::shared_ptr<const IndexArray3D>> begin() const
+    {
+        return _arrays.begin();
+    }
+
+    std::map<std::int64_t, std::shared_ptr<IndexArray3D>>::const_iterator end()
+    {
+        return _arrays.end();
+    }
+
+    MapViewIterator<std::map<std::int64_t, std::shared_ptr<IndexArray3D>>, std::shared_ptr<const IndexArray3D>> end() const
+    {
+        return _arrays.end();
+    }
+
+    size_t get_size() const
+    {
+        return _arrays.size();
+    }
 
     bool contains_section(std::int64_t cy) const
     {
         return _arrays.contains(cy);
     }
 
-    std::shared_ptr<IndexArray3D> get_section(std::int64_t cy)
+    std::shared_ptr<IndexArray3D> get_section_ptr(std::int64_t cy)
     {
         return _arrays.at(cy);
     }
 
-    std::shared_ptr<const IndexArray3D> get_section(std::int64_t cy) const
+    std::shared_ptr<const IndexArray3D> get_section_ptr(std::int64_t cy) const
     {
         return _arrays.at(cy);
     }
 
-    IndexArray3D& get_section_ref(std::int64_t cy)
+    IndexArray3D& get_section(std::int64_t cy)
     {
         return *_arrays.at(cy);
     }
 
-    const IndexArray3D& get_section_ref(std::int64_t cy) const
+    const IndexArray3D& get_section(std::int64_t cy) const
     {
         return *_arrays.at(cy);
     }
