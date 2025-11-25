@@ -60,10 +60,17 @@ public:
     AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
     AMULET_CORE_EXPORT static BlockStorage deserialise(BinaryReader&);
 
-    BlockPalette& get_palette() const { return *_palette; }
-    std::shared_ptr<BlockPalette> get_palette_ptr() const { return _palette; }
-    SectionArrayMap& get_sections() const { return *_sections; }
-    std::shared_ptr<SectionArrayMap> get_sections_ptr() const { return _sections; }
+    const BlockPalette& get_palette() const { return *_palette; }
+    BlockPalette& get_palette() { return *_palette; }
+    
+    std::shared_ptr<const BlockPalette> get_palette_ptr() const { return _palette; }
+    std::shared_ptr<BlockPalette> get_palette_ptr() { return _palette; }
+    
+    const SectionArrayMap& get_sections() const { return *_sections; }
+    SectionArrayMap& get_sections() { return *_sections; }
+    
+    std::shared_ptr<const SectionArrayMap> get_sections_ptr() const { return _sections; }
+    std::shared_ptr<SectionArrayMap> get_sections_ptr() { return _sections; }
 };
 
 class BlockComponent {
@@ -94,7 +101,13 @@ protected:
 
 public:
     AMULET_CORE_EXPORT static const std::string ComponentID;
-    AMULET_CORE_EXPORT std::shared_ptr<BlockStorage> get_block_storage();
+    
+    AMULET_CORE_EXPORT const BlockStorage& get_block_storage() const;
+    AMULET_CORE_EXPORT BlockStorage& get_block_storage();
+    
+    AMULET_CORE_EXPORT std::shared_ptr<const BlockStorage> get_block_storage_ptr() const;
+    AMULET_CORE_EXPORT std::shared_ptr<BlockStorage> get_block_storage_ptr();
+    
     AMULET_CORE_EXPORT void set_block_storage(std::shared_ptr<BlockStorage> component);
 };
 

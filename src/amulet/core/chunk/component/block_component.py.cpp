@@ -28,10 +28,14 @@ py::module init_block_component(py::module m_parent)
         py::arg("default_block"));
     BlockStorage.def_property_readonly(
         "palette",
-        &Amulet::BlockStorage::get_palette_ptr);
+        [](Amulet::BlockStorage& self) {
+            return self.get_palette_ptr();
+        });
     BlockStorage.def_property_readonly(
         "sections",
-        &Amulet::BlockStorage::get_sections_ptr);
+        [](Amulet::BlockStorage& self) {
+            return self.get_sections_ptr();
+        });
 
     py::classh<Amulet::BlockComponent>
         BlockComponent(m, "BlockComponent");
@@ -40,7 +44,9 @@ py::module init_block_component(py::module m_parent)
         &Amulet::BlockComponent::ComponentID);
     BlockComponent.def_property(
         "block_storage",
-        &Amulet::BlockComponent::get_block_storage,
+        [](Amulet::BlockComponent& self) {
+            return self.get_block_storage_ptr();
+        },
         &Amulet::BlockComponent::set_block_storage);
 
     return m;

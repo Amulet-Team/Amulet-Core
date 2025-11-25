@@ -47,12 +47,33 @@ void BlockComponent::deserialise(std::optional<std::string> data)
 
 const std::string BlockComponent::ComponentID = "Amulet::BlockComponent";
 
-std::shared_ptr<BlockStorage> BlockComponent::get_block_storage()
+inline const std::shared_ptr<BlockStorage>& _get_block_storage_ptr(
+    const std::optional<std::shared_ptr<BlockStorage>>& value)
 {
-    if (_value) {
-        return *_value;
+    if (value) {
+        return *value;
     }
     throw std::runtime_error("BlockComponent has not been loaded.");
+}
+
+const BlockStorage& BlockComponent::get_block_storage() const
+{
+    return *_get_block_storage_ptr(_value);
+}
+
+BlockStorage& BlockComponent::get_block_storage()
+{
+    return *_get_block_storage_ptr(_value);
+}
+
+std::shared_ptr<const BlockStorage> BlockComponent::get_block_storage_ptr() const
+{
+    return _get_block_storage_ptr(_value);
+}
+
+std::shared_ptr<BlockStorage> BlockComponent::get_block_storage_ptr()
+{
+    return _get_block_storage_ptr(_value);
 }
 
 void BlockComponent::set_block_storage(std::shared_ptr<BlockStorage> component)
