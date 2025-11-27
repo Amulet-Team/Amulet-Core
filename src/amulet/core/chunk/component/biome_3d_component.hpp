@@ -60,7 +60,7 @@ public:
     SectionArrayMap& get_sections() { return *_sections; }
     std::shared_ptr<SectionArrayMap> get_sections_ptr() { return _sections; }
 
-    AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
+    AMULET_CORE_EXPORT void serialise(BaseBinaryWriter&) const;
     AMULET_CORE_EXPORT static Biome3DStorage deserialise(BinaryReader&);
 };
 

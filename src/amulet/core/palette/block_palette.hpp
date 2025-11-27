@@ -28,7 +28,7 @@ public:
     {
     }
 
-    AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
+    AMULET_CORE_EXPORT void serialise(BaseBinaryWriter&) const;
     AMULET_CORE_EXPORT static BlockPalette deserialise(BinaryReader&);
 
     bool operator==(const BlockPalette& other) const

@@ -91,7 +91,7 @@ public:
     {
     }
 
-    AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
+    AMULET_CORE_EXPORT void serialise(BaseBinaryWriter&) const;
     AMULET_CORE_EXPORT static Entity deserialise(BinaryReader&);
 
     AMULET_CORE_EXPORT bool operator==(const Entity& other) const;

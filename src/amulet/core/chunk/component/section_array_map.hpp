@@ -39,7 +39,7 @@ public:
 
     AMULET_CORE_EXPORT ~IndexArray3D();
 
-    AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
+    AMULET_CORE_EXPORT void serialise(BaseBinaryWriter&) const;
     AMULET_CORE_EXPORT static IndexArray3D deserialise(BinaryReader&);
 
     const SectionShape& get_shape() const { return _shape; }
@@ -85,7 +85,7 @@ public:
         validate_array_shape(_default_array);
     }
 
-    AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
+    AMULET_CORE_EXPORT void serialise(BaseBinaryWriter&) const;
     AMULET_CORE_EXPORT static SectionArrayMap deserialise(BinaryReader&);
 
     const SectionShape& get_array_shape() const { return _array_shape; }

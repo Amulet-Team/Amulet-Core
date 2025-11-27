@@ -82,7 +82,7 @@ IndexArray3D::~IndexArray3D()
     }
 }
 
-void IndexArray3D::serialise(BinaryWriter& writer) const
+void IndexArray3D::serialise(BaseBinaryWriter& writer) const
 {
     writer.write_numeric<std::uint8_t>(1);
 
@@ -128,7 +128,7 @@ IndexArray3D IndexArray3D::deserialise(BinaryReader& reader)
 }
 
 // SectionArrayMap
-void SectionArrayMap::serialise(BinaryWriter& writer) const
+void SectionArrayMap::serialise(BaseBinaryWriter& writer) const
 {
     writer.write_numeric<std::uint8_t>(1);
 

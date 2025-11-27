@@ -34,7 +34,7 @@ public:
     {
     }
 
-    AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
+    AMULET_CORE_EXPORT void serialise(BaseBinaryWriter&) const;
     AMULET_CORE_EXPORT static BlockEntityStorage deserialise(BinaryReader&);
 
     std::uint16_t get_x_size() const { return _x_size; }

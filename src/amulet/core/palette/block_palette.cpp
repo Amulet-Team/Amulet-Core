@@ -1,7 +1,7 @@
 #include "block_palette.hpp"
 
 namespace Amulet {
-void BlockPalette::serialise(BinaryWriter& writer) const
+void BlockPalette::serialise(BaseBinaryWriter& writer) const
 {
     writer.write_numeric<std::uint8_t>(1);
     get_version_range().serialise(writer);

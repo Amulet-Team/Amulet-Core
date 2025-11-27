@@ -13,7 +13,7 @@
 
 namespace Amulet {
 
-void Biome::serialise(BinaryWriter& writer) const
+void Biome::serialise(BaseBinaryWriter& writer) const
 {
     writer.write_numeric<std::uint8_t>(1);
     writer.write_size_and_bytes(get_platform());

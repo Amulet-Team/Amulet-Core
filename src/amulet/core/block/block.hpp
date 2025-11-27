@@ -72,7 +72,7 @@ public:
     {
     }
 
-    AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
+    AMULET_CORE_EXPORT void serialise(BaseBinaryWriter&) const;
     AMULET_CORE_EXPORT static Block deserialise(BinaryReader&);
 
     auto operator<=>(const Block& other) const
@@ -127,7 +127,7 @@ public:
         }
     }
 
-    AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
+    AMULET_CORE_EXPORT void serialise(BaseBinaryWriter&) const;
     AMULET_CORE_EXPORT static BlockStack deserialise(BinaryReader&);
 
     auto operator<=>(const BlockStack& other) const

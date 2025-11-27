@@ -1,7 +1,7 @@
 #include "biome_palette.hpp"
 
 namespace Amulet {
-void BiomePalette::serialise(BinaryWriter& writer) const
+void BiomePalette::serialise(BaseBinaryWriter& writer) const
 {
     writer.write_numeric<std::uint8_t>(1);
     get_version_range().serialise(writer);

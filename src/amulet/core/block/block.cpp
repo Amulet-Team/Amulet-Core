@@ -13,7 +13,7 @@
 
 namespace Amulet {
 
-void Block::serialise(BinaryWriter& writer) const
+void Block::serialise(BaseBinaryWriter& writer) const
 {
     writer.write_numeric<std::uint8_t>(1);
     writer.write_size_and_bytes(get_platform());
@@ -393,7 +393,7 @@ Block Block::from_bedrock_blockstate(const PlatformType& platform, const Version
         blockstate);
 }
 
-void BlockStack::serialise(BinaryWriter& writer) const
+void BlockStack::serialise(BaseBinaryWriter& writer) const
 {
     writer.write_numeric<std::uint8_t>(1);
     writer.write_numeric<std::uint64_t>(get_blocks().size());
