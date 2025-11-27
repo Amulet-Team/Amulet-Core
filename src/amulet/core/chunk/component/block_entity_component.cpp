@@ -6,7 +6,7 @@ namespace Amulet {
 
 // BlockEntityStorage
 
-void BlockEntityStorage::serialise(BinaryWriter& writer) const
+void BlockEntityStorage::serialise(BaseBinaryWriter& writer) const
 {
     writer.write_numeric<std::uint8_t>(1);
     get_version_range().serialise(writer);

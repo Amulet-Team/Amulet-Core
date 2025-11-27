@@ -61,7 +61,7 @@ public:
         return *this;
     }
 
-    AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
+    AMULET_CORE_EXPORT void serialise(BaseBinaryWriter&) const;
     AMULET_CORE_EXPORT static VersionNumber deserialise(BinaryReader&);
 
     // Iterators
@@ -141,7 +141,7 @@ public:
     {
     }
 
-    AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
+    AMULET_CORE_EXPORT void serialise(BaseBinaryWriter&) const;
     AMULET_CORE_EXPORT static PlatformVersionContainer deserialise(BinaryReader&);
 
     // Comparison operators
@@ -191,7 +191,7 @@ public:
         }
     }
 
-    AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
+    AMULET_CORE_EXPORT void serialise(BaseBinaryWriter&) const;
     AMULET_CORE_EXPORT static VersionRange deserialise(BinaryReader&);
 
     // Check if the platform is equal and the version number is within the range.
@@ -217,7 +217,7 @@ public:
     {
     }
 
-    AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
+    AMULET_CORE_EXPORT void serialise(BaseBinaryWriter&) const;
     AMULET_CORE_EXPORT static VersionRangeContainer deserialise(BinaryReader&);
 };
 }

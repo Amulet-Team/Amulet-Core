@@ -6,7 +6,7 @@ namespace Amulet {
 
 // Biome3DComponent
 
-void Biome3DStorage::serialise(BinaryWriter& writer) const
+void Biome3DStorage::serialise(BaseBinaryWriter& writer) const
 {
     writer.write_numeric<std::uint8_t>(1);
     _palette->serialise(writer);

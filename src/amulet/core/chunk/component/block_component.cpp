@@ -5,7 +5,7 @@
 namespace Amulet {
 
 // BlockStorage
-void BlockStorage::serialise(BinaryWriter& writer) const
+void BlockStorage::serialise(BaseBinaryWriter& writer) const
 {
     writer.write_numeric<std::uint8_t>(1);
     get_palette().serialise(writer);

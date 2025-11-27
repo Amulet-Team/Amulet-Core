@@ -30,7 +30,7 @@ public:
     {
     }
 
-    AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
+    AMULET_CORE_EXPORT void serialise(BaseBinaryWriter&) const;
     AMULET_CORE_EXPORT static Biome deserialise(BinaryReader&);
 
     auto operator<=>(const Biome& other) const

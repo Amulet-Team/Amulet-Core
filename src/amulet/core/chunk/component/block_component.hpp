@@ -57,7 +57,7 @@ public:
         _palette->block_stack_to_index(default_block);
     }
 
-    AMULET_CORE_EXPORT void serialise(BinaryWriter&) const;
+    AMULET_CORE_EXPORT void serialise(BaseBinaryWriter&) const;
     AMULET_CORE_EXPORT static BlockStorage deserialise(BinaryReader&);
 
     const BlockPalette& get_palette() const { return *_palette; }

@@ -8,7 +8,7 @@
 
 namespace Amulet {
 
-void VersionNumber::serialise(BinaryWriter& writer) const
+void VersionNumber::serialise(BaseBinaryWriter& writer) const
 {
     writer.write_numeric<std::uint8_t>(1);
     writer.write_numeric<std::uint64_t>(_vec.size());
@@ -72,7 +72,7 @@ std::vector<std::int64_t> VersionNumber::padded_version(size_t len) const
     return out;
 }
 
-void PlatformVersionContainer::serialise(BinaryWriter& writer) const
+void PlatformVersionContainer::serialise(BaseBinaryWriter& writer) const
 {
     writer.write_numeric<std::uint8_t>(1);
     writer.write_size_and_bytes(_platform);
@@ -93,7 +93,7 @@ PlatformVersionContainer PlatformVersionContainer::deserialise(BinaryReader& rea
     }
 }
 
-void VersionRange::serialise(BinaryWriter& writer) const
+void VersionRange::serialise(BaseBinaryWriter& writer) const
 {
     writer.write_numeric<std::uint8_t>(1);
     writer.write_size_and_bytes(_platform);
@@ -126,7 +126,7 @@ bool VersionRange::operator==(const VersionRange& other) const
     return _platform == other._platform && _min_version == other._min_version && _max_version == other._max_version;
 }
 
-void VersionRangeContainer::serialise(BinaryWriter& writer) const
+void VersionRangeContainer::serialise(BaseBinaryWriter& writer) const
 {
     writer.write_numeric<std::uint8_t>(1);
     _version_range.serialise(writer);
