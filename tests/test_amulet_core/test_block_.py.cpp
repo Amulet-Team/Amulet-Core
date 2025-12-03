@@ -98,6 +98,54 @@ static void test_block_ctor_attrs_view()
     ASSERT_EQUAL(Amulet::Block::PropertyMap, block_properties, block_lvalue_2.get_properties());
 }
 
+static void test_block_copy()
+{
+    Amulet::Block::PropertyMap src1_properties { { "key", Amulet::NBT::StringTag("value") } };
+    Amulet::Block src1("platform", VersionTuple, "namespace", "base_name", src1_properties);
+
+    // Copy constructor
+    Amulet::Block dst = src1;
+    ASSERT_EQUAL(std::string, "platform", dst.get_platform());
+    ASSERT_EQUAL(Amulet::VersionNumber, VersionTuple, dst.get_version());
+    ASSERT_EQUAL(std::string, "namespace", dst.get_namespace());
+    ASSERT_EQUAL(std::string, "base_name", dst.get_base_name());
+    ASSERT_EQUAL(Amulet::Block::PropertyMap, src1_properties, dst.get_properties());
+
+    // Copy assign
+    Amulet::Block::PropertyMap src2_properties { { "key", Amulet::NBT::StringTag("value") } };
+    Amulet::Block src2("platform2", VersionTuple, "namespace2", "base_name2", src2_properties);
+    dst = src2;
+    ASSERT_EQUAL(std::string, "platform2", dst.get_platform());
+    ASSERT_EQUAL(Amulet::VersionNumber, VersionTuple, dst.get_version());
+    ASSERT_EQUAL(std::string, "namespace2", dst.get_namespace());
+    ASSERT_EQUAL(std::string, "base_name2", dst.get_base_name());
+    ASSERT_EQUAL(Amulet::Block::PropertyMap, src2_properties, dst.get_properties());
+}
+
+static void test_block_move()
+{
+    Amulet::Block::PropertyMap src1_properties { { "key", Amulet::NBT::StringTag("value") } };
+    Amulet::Block src1("platform", VersionTuple, "namespace", "base_name", src1_properties);
+
+    // Move constructor
+    Amulet::Block dst = std::move(src1);
+    ASSERT_EQUAL(std::string, "platform", dst.get_platform());
+    ASSERT_EQUAL(Amulet::VersionNumber, VersionTuple, dst.get_version());
+    ASSERT_EQUAL(std::string, "namespace", dst.get_namespace());
+    ASSERT_EQUAL(std::string, "base_name", dst.get_base_name());
+    ASSERT_EQUAL(Amulet::Block::PropertyMap, src1_properties, dst.get_properties());
+
+    // Move assign
+    Amulet::Block::PropertyMap src2_properties { { "key2", Amulet::NBT::StringTag("value2") } };
+    Amulet::Block src2("platform2", VersionTuple, "namespace2", "base_name2", src2_properties);
+    dst = std::move(src2);
+    ASSERT_EQUAL(std::string, "platform2", dst.get_platform());
+    ASSERT_EQUAL(Amulet::VersionNumber, VersionTuple, dst.get_version());
+    ASSERT_EQUAL(std::string, "namespace2", dst.get_namespace());
+    ASSERT_EQUAL(std::string, "base_name2", dst.get_base_name());
+    ASSERT_EQUAL(Amulet::Block::PropertyMap, src2_properties, dst.get_properties());
+}
+
 static void test_block_equal()
 {
     Amulet::Block::PropertyMap empty_block_properties;
@@ -325,6 +373,8 @@ static std::vector<std::pair<std::string, std::function<void()>>> get_block_test
     add_test(test_block_ctor_attrs_lvalue);
     add_test(test_block_ctor_attrs_rvalue);
     add_test(test_block_ctor_attrs_view);
+    add_test(test_block_copy);
+    add_test(test_block_move);
     add_test(test_block_equal);
     add_test(test_block_compare);
     add_test(test_block_serialise);
