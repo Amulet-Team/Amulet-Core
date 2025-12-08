@@ -96,9 +96,9 @@ py::module init_block_entity_component(py::module m_parent)
         "ComponentID",
         &Amulet::BlockEntityComponent::ComponentID);
     BlockEntityComponent.def_property(
-        "block_entities",
-        &Amulet::BlockEntityComponent::get_block_entities,
-        &Amulet::BlockEntityComponent::set_block_entities);
+        "block_entity_storage",
+        &Amulet::BlockEntityComponent::get_block_entity_storage,
+        &Amulet::BlockEntityComponent::set_block_entity_storage);
 
     return m;
 }

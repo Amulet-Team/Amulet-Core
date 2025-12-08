@@ -117,7 +117,7 @@ protected:
 
 public:
     AMULET_CORE_EXPORT static const std::string ComponentID;
-    AMULET_CORE_EXPORT std::shared_ptr<BlockEntityStorage> get_block_entities();
-    AMULET_CORE_EXPORT void set_block_entities(std::shared_ptr<BlockEntityStorage> component);
+    AMULET_CORE_EXPORT std::shared_ptr<BlockEntityStorage> get_block_entity_storage();
+    AMULET_CORE_EXPORT void set_block_entity_storage(std::shared_ptr<BlockEntityStorage> component);
 };
 }
