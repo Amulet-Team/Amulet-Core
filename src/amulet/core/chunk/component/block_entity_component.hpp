@@ -91,6 +91,10 @@ public:
     {
         _block_entities.erase(coord);
     }
+
+    void clear() {
+        _block_entities.clear();
+    }
 };
 
 class BlockEntityComponent {

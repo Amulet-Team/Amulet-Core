@@ -7,6 +7,7 @@ namespace pyext = Amulet::pybind11_extensions;
 
 py::module init_section_array_map(py::module);
 py::module init_block_component(py::module);
+py::module init_block_entity_component(py::module);
 
 void init_chunk_components(py::module m_parent)
 {
@@ -19,4 +20,9 @@ void init_chunk_components(py::module m_parent)
     auto m_block_component = init_block_component(m);
     m.attr("BlockStorage") = m_block_component.attr("BlockStorage");
     m.attr("BlockComponent") = m_block_component.attr("BlockComponent");
+
+    auto m_block_entity_component = init_block_entity_component(m);
+    m.attr("BlockEntityStorage") = m_block_entity_component.attr("BlockEntityStorage");
+    m.attr("BlockEntityComponent") = m_block_entity_component.attr("BlockEntityComponent");
+
 }
