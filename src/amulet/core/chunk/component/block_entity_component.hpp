@@ -92,8 +92,14 @@ public:
         _block_entities.erase(coord);
     }
 
-    void clear() {
+    void clear()
+    {
         _block_entities.clear();
+    }
+
+    bool empty() const
+    {
+        return _block_entities.empty();
     }
 };
 
