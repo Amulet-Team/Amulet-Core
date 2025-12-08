@@ -78,7 +78,7 @@ void BlockEntityComponent::deserialise(std::optional<std::string> data)
 
 const std::string BlockEntityComponent::ComponentID = "Amulet::BlockEntityComponent";
 
-AMULET_CORE_EXPORT std::shared_ptr<BlockEntityStorage> BlockEntityComponent::get_block_entities()
+AMULET_CORE_EXPORT std::shared_ptr<BlockEntityStorage> BlockEntityComponent::get_block_entity_storage()
 {
     if (_value) {
         return *_value;
@@ -86,7 +86,7 @@ AMULET_CORE_EXPORT std::shared_ptr<BlockEntityStorage> BlockEntityComponent::get
     throw std::runtime_error("BlockEntityComponent has not been loaded.");
 }
 
-AMULET_CORE_EXPORT void BlockEntityComponent::set_block_entities(std::shared_ptr<BlockEntityStorage> component)
+AMULET_CORE_EXPORT void BlockEntityComponent::set_block_entity_storage(std::shared_ptr<BlockEntityStorage> component)
 {
     if (_value) {
         auto& old_data = **_value;
