@@ -225,7 +225,10 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
                     [],
                 )
 
-            if isinstance(block_entities_tag, ListTag) and block_entities_tag.list_data_type == CompoundTag.tag_id:
+            if (
+                isinstance(block_entities_tag, ListTag)
+                and block_entities_tag.list_data_type == CompoundTag.tag_id
+            ):
                 for block_entity in block_entities_tag:
                     pos_tag = block_entity.get("Pos")
                     if not (isinstance(pos_tag, IntArrayTag) and len(pos_tag) == 3):
@@ -374,16 +377,16 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
                     palette_len += len(chunk.palette)
                     for block_entity in chunk.block_entities:
                         block_entity = copy.deepcopy(block_entity)
-                        pos = IntArrayTag(block_entity.pop("Pos").np_array - selection.min)
+                        pos = IntArrayTag(
+                            block_entity.pop("Pos").np_array - selection.min
+                        )
                         if self._schem_version == 2:
                             block_entity["Pos"] = pos
                         elif self._schem_version == 3:
                             id_ = block_entity.pop("Id")
-                            block_entity = CompoundTag({
-                                "Pos": pos,
-                                "Id": id_,
-                                "Data": block_entity
-                            })
+                            block_entity = CompoundTag(
+                                {"Pos": pos, "Id": id_, "Data": block_entity}
+                            )
                         else:
                             raise RuntimeError
                         block_entities.append(block_entity)
@@ -402,11 +405,9 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
                             entity["Pos"] = pos
                         elif self._schem_version == 3:
                             id_ = entity.pop("Id")
-                            entity = CompoundTag({
-                                "Pos": pos,
-                                "Id": id_,
-                                "Data": entity
-                            })
+                            entity = CompoundTag(
+                                {"Pos": pos, "Id": id_, "Data": entity}
+                            )
                         else:
                             raise RuntimeError
                         entities.append(entity)
