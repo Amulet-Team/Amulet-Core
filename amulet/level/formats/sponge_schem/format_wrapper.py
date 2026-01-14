@@ -156,8 +156,8 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
                 blocks_tag = sponge_schem.get("Blocks")
                 if not isinstance(blocks_tag, CompoundTag):
                     raise SpongeSchemReadError("Blocks must be a CompoundTag")
-                block_palette_tag = sponge_schem.get("Palette")
-                block_index_tag = sponge_schem.get("Data")
+                block_palette_tag = blocks_tag.get("Palette")
+                block_index_tag = blocks_tag.get("Data")
             else:
                 raise RuntimeError
 
