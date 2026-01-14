@@ -152,12 +152,14 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
             if version == 2:
                 block_palette_tag = sponge_schem.get("Palette")
                 block_index_tag = sponge_schem.get("BlockData")
+                block_entities_tag = sponge_schem.get("BlockEntities")
             elif version == 3:
                 blocks_tag = sponge_schem.get("Blocks")
                 if not isinstance(blocks_tag, CompoundTag):
                     raise SpongeSchemReadError("Blocks must be a CompoundTag")
                 block_palette_tag = blocks_tag.get("Palette")
                 block_index_tag = blocks_tag.get("Data")
+                block_entities_tag = blocks_tag.get("BlockEntities")
             else:
                 raise RuntimeError
 
@@ -223,19 +225,8 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
                     [],
                 )
 
-            if "BlockEntities" in sponge_schem:
-                block_entities = sponge_schem["BlockEntities"]
-                if not (
-                    isinstance(block_entities, ListTag)
-                    and (
-                        len(block_entities) == 0 or block_entities.list_data_type == 10
-                    )  # CompoundTag.tag_id
-                ):
-                    raise SpongeSchemReadError(
-                        "BlockEntities must be a ListTag of compound tags."
-                    )
-
-                for block_entity in block_entities:
+            if isinstance(block_entities_tag, ListTag) and block_entities_tag.list_data_type == CompoundTag.tag_id:
+                for block_entity in block_entities_tag:
                     pos_tag = block_entity.get("Pos")
                     if not (isinstance(pos_tag, IntArrayTag) and len(pos_tag) == 3):
                         continue
