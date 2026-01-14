@@ -34,7 +34,7 @@ py::module init_block_entity_component(py::module m_parent)
         &Amulet::BlockEntityStorage::get_z_size);
     BlockEntityStorage.def(
         "__getitem__",
-        [](const Amulet::BlockEntityStorage& self, const Amulet::BlockEntityChunkCoord& key) {
+        [](const Amulet::BlockEntityStorage& self, const Amulet::BlockEntityChunkCoord& key) -> pyext::PyObjectCpp<Amulet::BlockEntity> {
             try {
                 return pybind11::cast(self.get(key));
             } catch (const std::out_of_range&) {

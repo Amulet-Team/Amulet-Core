@@ -11,7 +11,7 @@ __all__: list[str] = ["BlockEntityComponent", "BlockEntityStorage"]
 
 class BlockEntityComponent:
     ComponentID: typing.ClassVar[str] = "Amulet::BlockEntityComponent"
-    block_entities: BlockEntityStorage
+    block_entity_storage: BlockEntityStorage
 
 class BlockEntityStorage:
     def __contains__(
@@ -23,7 +23,7 @@ class BlockEntityStorage:
     def __eq__(self, other: typing.Any) -> bool | types.NotImplementedType: ...
     def __getitem__(
         self, arg0: tuple[typing.SupportsInt, typing.SupportsInt, typing.SupportsInt]
-    ) -> typing.Any: ...
+    ) -> amulet.core.block_entity.BlockEntity: ...
     def __hash__(self) -> int: ...
     def __init__(
         self,
