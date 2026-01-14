@@ -236,16 +236,21 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
                     )
 
                 for block_entity in block_entities:
-                    if "Pos" not in block_entity:
-                        continue
-
-                    pos_tag = block_entity["Pos"]
+                    pos_tag = block_entity.get("Pos")
                     if not (isinstance(pos_tag, IntArrayTag) and len(pos_tag) == 3):
                         continue
 
                     pos = pos_tag.np_array + min_point
                     x, y, z = pos
                     block_entity["Pos"] = IntArrayTag(pos)
+                    if self._schem_version == 2:
+                        extra = block_entity.pop("Extra", None)
+                    elif self._schem_version == 3:
+                        extra = block_entity.pop("Data", None)
+                    else:
+                        raise RuntimeError
+                    if isinstance(extra, CompoundTag):
+                        block_entity.update(extra)
                     cx, cz = x >> 4, z >> 4
                     if (cx, cz) in self._chunks and (x, y, z) in self._chunks[
                         (cx, cz)
@@ -265,10 +270,7 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
                     )
 
                 for entity in entities:
-                    if "Pos" not in entity:
-                        continue
-
-                    pos = entity["Pos"]
+                    pos = entity.get("Pos")
                     if not (
                         isinstance(pos, ListTag)
                         and len(pos) == 3
@@ -288,6 +290,14 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
                             IntTag(z),
                         ]
                     )
+                    if self._schem_version == 2:
+                        extra = entity.pop("Extra", None)
+                    elif self._schem_version == 3:
+                        extra = entity.pop("Data", None)
+                    else:
+                        raise RuntimeError
+                    if isinstance(extra, CompoundTag):
+                        entity.update(extra)
                     cx, cz = numpy.floor([x, z]).astype(int) >> 4
                     if (cx, cz) in self._chunks and (x, y, z) in self._chunks[
                         (cx, cz)
@@ -371,22 +381,44 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
                     blocks[box.slice] = chunk.blocks + palette_len
                     palette.append(chunk.palette)
                     palette_len += len(chunk.palette)
-                    for be in chunk.block_entities:
-                        be = copy.deepcopy(be)
-                        be["Pos"] = IntArrayTag(be["Pos"].np_array - selection.min)
-                        block_entities.append(be)
+                    for block_entity in chunk.block_entities:
+                        block_entity = copy.deepcopy(block_entity)
+                        pos = IntArrayTag(block_entity.pop("Pos").np_array - selection.min)
+                        if self._schem_version == 2:
+                            block_entity["Pos"] = pos
+                        elif self._schem_version == 3:
+                            id_ = block_entity.pop("Id")
+                            block_entity = CompoundTag({
+                                "Pos": pos,
+                                "Id": id_,
+                                "Data": block_entity
+                            })
+                        else:
+                            raise RuntimeError
+                        block_entities.append(block_entity)
 
-                    for e in chunk.entities:
-                        e = copy.deepcopy(e)
-                        x, y, z = e["Pos"]
-                        e["Pos"] = ListTag(
+                    for entity in chunk.entities:
+                        entity = copy.deepcopy(entity)
+                        x, y, z = entity["Pos"]
+                        pos = ListTag(
                             [
                                 IntTag(x - selection.min_x),
                                 IntTag(y - selection.min_y),
                                 IntTag(z - selection.min_z),
                             ]
                         )
-                        entities.append(e)
+                        if self._schem_version == 2:
+                            entity["Pos"] = pos
+                        elif self._schem_version == 3:
+                            id_ = entity.pop("Id")
+                            entity = CompoundTag({
+                                "Pos": pos,
+                                "Id": id_,
+                                "Data": entity
+                            })
+                        else:
+                            raise RuntimeError
+                        entities.append(entity)
 
             compact_palette, lut = brute_sort_objects_no_hash(
                 numpy.concatenate(palette)
