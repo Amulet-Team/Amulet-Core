@@ -47,13 +47,13 @@ class SpongeSchemWriteError(ObjectWriteError):
 
 sponge_schem_interface = SpongeSchemInterface()
 
-max_schem_version = 2
+max_schem_version = 3
 
 
 def _is_sponge(path: str):
     """Check if a file is actually a sponge schematic file."""
     try:
-        return "BlockData" in load_nbt(path).compound
+        return "Version" in load_nbt(path).compound
     except:
         return False
 
@@ -106,7 +106,7 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
             raise SpongeSchemReadError(
                 "Sponge Schematic Version 1 is not supported currently."
             )
-        elif version == 2:
+        elif 2 <= version <= 3:
             offset = sponge_schem.get("Offset")
             if isinstance(offset, IntArrayTag) and len(offset) == 3:
                 min_point = numpy.array(offset)
@@ -138,12 +138,23 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
             self._platform = translator_version.platform
             self._version = translator_version.data_version
 
-            packed_block_data = sponge_schem.get("BlockData")
-            if not isinstance(packed_block_data, ByteArrayTag):
+            if version == 2:
+                block_palette_tag = sponge_schem.get("Palette")
+                block_index_tag = sponge_schem.get("BlockData")
+            elif version == 3:
+                blocks_tag = sponge_schem.get("Blocks")
+                if not isinstance(blocks_tag, CompoundTag):
+                    raise SpongeSchemReadError("Blocks must be a CompoundTag")
+                block_palette_tag = sponge_schem.get("Palette")
+                block_index_tag = sponge_schem.get("Data")
+            else:
+                raise RuntimeError
+
+            if not isinstance(block_index_tag, ByteArrayTag):
                 raise SpongeSchemReadError("BlockData must be a ByteArrayTag")
 
             unpacked_block_data = decode_byte_array(
-                numpy.array(packed_block_data, dtype=numpy.uint8)
+                numpy.array(block_index_tag, dtype=numpy.uint8)
             )
             if len(unpacked_block_data) != numpy.prod(size):
                 raise SpongeSchemReadError(
@@ -158,17 +169,11 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
                 (2, 0, 1),  # YZX => XYZ
             )
 
-            if "Palette" not in sponge_schem:
-                raise SpongeSchemReadError(
-                    "Amulet is not able to read Sponge Schem files with no block palette."
-                )
-
-            palette_data = sponge_schem.get("Palette")
-            if not isinstance(palette_data, CompoundTag):
+            if not isinstance(block_palette_tag, CompoundTag):
                 raise SpongeSchemReadError("Palette must be a CompoundTag.")
 
             block_palette: Dict[int, Block] = {}
-            for blockstate, index_tag in palette_data.items():
+            for blockstate, index_tag in block_palette_tag.items():
                 index = index_tag.py_int
                 if index in block_palette:
                     raise SpongeSchemReadError(
@@ -316,7 +321,7 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
             raise SpongeSchemReadError(
                 "Sponge Schematic Version 1 is not supported currently."
             )
-        elif self._schem_version == 2:
+        elif 2 <= self._schem_version <= 3:
             selection = self._bounds[self.dimensions[0]].selection_boxes[0]
             if any(s > 2**16 - 1 for s in selection.shape):
                 raise SpongeSchemWriteError(
@@ -325,7 +330,7 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
             overflowed_shape = [s if s < 2**15 else s - 2**16 for s in selection.shape]
             tag = CompoundTag(
                 {
-                    "Version": IntTag(2),
+                    "Version": IntTag(self._schem_version),
                     "DataVersion": IntTag(self._version),
                     "Width": ShortTag(overflowed_shape[0]),
                     "Height": ShortTag(overflowed_shape[1]),
@@ -381,16 +386,33 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
                 block: Block
                 block_palette.append(block.blockstate)
 
-            tag["PaletteMax"] = IntTag(len(compact_palette))
-            tag["Palette"] = CompoundTag(
+            block_palette_tag = CompoundTag(
                 {
                     blockstate: IntTag(index)
                     for index, blockstate in enumerate(block_palette)
                 }
             )
-            tag["BlockData"] = ByteArrayTag(list(encode_array(blocks)))
-            if block_entities:
-                tag["BlockEntities"] = ListTag(block_entities)
+            block_index_tag = ByteArrayTag(list(encode_array(blocks)))
+
+            if self._schem_version == 2:
+                tag["PaletteMax"] = IntTag(len(compact_palette))
+                tag["Palette"] = block_palette_tag
+                tag["BlockData"] = block_index_tag
+                if block_entities:
+                    tag["BlockEntities"] = ListTag(block_entities)
+            elif self._schem_version == 3:
+                blocks_tag = CompoundTag(
+                    {
+                        "Palette": block_palette_tag,
+                        "Data": block_index_tag,
+                    }
+                )
+                if block_entities:
+                    blocks_tag["BlockEntities"] = ListTag(block_entities)
+                tag["Blocks"] = blocks_tag
+            else:
+                raise RuntimeError
+
             if entities:
                 tag["Entities"] = ListTag(entities)
 
