@@ -90,6 +90,7 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
         bounds: Union[
             SelectionGroup, Dict[Dimension, Optional[SelectionGroup]], None
         ] = None,
+        schematic_version: int = max_schem_version,
         **kwargs,
     ):
         if not overwrite and os.path.isfile(self.path):
@@ -101,6 +102,7 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
         self._set_selection(bounds)
         self._is_open = True
         self._has_lock = True
+        self._schem_version = schematic_version
 
     def open_from(self, f: BinaryIO):
         root_tag = load_nbt(f).compound
@@ -112,7 +114,7 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
         version_tag = sponge_schem.get("Version")
         if not isinstance(version_tag, IntTag):
             raise SpongeSchemReadError("Version key must exist and be an integer.")
-        version = version_tag.py_int
+        self._schem_version = version = version_tag.py_int
         if version == 1:
             raise SpongeSchemReadError(
                 "Sponge Schematic Version 1 is not supported currently."
@@ -237,9 +239,9 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
                     pos = pos_tag.np_array + min_point
                     x, y, z = pos
                     block_entity["Pos"] = IntArrayTag(pos)
-                    if self._schem_version == 2:
+                    if version == 2:
                         extra = block_entity.pop("Extra", None)
-                    elif self._schem_version == 3:
+                    elif version == 3:
                         extra = block_entity.pop("Data", None)
                     else:
                         raise RuntimeError
@@ -284,9 +286,9 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
                             IntTag(z),
                         ]
                     )
-                    if self._schem_version == 2:
+                    if version == 2:
                         extra = entity.pop("Extra", None)
-                    elif self._schem_version == 3:
+                    elif version == 3:
                         extra = entity.pop("Data", None)
                     else:
                         raise RuntimeError
