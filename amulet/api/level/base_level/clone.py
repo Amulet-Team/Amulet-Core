@@ -2,6 +2,7 @@ import sys
 from typing import TYPE_CHECKING, Tuple, Generator, Optional
 import numpy
 import os
+from enum import Enum
 
 from amulet.api.data_types import Dimension, BlockCoordinates, FloatTriplet
 from amulet.api.selection import SelectionGroup, SelectionBox
@@ -42,6 +43,12 @@ def gen_paste_blocks(
     )
 
 
+class PasteRule(Enum):
+    PasteAll = "PasteAll"  # Paste in all chunk.
+    PasteExist = "PasteExist"  # Paste only in chunks that exist.
+    PasteNotExist = "PasteNotExist"  # Paste only in chunks that do not exist.
+
+
 def clone(
     src_structure: "BaseLevel",
     src_dimension: Dimension,
@@ -56,6 +63,7 @@ def clone(
     include_entities: bool = True,
     skip_blocks: Tuple[Block, ...] = (),
     copy_chunk_not_exist: bool = False,
+    paste_rule: PasteRule = PasteRule.PasteAll,
 ) -> Generator[float, None, None]:
     """Clone the source object data into the destination object with an optional transform.
     The src and dst can be the same object.
@@ -73,6 +81,7 @@ def clone(
     :param include_entities: Include entities from the `src_structure`.
     :param skip_blocks: If a block matches a block in this list it will not be copied.
     :param copy_chunk_not_exist: If a chunk does not exist in the source should it be copied over as air. Always False where `src_structure` is a World.
+    :param paste_rule: Control which chunks can be pasted into.
     :return: A generator of floats from 0 to 1 with the progress of the paste operation.
     """
     location = tuple(location)
@@ -106,6 +115,10 @@ def clone(
 
         src_structure: "BaseLevel"
 
+        # If the paste mode is PasteNotExist we need to create the chunk and track that we created it
+        # so that future modifications in this operation are allowed.
+        created_chunks = set[tuple[int, int]]()
+
         # TODO: I don't know if this is feasible for large boxes: get the intersection of the source and destination selections and iterate over that to minimise work
         if any(rotation) or any(s != 1 for s in scale):
             # if the selection needs transforming
@@ -137,6 +150,7 @@ def clone(
                     for progress, src_coords, dst_coords in box.transformed_points(
                         transform
                     ):
+                        yield sum_progress + volumes[box_index] * progress
                         if src_coords is not None:
                             dst_cx, dst_cy, dst_cz = dst_coords[0] >> 4
                             if (dst_cx, dst_cz) != last_dst:
@@ -146,11 +160,20 @@ def clone(
                                         dst_cx, dst_cz, dst_dimension
                                     )
                                 except ChunkDoesNotExist:
+                                    if paste_rule == PasteRule.PasteExist:
+                                        continue
                                     dst_chunk = dst_structure.create_chunk(
                                         dst_cx, dst_cz, dst_dimension
                                     )
+                                    created_chunks.add((dst_cx, dst_cz))
                                 except ChunkLoadError:
                                     dst_chunk = None
+                                else:
+                                    if (
+                                        paste_rule == PasteRule.PasteNotExist
+                                        and (dst_cx, dst_cz) not in created_chunks
+                                    ):
+                                        continue
 
                             src_coords = numpy.floor(src_coords).astype(int)
                             # due to how the coords are found dst_coords will all be in the same sub-chunk
@@ -252,7 +275,6 @@ def clone(
                                             if location in dst_chunk.block_entities:
                                                 del dst_chunk.block_entities[location]
                                         dst_chunk.changed = True
-                        yield sum_progress + volumes[box_index] * progress
                     sum_progress += volumes[box_index]
 
         else:
@@ -297,16 +319,27 @@ def clone(
                 dst_slices: Tuple[slice, slice, slice]
                 dst_box: SelectionBox
 
+                yield count / iter_count
+                count += 1
+
                 # load the destination chunk
                 try:
                     dst_chunk = dst_structure.get_chunk(dst_cx, dst_cz, dst_dimension)
                 except ChunkDoesNotExist:
+                    if paste_rule == PasteRule.PasteExist:
+                        continue
                     dst_chunk = dst_structure.create_chunk(
                         dst_cx, dst_cz, dst_dimension
                     )
+                    created_chunks.add((dst_cx, dst_cz))
                 except ChunkLoadError:
-                    count += 1
                     continue
+                else:
+                    if (
+                        paste_rule == PasteRule.PasteNotExist
+                        and (dst_cx, dst_cz) not in created_chunks
+                    ):
+                        continue
 
                 if include_blocks:
                     # a boolean array specifying if each index should be pasted.
@@ -382,8 +415,5 @@ def clone(
                 if include_entities:
                     # TODO: implement pasting entities when we support entities
                     pass
-
-                count += 1
-                yield count / iter_count
 
         yield 1.0
