@@ -6,7 +6,6 @@ from amulet.level.formats.anvil_world._sector_manager import (
     NoValidSector,
 )
 
-
 SectorSize = 4096
 
 sector_0 = Sector(0 * SectorSize, 1 * SectorSize)

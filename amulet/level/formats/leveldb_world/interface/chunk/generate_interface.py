@@ -15,8 +15,7 @@ if __name__ == "__main__":
         path = os.path.join(os.path.dirname(__file__), f"leveldb_{i}.py")
         if not os.path.isfile(path):
             with open(path, "w") as f:
-                f.write(
-                    f"""from .leveldb_{i-1} import (
+                f.write(f"""from .leveldb_{i-1} import (
     LevelDB{i-1}Interface as ParentInterface,
 )
 
@@ -27,5 +26,4 @@ class LevelDB{i}Interface(ParentInterface):
 
 export = LevelDB{i}Interface
 
-"""
-                )
+""")

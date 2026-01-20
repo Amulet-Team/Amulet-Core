@@ -265,7 +265,7 @@ class AnvilNAInterface(BaseAnvilInterface):
                 section_blocks |= add_blocks.astype(numpy.uint16) << 8
                 # TODO: fix this
 
-            (section_palette, blocks[cy]) = world_utils.fast_unique(
+            section_palette, blocks[cy] = world_utils.fast_unique(
                 numpy.transpose(
                     (section_blocks << 4) + section_data, (2, 0, 1)
                 )  # YZX -> XYZ

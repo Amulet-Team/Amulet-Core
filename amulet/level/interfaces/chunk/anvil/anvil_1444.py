@@ -265,7 +265,7 @@ class Anvil1444Interface(ParentInterface):
         if isinstance(ticks, set):
             for k in ticks:
                 try:
-                    (x, y, z) = k
+                    x, y, z = k
                     cy = y >> 4
                     if floor_cy <= cy < ceil_cy:
                         x = x & 15
