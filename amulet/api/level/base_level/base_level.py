@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import time
 from typing import Union, Generator, Optional, Tuple, Callable, Set, Iterable
 import traceback
 import numpy
@@ -32,7 +31,7 @@ from amulet.utils.generator import generator_unpacker
 from amulet.utils.world_utils import block_coords_to_chunk_coords
 from .chunk_manager import ChunkManager
 from amulet.api.history.history_manager import MetaHistoryManager
-from .clone import clone
+from .clone import clone, PasteRule
 from amulet.api import wrapper as api_wrapper, level as api_level
 import PyMCTranslate
 from amulet.api.player import Player
@@ -657,6 +656,7 @@ class BaseLevel:
         include_entities: bool = True,
         skip_blocks: Tuple[Block, ...] = (),
         copy_chunk_not_exist: bool = False,
+        paste_rule: PasteRule = PasteRule.PasteAll,
     ):
         """Paste a level into this level at the given location.
         Note this command may change in the future.
@@ -672,6 +672,7 @@ class BaseLevel:
         :param include_entities: Include entities when pasting the structure.
         :param skip_blocks: If a block matches a block in this list it will not be copied.
         :param copy_chunk_not_exist: If a chunk does not exist in the source should it be copied over as air. Always False where level is a World.
+        :param paste_rule: Control which chunks can be pasted into.
         :return:
         """
         return generator_unpacker(
@@ -687,6 +688,7 @@ class BaseLevel:
                 include_entities,
                 skip_blocks,
                 copy_chunk_not_exist,
+                paste_rule,
             )
         )
 
@@ -703,6 +705,7 @@ class BaseLevel:
         include_entities: bool = True,
         skip_blocks: Tuple[Block, ...] = (),
         copy_chunk_not_exist: bool = False,
+        paste_rule: PasteRule = PasteRule.PasteAll,
     ) -> Generator[float, None, None]:
         """Paste a structure into this structure at the given location.
         Note this command may change in the future.
@@ -718,6 +721,7 @@ class BaseLevel:
         :param include_entities: Include entities when pasting the structure.
         :param skip_blocks: If a block matches a block in this list it will not be copied.
         :param copy_chunk_not_exist: If a chunk does not exist in the source should it be copied over as air. Always False where level is a World.
+        :param paste_rule: Control which chunks can be pasted into.
         :return: A generator of floats from 0 to 1 with the progress of the paste operation.
         """
         yield from clone(
@@ -734,6 +738,7 @@ class BaseLevel:
             include_entities,
             skip_blocks,
             copy_chunk_not_exist,
+            paste_rule,
         )
 
     def get_version_block(

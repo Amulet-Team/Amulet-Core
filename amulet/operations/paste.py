@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 
 from amulet.api.data_types import Dimension, BlockCoordinates, FloatTriplet
 from amulet.api.block import Block, UniversalAirLikeBlocks
+from amulet.api.level.base_level.clone import PasteRule
 
 if TYPE_CHECKING:
     from amulet.api.level import BaseLevel
@@ -20,6 +21,7 @@ def paste(
     copy_air=True,
     copy_water=True,
     copy_lava=True,
+    paste_rule: PasteRule = PasteRule.PasteAll,
 ):
     for _ in paste_iter(
         dst,
@@ -32,6 +34,7 @@ def paste(
         copy_air,
         copy_water,
         copy_lava,
+        paste_rule,
     ):
         pass
 
@@ -47,6 +50,7 @@ def paste_iter(
     copy_air=True,
     copy_water=True,
     copy_lava=True,
+    paste_rule: PasteRule = PasteRule.PasteAll,
 ):
     yield from dst.paste_iter(
         src,
@@ -62,4 +66,5 @@ def paste_iter(
         + (Block("universal_minecraft", "water"),) * bool(not copy_water)
         + (Block("universal_minecraft", "lava"),) * bool(not copy_lava),
         True,
+        paste_rule,
     )
