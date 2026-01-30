@@ -3,7 +3,7 @@ from __future__ import annotations
 import itertools
 import numpy
 
-from typing import Tuple, Iterable, List, Union, Optional, overload, Set
+from typing import Tuple, Iterable, List, Union, Optional, overload, Set, Iterator
 
 from amulet.api.data_types import (
     BlockCoordinates,
@@ -95,7 +95,7 @@ class SelectionGroup(AbstractBaseSelection):
             return SelectionGroup(tuple(self) + boxes)
         raise NotImplemented
 
-    def __iter__(self) -> Iterable[SelectionBox]:
+    def __iter__(self) -> Iterator[SelectionBox]:
         """An iterable of all the :class:`SelectionBox` classes in the group."""
         yield from self._selection_boxes
 
