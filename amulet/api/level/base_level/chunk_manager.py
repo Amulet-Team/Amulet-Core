@@ -36,14 +36,14 @@ class ChunkDBEntry(DBRevisionManager):
             return None
         else:
             pickled_bytes = entry.pickle()
-            self._history_db().put(path.encode("utf-8"), pickled_bytes)
+            self._history_db().db.put(path.encode("utf-8"), pickled_bytes)
             return path
 
     def _deserialise(self, path: Optional[str]) -> Optional[Chunk]:
         if path is None:
             return None
         else:
-            pickled_bytes = self._history_db().get(path.encode("utf-8"))
+            pickled_bytes = self._history_db().db.get(path.encode("utf-8"))
             return Chunk.unpickle(
                 pickled_bytes, self.world.block_palette, self.world.biome_palette
             )

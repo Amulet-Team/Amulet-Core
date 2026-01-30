@@ -9,6 +9,8 @@ import logging
 import copy
 import os
 
+from rocksdict import Rdict, Options, WriteOptions, DbClosedError
+
 from amulet.api.block import Block, UniversalAirBlock
 from amulet.api.block_entity import BlockEntity
 from amulet.api.entity import Entity
@@ -38,6 +40,11 @@ from amulet.api.player import Player
 from .player_manager import PlayerManager
 
 log = logging.getLogger(__name__)
+
+
+class RocksDict:
+    def __init__(self, db: Rdict) -> None:
+        self.db = db
 
 
 class BaseLevel:
@@ -72,9 +79,23 @@ class BaseLevel:
         self._history_manager = MetaHistoryManager()
 
         self._temp_dir = TempDir()
-        self._history_db = LevelDB(
-            os.path.join(self._temp_dir, "history_db"), create_if_missing=True
+        # self._history_db = LevelDB(
+        #     os.path.join(self._temp_dir, "history_db"), create_if_missing=True
+        # )
+        options = Options(raw_mode=True)
+        options.create_if_missing(True)
+        # options.set_max_background_jobs(8)
+        # options.increase_parallelism(8)
+        self._history_db = RocksDict(
+            Rdict(
+                os.path.join(self._temp_dir, "history_db"),
+                options=options
+            )
         )
+        write_options = WriteOptions()
+        write_options.sync = False
+        write_options.disable_wal = True
+        self._history_db.db.set_write_options(write_options)
         self._chunks: ChunkManager = ChunkManager(self, self._history_db)
         self._players = PlayerManager(self)
 
@@ -522,7 +543,11 @@ class BaseLevel:
         Use changed method to check if there are any changes that should be saved before closing.
         """
         self.level_wrapper.close()
-        self._history_db.close(compact=False)
+        # self._history_db.close(compact=False)
+        try:
+            self._history_db.db.close()
+        except DbClosedError:
+            pass
 
     def unload(self, safe_area: Optional[Tuple[Dimension, int, int, int, int]] = None):
         """
@@ -688,7 +713,7 @@ class BaseLevel:
                 include_entities,
                 skip_blocks,
                 copy_chunk_not_exist,
-                paste_rule,
+                paste_rule
             )
         )
 
