@@ -10,7 +10,7 @@ from amulet.api.history.revision_manager import DBRevisionManager
 from amulet.api.errors import ChunkDoesNotExist, ChunkLoadError
 from amulet.api.history.history_manager import DatabaseHistoryManager
 from amulet.api import level as api_level
-from leveldb import LevelDB
+from rocksdb import RocksDB
 
 
 class ChunkDBEntry(DBRevisionManager):
@@ -19,7 +19,7 @@ class ChunkDBEntry(DBRevisionManager):
     def __init__(
         self,
         world: api_level.BaseLevel,
-        history_db: LevelDB,
+        history_db: RocksDB,
         prefix: str,
         initial_state: EntryType,
     ):
@@ -36,14 +36,14 @@ class ChunkDBEntry(DBRevisionManager):
             return None
         else:
             pickled_bytes = entry.pickle()
-            self._history_db().db.put(path.encode("utf-8"), pickled_bytes)
+            self._history_db().put(path.encode("utf-8"), pickled_bytes)
             return path
 
     def _deserialise(self, path: Optional[str]) -> Optional[Chunk]:
         if path is None:
             return None
         else:
-            pickled_bytes = self._history_db().db.get(path.encode("utf-8"))
+            pickled_bytes = self._history_db().get(path.encode("utf-8"))
             return Chunk.unpickle(
                 pickled_bytes, self.world.block_palette, self.world.biome_palette
             )
@@ -66,7 +66,7 @@ class ChunkManager(DatabaseHistoryManager):
     DoesNotExistError = ChunkDoesNotExist
     LoadError = ChunkLoadError
 
-    def __init__(self, level: api_level.BaseLevel, history_db: LevelDB):
+    def __init__(self, level: api_level.BaseLevel, history_db: RocksDB):
         """
         Construct a :class:`ChunkManager` instance.
 
