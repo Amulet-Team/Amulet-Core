@@ -84,7 +84,7 @@ class BaseLevel:
         self._history_db = RocksDB(
             os.path.join(self._temp_dir, "history_db"),
             options=options,
-            write_options=write_options
+            write_options=write_options,
         )
 
         self._chunks: ChunkManager = ChunkManager(self, self._history_db)
@@ -700,7 +700,7 @@ class BaseLevel:
                 include_entities,
                 skip_blocks,
                 copy_chunk_not_exist,
-                paste_rule
+                paste_rule,
             )
         )
 
