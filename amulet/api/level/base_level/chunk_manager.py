@@ -10,7 +10,7 @@ from amulet.api.history.revision_manager import DBRevisionManager
 from amulet.api.errors import ChunkDoesNotExist, ChunkLoadError
 from amulet.api.history.history_manager import DatabaseHistoryManager
 from amulet.api import level as api_level
-from leveldb import LevelDB
+from rocksdb import RocksDB
 
 
 class ChunkDBEntry(DBRevisionManager):
@@ -19,7 +19,7 @@ class ChunkDBEntry(DBRevisionManager):
     def __init__(
         self,
         world: api_level.BaseLevel,
-        history_db: LevelDB,
+        history_db: RocksDB,
         prefix: str,
         initial_state: EntryType,
     ):
@@ -66,7 +66,7 @@ class ChunkManager(DatabaseHistoryManager):
     DoesNotExistError = ChunkDoesNotExist
     LoadError = ChunkLoadError
 
-    def __init__(self, level: api_level.BaseLevel, history_db: LevelDB):
+    def __init__(self, level: api_level.BaseLevel, history_db: RocksDB):
         """
         Construct a :class:`ChunkManager` instance.
 

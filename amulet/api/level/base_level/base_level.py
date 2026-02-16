@@ -26,7 +26,7 @@ from amulet.api.data_types import (
 )
 from amulet.api.chunk.status import StatusFormats
 from amulet.api.cache import TempDir
-from leveldb import LevelDB
+from rocksdb import RocksDB, Options, WriteOptions, CompressionType
 from amulet.utils.generator import generator_unpacker
 from amulet.utils.world_utils import block_coords_to_chunk_coords
 from .chunk_manager import ChunkManager
@@ -72,9 +72,21 @@ class BaseLevel:
         self._history_manager = MetaHistoryManager()
 
         self._temp_dir = TempDir()
-        self._history_db = LevelDB(
-            os.path.join(self._temp_dir, "history_db"), create_if_missing=True
+
+        options = Options()
+        options.create_if_missing = True
+        options.compression_type = CompressionType.ZstdCompression
+
+        write_options = WriteOptions()
+        write_options.sync = False
+        write_options.disable_wal = True
+
+        self._history_db = RocksDB(
+            os.path.join(self._temp_dir, "history_db"),
+            options=options,
+            write_options=write_options,
         )
+
         self._chunks: ChunkManager = ChunkManager(self, self._history_db)
         self._players = PlayerManager(self)
 
@@ -522,7 +534,7 @@ class BaseLevel:
         Use changed method to check if there are any changes that should be saved before closing.
         """
         self.level_wrapper.close()
-        self._history_db.close(compact=False)
+        self._history_db.close()
 
     def unload(self, safe_area: Optional[Tuple[Dimension, int, int, int, int]] = None):
         """
