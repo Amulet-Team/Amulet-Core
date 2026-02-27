@@ -8,6 +8,7 @@ from io import BytesIO
 import shutil
 import traceback
 import time
+import logging
 
 from amulet_nbt import (
     AbstractBaseTag,
@@ -51,6 +52,8 @@ from .interface.chunk.leveldb_chunk_versions import (
 )
 from .dimension import LevelDBDimensionManager, ChunkData, InternalDimension
 from .interface.chunk import BaseLevelDBInterface, get_interface
+
+log = logging.getLogger(__name__)
 
 OVERWORLD = "minecraft:overworld"
 THE_NETHER = "minecraft:the_nether"
@@ -450,6 +453,29 @@ class LevelDBFormat(WorldFormatWrapper[VersionNumberTuple]):
                     dimension_name = f"DIM{internal_dimension}"
                     self._dimension_to_internal[dimension_name] = internal_dimension
                     self._bounds[dimension_name] = DefaultSelection
+
+            # Load custom biome ids
+            try:
+                biome_id_table_bin = self.level_db[b"BiomeIdsTable"]
+            except KeyError:
+                pass
+            else:
+                try:
+                    biome_id_table = load_nbt(
+                        biome_id_table_bin,
+                        little_endian=True,
+                        compressed=False,
+                        string_decoder=utf8_escape_decoder,
+                    ).compound.get_list("list", ListTag())
+                    for tag in biome_id_table:
+                        if not isinstance(tag, CompoundTag):
+                            continue
+                        self.translation_manager.biome_registry.register(
+                            tag.get_string("name").py_str,
+                            tag.get_short("id").py_int,
+                        )
+                except Exception as e:
+                    log.exception(e)
 
         except LevelDBEncrypted as e:
             self._is_open = self._has_lock = False
