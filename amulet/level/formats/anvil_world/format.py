@@ -425,9 +425,10 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
         self._bounds.clear()
 
         # load all the levels
-        self._register_dimension("", OVERWORLD)
-        self._register_dimension("DIM-1", THE_NETHER)
-        self._register_dimension("DIM1", THE_END)
+        if self.version < 4786:  # This number might be smaller
+            self._register_dimension("", OVERWORLD)
+            self._register_dimension("DIM-1", THE_NETHER)
+            self._register_dimension("DIM1", THE_END)
 
         for level_path in glob.glob(os.path.join(glob.escape(self.path), "DIM*")):
             if os.path.isdir(level_path):
