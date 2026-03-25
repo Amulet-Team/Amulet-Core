@@ -236,13 +236,21 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
 
     def _get_dimenion_bounds(self, dimension_type_str: Dimension) -> SelectionGroup:
         if self.version >= 2709:  # This number might be smaller
-            # If in a version that supports custom height data packs
-            dimension_settings = (
-                self.root_tag.compound.get_compound("Data", CompoundTag())
-                .get_compound("WorldGenSettings", CompoundTag())
-                .get_compound("dimensions", CompoundTag())
-                .get_compound(dimension_type_str, CompoundTag())
-            )
+            if self.version >= 4786:  # This number might be smaller
+                world_gen_settings = load_nbt(
+                    os.path.join(
+                        self.path, "data", "minecraft", "world_gen_settings.dat"
+                    )
+                ).compound.get_compound("data", CompoundTag())
+            else:
+                # If in a version that supports custom height data packs
+                world_gen_settings = self.root_tag.compound.get_compound(
+                    "Data", CompoundTag()
+                ).get_compound("WorldGenSettings", CompoundTag())
+
+            dimension_settings = world_gen_settings.get_compound(
+                "dimensions", CompoundTag()
+            ).get_compound(dimension_type_str, CompoundTag())
 
             # "type" can be a reference (string) or inline (compound) dimension-type data.
             dimension_type = dimension_settings.get("type")
