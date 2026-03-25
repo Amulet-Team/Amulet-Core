@@ -718,14 +718,14 @@ class FormatWrapper(Generic[VersionNumberT], ABC):
         """
         Returns a set of all player ids that are present in the level
         """
-        return NotImplemented
+        raise NotImplementedError
 
     @abstractmethod
     def has_player(self, player_id: str) -> bool:
         """
         Test if a player id is present in the level.
         """
-        return NotImplemented
+        raise NotImplementedError
 
     def load_player(self, player_id: str) -> "Player":
         """
