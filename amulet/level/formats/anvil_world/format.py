@@ -18,6 +18,7 @@ import glob
 import shutil
 import json
 import logging
+import uuid
 
 import portalocker
 
@@ -29,6 +30,7 @@ from amulet_nbt import (
     StringTag,
     ListTag,
     CompoundTag,
+    IntArrayTag,
     NamedTag,
     load as load_nbt,
 )
@@ -63,6 +65,13 @@ InternalDimension = str
 OVERWORLD = "minecraft:overworld"
 THE_NETHER = "minecraft:the_nether"
 THE_END = "minecraft:the_end"
+
+
+def uuid_int_array_to_str(int_array: IntArrayTag) -> str:
+    value = 0
+    for i, v in enumerate(int_array[:4]):
+        value |= (int(v) & 0xFFFFFFFF) << ((3 - i) * 32)
+    return str(uuid.UUID(int=value))
 
 
 class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
@@ -236,13 +245,21 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
 
     def _get_dimenion_bounds(self, dimension_type_str: Dimension) -> SelectionGroup:
         if self.version >= 2709:  # This number might be smaller
-            # If in a version that supports custom height data packs
-            dimension_settings = (
-                self.root_tag.compound.get_compound("Data", CompoundTag())
-                .get_compound("WorldGenSettings", CompoundTag())
-                .get_compound("dimensions", CompoundTag())
-                .get_compound(dimension_type_str, CompoundTag())
-            )
+            if self.version >= 4786:  # This number might be smaller
+                world_gen_settings = load_nbt(
+                    os.path.join(
+                        self.path, "data", "minecraft", "world_gen_settings.dat"
+                    )
+                ).compound.get_compound("data", CompoundTag())
+            else:
+                # If in a version that supports custom height data packs
+                world_gen_settings = self.root_tag.compound.get_compound(
+                    "Data", CompoundTag()
+                ).get_compound("WorldGenSettings", CompoundTag())
+
+            dimension_settings = world_gen_settings.get_compound(
+                "dimensions", CompoundTag()
+            ).get_compound(dimension_type_str, CompoundTag())
 
             # "type" can be a reference (string) or inline (compound) dimension-type data.
             dimension_type = dimension_settings.get("type")
@@ -417,9 +434,10 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
         self._bounds.clear()
 
         # load all the levels
-        self._register_dimension("", OVERWORLD)
-        self._register_dimension("DIM-1", THE_NETHER)
-        self._register_dimension("DIM1", THE_END)
+        if self.version < 4786:  # This number might be smaller
+            self._register_dimension("", OVERWORLD)
+            self._register_dimension("DIM-1", THE_NETHER)
+            self._register_dimension("DIM1", THE_END)
 
         for level_path in glob.glob(os.path.join(glob.escape(self.path), "DIM*")):
             if os.path.isdir(level_path):
@@ -670,20 +688,34 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
         """
         Returns a generator of all player ids that are present in the level
         """
-        for f in glob.iglob(
-            os.path.join(glob.escape(self.path), "playerdata", "*.dat")
-        ):
-            yield os.path.splitext(os.path.basename(f))[0]
-        if self.has_player(LOCAL_PLAYER):
-            yield LOCAL_PLAYER
+        if self.version >= 4786:  # This number might be smaller
+            for f in glob.iglob(
+                os.path.join(glob.escape(self.path), "players", "data", "*.dat")
+            ):
+                yield os.path.splitext(os.path.basename(f))[0]
+        else:
+            for f in glob.iglob(
+                os.path.join(glob.escape(self.path), "playerdata", "*.dat")
+            ):
+                yield os.path.splitext(os.path.basename(f))[0]
+            if self.has_player(LOCAL_PLAYER):
+                yield LOCAL_PLAYER
 
     def has_player(self, player_id: str) -> bool:
-        if player_id == LOCAL_PLAYER:
-            return "Player" in self.root_tag.compound.get_compound("Data")
+        if self.version >= 4786:  # This number might be smaller
+            if player_id == LOCAL_PLAYER:
+                return False
+            else:
+                return os.path.isfile(
+                    os.path.join(self.path, "players", "data", f"{player_id}.dat")
+                )
         else:
-            return os.path.isfile(
-                os.path.join(self.path, "playerdata", f"{player_id}.dat")
-            )
+            if player_id == LOCAL_PLAYER:
+                return "Player" in self.root_tag.compound.get_compound("Data")
+            else:
+                return os.path.isfile(
+                    os.path.join(self.path, "playerdata", f"{player_id}.dat")
+                )
 
     def _load_player(self, player_id: str) -> Player:
         """
@@ -747,18 +779,32 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
         )
 
     def _get_raw_player_data(self, player_id: str) -> CompoundTag:
-        if player_id == LOCAL_PLAYER:
-            if "Player" in self.root_tag.compound.get_compound("Data"):
-                return self.root_tag.compound.get_compound("Data").get_compound(
-                    "Player"
+        if self.version >= 4786:  # This number might be smaller
+            if player_id == LOCAL_PLAYER:
+                singleplayer_uuid = self.root_tag.compound.get_compound("Data").get(
+                    "singleplayer_uuid"
                 )
+                if not isinstance(singleplayer_uuid, IntArrayTag):
+                    raise PlayerDoesNotExist("Local player does not exist")
+                player_uuid = uuid_int_array_to_str(singleplayer_uuid)
             else:
-                raise PlayerDoesNotExist("Local player doesn't exist")
-        else:
-            path = os.path.join(self.path, "playerdata", f"{player_id}.dat")
+                player_uuid = player_id
+            path = os.path.join(self.path, "players", "data", f"{player_uuid}.dat")
             if os.path.exists(path):
                 return load_nbt(path).compound
-            raise PlayerDoesNotExist(f"Player {player_id} does not exist")
+        else:
+            if player_id == LOCAL_PLAYER:
+                if "Player" in self.root_tag.compound.get_compound("Data"):
+                    return self.root_tag.compound.get_compound("Data").get_compound(
+                        "Player"
+                    )
+                else:
+                    raise PlayerDoesNotExist("Local player does not exist")
+            else:
+                path = os.path.join(self.path, "playerdata", f"{player_id}.dat")
+                if os.path.exists(path):
+                    return load_nbt(path).compound
+        raise PlayerDoesNotExist(f"Player {player_id} does not exist")
 
 
 if __name__ == "__main__":
