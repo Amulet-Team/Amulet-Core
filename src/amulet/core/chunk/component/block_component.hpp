@@ -16,7 +16,7 @@
 
 namespace Amulet {
 
-class BlockStorage {
+class AMULET_CORE_EXPORT BlockStorage {
 private:
     std::shared_ptr<BlockPalette> _palette;
     std::shared_ptr<SectionArrayMap> _sections;
@@ -57,8 +57,8 @@ public:
         _palette->block_stack_to_index(default_block);
     }
 
-    AMULET_CORE_EXPORT void serialise(BaseBinaryWriter&) const;
-    AMULET_CORE_EXPORT static BlockStorage deserialise(BinaryReader&);
+    void serialise(BaseBinaryWriter&) const;
+    static BlockStorage deserialise(BinaryReader&);
 
     const BlockPalette& get_palette() const { return *_palette; }
     BlockPalette& get_palette() { return *_palette; }
@@ -73,7 +73,7 @@ public:
     std::shared_ptr<SectionArrayMap> get_sections_ptr() { return _sections; }
 };
 
-class BlockComponent {
+class AMULET_CORE_EXPORT BlockComponent {
 private:
     std::optional<std::shared_ptr<BlockStorage>> _value;
 
@@ -95,20 +95,20 @@ protected:
     }
 
     // Serialise the component data
-    AMULET_CORE_EXPORT std::optional<std::string> serialise() const;
+    std::optional<std::string> serialise() const;
     // Deserialise the component
-    AMULET_CORE_EXPORT void deserialise(std::optional<std::string>);
+    void deserialise(std::optional<std::string>);
 
 public:
-    AMULET_CORE_EXPORT static const std::string ComponentID;
+    static const std::string ComponentID;
     
-    AMULET_CORE_EXPORT const BlockStorage& get_block_storage() const;
-    AMULET_CORE_EXPORT BlockStorage& get_block_storage();
+    const BlockStorage& get_block_storage() const;
+    BlockStorage& get_block_storage();
     
-    AMULET_CORE_EXPORT std::shared_ptr<const BlockStorage> get_block_storage_ptr() const;
-    AMULET_CORE_EXPORT std::shared_ptr<BlockStorage> get_block_storage_ptr();
+    std::shared_ptr<const BlockStorage> get_block_storage_ptr() const;
+    std::shared_ptr<BlockStorage> get_block_storage_ptr();
     
-    AMULET_CORE_EXPORT void set_block_storage(std::shared_ptr<BlockStorage> component);
+    void set_block_storage(std::shared_ptr<BlockStorage> component);
 };
 
 } // namespace Amulet

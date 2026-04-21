@@ -9,7 +9,7 @@
 #include <amulet/core/version/version.hpp>
 
 namespace Amulet {
-class Biome : public PlatformVersionContainer {
+class AMULET_CORE_EXPORT Biome : public PlatformVersionContainer {
 private:
     std::string _namespace;
     std::string _base_name;
@@ -30,8 +30,8 @@ public:
     {
     }
 
-    AMULET_CORE_EXPORT void serialise(BaseBinaryWriter&) const;
-    AMULET_CORE_EXPORT static Biome deserialise(BinaryReader&);
+    void serialise(BaseBinaryWriter&) const;
+    static Biome deserialise(BinaryReader&);
 
     auto operator<=>(const Biome& other) const
     {

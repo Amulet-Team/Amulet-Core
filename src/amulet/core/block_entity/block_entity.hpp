@@ -14,7 +14,7 @@
 #include <amulet/core/version/version.hpp>
 
 namespace Amulet {
-class BlockEntity : public PlatformVersionContainer {
+class AMULET_CORE_EXPORT BlockEntity : public PlatformVersionContainer {
 private:
     std::string _namespace;
     std::string _base_name;
@@ -76,9 +76,9 @@ public:
     {
     }
 
-    AMULET_CORE_EXPORT void serialise(BaseBinaryWriter&) const;
-    AMULET_CORE_EXPORT static BlockEntity deserialise(BinaryReader&);
+    void serialise(BaseBinaryWriter&) const;
+    static BlockEntity deserialise(BinaryReader&);
 
-    AMULET_CORE_EXPORT bool operator==(const BlockEntity& other) const;
+    bool operator==(const BlockEntity& other) const;
 };
 }

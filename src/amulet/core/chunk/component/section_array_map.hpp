@@ -22,25 +22,25 @@ namespace Amulet {
 
 typedef std::tuple<std::uint16_t, std::uint16_t, std::uint16_t> SectionShape;
 
-class IndexArray3D {
+class AMULET_CORE_EXPORT IndexArray3D {
 private:
     SectionShape _shape;
     size_t _size;
     std::uint32_t* _buffer;
 
 public:
-    AMULET_CORE_EXPORT IndexArray3D(const SectionShape& shape);
-    AMULET_CORE_EXPORT IndexArray3D(const SectionShape& shape, std::uint32_t value);
+    IndexArray3D(const SectionShape& shape);
+    IndexArray3D(const SectionShape& shape, std::uint32_t value);
 
-    AMULET_CORE_EXPORT IndexArray3D(const IndexArray3D& other);
-    AMULET_CORE_EXPORT IndexArray3D(IndexArray3D&& other) noexcept;
-    AMULET_CORE_EXPORT IndexArray3D& operator=(const IndexArray3D& other);
-    AMULET_CORE_EXPORT IndexArray3D& operator=(IndexArray3D&& other) noexcept;
+    IndexArray3D(const IndexArray3D& other);
+    IndexArray3D(IndexArray3D&& other) noexcept;
+    IndexArray3D& operator=(const IndexArray3D& other);
+    IndexArray3D& operator=(IndexArray3D&& other) noexcept;
 
-    AMULET_CORE_EXPORT ~IndexArray3D();
+    ~IndexArray3D();
 
-    AMULET_CORE_EXPORT void serialise(BaseBinaryWriter&) const;
-    AMULET_CORE_EXPORT static IndexArray3D deserialise(BinaryReader&);
+    void serialise(BaseBinaryWriter&) const;
+    static IndexArray3D deserialise(BinaryReader&);
 
     const SectionShape& get_shape() const { return _shape; }
 
@@ -52,7 +52,7 @@ public:
     std::span<std::uint32_t> get_span() { return { _buffer, _size }; }
 };
 
-class SectionArrayMap {
+class AMULET_CORE_EXPORT SectionArrayMap {
 private:
     SectionShape _array_shape;
     std::variant<std::uint32_t, std::shared_ptr<IndexArray3D>> _default_array;
@@ -85,8 +85,8 @@ public:
         validate_array_shape(_default_array);
     }
 
-    AMULET_CORE_EXPORT void serialise(BaseBinaryWriter&) const;
-    AMULET_CORE_EXPORT static SectionArrayMap deserialise(BinaryReader&);
+    void serialise(BaseBinaryWriter&) const;
+    static SectionArrayMap deserialise(BinaryReader&);
 
     const SectionShape& get_array_shape() const { return _array_shape; }
 
@@ -193,7 +193,7 @@ public:
         _arrays.insert_or_assign(cy, std::make_shared<IndexArray3D>(section));
     }
 
-    AMULET_CORE_EXPORT void populate_section(std::int64_t cy);
+    void populate_section(std::int64_t cy);
 
     void del_section(std::int64_t cy)
     {

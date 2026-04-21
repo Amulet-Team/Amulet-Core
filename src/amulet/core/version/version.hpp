@@ -21,7 +21,7 @@ typedef std::string PlatformType;
 // It is a wrapper around std::vector<std::int64_t> with special comparison handling.
 // The version can contain zero to max(int64) values.
 // Undefined trailing values are implied zeros. 1.1 == 1.1.0
-class VersionNumber {
+class AMULET_CORE_EXPORT VersionNumber {
 private:
     std::vector<std::int64_t> _vec;
 
@@ -61,8 +61,8 @@ public:
         return *this;
     }
 
-    AMULET_CORE_EXPORT void serialise(BaseBinaryWriter&) const;
-    AMULET_CORE_EXPORT static VersionNumber deserialise(BinaryReader&);
+    void serialise(BaseBinaryWriter&) const;
+    static VersionNumber deserialise(BinaryReader&);
 
     // Iterators
     std::vector<std::int64_t>::const_iterator begin() const { return _vec.begin(); }
@@ -109,18 +109,18 @@ public:
     }
 
     // Convert the value to its string representation eg "1.1"
-    AMULET_CORE_EXPORT std::string toString() const;
+    std::string toString() const;
 
     // The version number with trailing zeros cut off.
-    AMULET_CORE_EXPORT std::vector<std::int64_t> cropped_version() const;
+    std::vector<std::int64_t> cropped_version() const;
 
     // Get the version number cropped or padded with zeros to the given length.
-    AMULET_CORE_EXPORT std::vector<std::int64_t> padded_version(size_t len) const;
+    std::vector<std::int64_t> padded_version(size_t len) const;
 };
 
 // A class storing platform identifier and version number.
 // Thread safe.
-class PlatformVersionContainer {
+class AMULET_CORE_EXPORT PlatformVersionContainer {
 private:
     PlatformType _platform;
     VersionNumber _version;
@@ -141,8 +141,8 @@ public:
     {
     }
 
-    AMULET_CORE_EXPORT void serialise(BaseBinaryWriter&) const;
-    AMULET_CORE_EXPORT static PlatformVersionContainer deserialise(BinaryReader&);
+    void serialise(BaseBinaryWriter&) const;
+    static PlatformVersionContainer deserialise(BinaryReader&);
 
     // Comparison operators
     auto operator<=>(const PlatformVersionContainer& other) const
@@ -161,7 +161,7 @@ public:
 
 // A class storing platform identifier and minimum and maximum version numbers.
 // Thread safe.
-class VersionRange {
+class AMULET_CORE_EXPORT VersionRange {
 private:
     PlatformType _platform;
     VersionNumber _min_version;
@@ -191,18 +191,18 @@ public:
         }
     }
 
-    AMULET_CORE_EXPORT void serialise(BaseBinaryWriter&) const;
-    AMULET_CORE_EXPORT static VersionRange deserialise(BinaryReader&);
+    void serialise(BaseBinaryWriter&) const;
+    static VersionRange deserialise(BinaryReader&);
 
     // Check if the platform is equal and the version number is within the range.
-    AMULET_CORE_EXPORT bool contains(const PlatformType& platform, const VersionNumber& version) const;
+    bool contains(const PlatformType& platform, const VersionNumber& version) const;
 
     // Equality operator
-    AMULET_CORE_EXPORT bool operator==(const VersionRange&) const;
+    bool operator==(const VersionRange&) const;
 };
 
 // A class that contains a version range.
-class VersionRangeContainer {
+class AMULET_CORE_EXPORT VersionRangeContainer {
 private:
     VersionRange _version_range;
 
@@ -217,7 +217,7 @@ public:
     {
     }
 
-    AMULET_CORE_EXPORT void serialise(BaseBinaryWriter&) const;
-    AMULET_CORE_EXPORT static VersionRangeContainer deserialise(BinaryReader&);
+    void serialise(BaseBinaryWriter&) const;
+    static VersionRangeContainer deserialise(BinaryReader&);
 };
 }
