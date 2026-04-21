@@ -2,6 +2,7 @@ import subprocess
 import sys
 import shutil
 import os
+import sysconfig
 
 import pybind11
 import amulet.pybind11_extensions
@@ -24,10 +25,14 @@ def main() -> None:
     platform_args = []
     if sys.platform == "win32":
         platform_args.extend(["-G", "Visual Studio 17 2022"])
-        if sys.maxsize > 2**32:
+        if sysconfig.get_platform() == "win-amd64":
             platform_args.extend(["-A", "x64"])
-        else:
+        elif sysconfig.get_platform() == "win32":
             platform_args.extend(["-A", "Win32"])
+        elif sysconfig.get_platform() == "win-arm64":
+            platform_args.extend(["-A", "ARM64"])
+        else:
+            raise RuntimeError(f"Unsupported platform: {sysconfig.get_platform()}")
         platform_args.extend(["-T", "v143"])
 
     os.chdir(TestsDir)
