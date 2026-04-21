@@ -8,7 +8,7 @@
 
 namespace Amulet {
 
-class BiomePalette : public VersionRangeContainer {
+class AMULET_CORE_EXPORT BiomePalette : public VersionRangeContainer {
 private:
     std::vector<Biome> _index_to_biome;
     std::map<Biome, size_t> _biome_to_index;
@@ -24,8 +24,8 @@ public:
     {
     }
 
-    AMULET_CORE_EXPORT void serialise(BaseBinaryWriter&) const;
-    AMULET_CORE_EXPORT static BiomePalette deserialise(BinaryReader&);
+    void serialise(BaseBinaryWriter&) const;
+    static BiomePalette deserialise(BinaryReader&);
 
     bool operator==(const BiomePalette& other) const
     {

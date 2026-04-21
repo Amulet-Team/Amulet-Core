@@ -12,7 +12,7 @@
 
 namespace Amulet {
 
-class BlockPalette : public VersionRangeContainer {
+class AMULET_CORE_EXPORT BlockPalette : public VersionRangeContainer {
 private:
     std::vector<BlockStack> _index_to_block;
     std::map<BlockStack, size_t> _block_to_index;
@@ -28,8 +28,8 @@ public:
     {
     }
 
-    AMULET_CORE_EXPORT void serialise(BaseBinaryWriter&) const;
-    AMULET_CORE_EXPORT static BlockPalette deserialise(BinaryReader&);
+    void serialise(BaseBinaryWriter&) const;
+    static BlockPalette deserialise(BinaryReader&);
 
     bool operator==(const BlockPalette& other) const
     {

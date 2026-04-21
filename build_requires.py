@@ -13,7 +13,6 @@ def get_requires_for_build_wheel(
 ) -> list[str]:
     return [
         *build_meta.get_requires_for_build_wheel(config_settings),
-        "wheel",
         *requirements.get_build_dependencies(),
     ]
 

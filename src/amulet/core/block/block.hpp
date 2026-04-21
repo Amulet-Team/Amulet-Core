@@ -15,7 +15,7 @@
 
 namespace Amulet {
 
-class Block : public PlatformVersionContainer {
+class AMULET_CORE_EXPORT Block : public PlatformVersionContainer {
 public:
     using PropertyValue = std::variant<
         Amulet::NBT::ByteTag,
@@ -72,8 +72,8 @@ public:
     {
     }
 
-    AMULET_CORE_EXPORT void serialise(BaseBinaryWriter&) const;
-    AMULET_CORE_EXPORT static Block deserialise(BinaryReader&);
+    void serialise(BaseBinaryWriter&) const;
+    static Block deserialise(BinaryReader&);
 
     auto operator<=>(const Block& other) const
     {
@@ -96,13 +96,13 @@ public:
         return (*this <=> other) == 0;
     }
 
-    AMULET_CORE_EXPORT std::string java_blockstate() const;
-    AMULET_CORE_EXPORT std::string bedrock_blockstate() const;
-    AMULET_CORE_EXPORT static Block from_java_blockstate(const PlatformType&, const VersionNumber&, const std::string&);
-    AMULET_CORE_EXPORT static Block from_bedrock_blockstate(const PlatformType&, const VersionNumber&, const std::string&);
+    std::string java_blockstate() const;
+    std::string bedrock_blockstate() const;
+    static Block from_java_blockstate(const PlatformType&, const VersionNumber&, const std::string&);
+    static Block from_bedrock_blockstate(const PlatformType&, const VersionNumber&, const std::string&);
 };
 
-class BlockStack {
+class AMULET_CORE_EXPORT BlockStack {
 private:
     std::vector<Block> _blocks;
 
@@ -127,8 +127,8 @@ public:
         }
     }
 
-    AMULET_CORE_EXPORT void serialise(BaseBinaryWriter&) const;
-    AMULET_CORE_EXPORT static BlockStack deserialise(BinaryReader&);
+    void serialise(BaseBinaryWriter&) const;
+    static BlockStack deserialise(BinaryReader&);
 
     auto operator<=>(const BlockStack& other) const
     {

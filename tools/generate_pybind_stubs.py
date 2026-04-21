@@ -8,7 +8,6 @@ import pybind11_stubgen
 from pybind11_stubgen.structs import Identifier
 from pybind11_stubgen.parser.mixins.filter import FilterClassMembers
 
-
 ForwardRefPattern = re.compile(r"ForwardRef\('(?P<variable>[a-zA-Z_][a-zA-Z0-9_]*)'\)")
 
 QuotePattern = re.compile(r"'(?P<variable>[a-zA-Z_][a-zA-Z0-9_]*)'")

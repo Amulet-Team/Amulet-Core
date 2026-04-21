@@ -12,7 +12,7 @@
 
 namespace Amulet {
 typedef std::tuple<std::uint16_t, std::int64_t, std::uint16_t> BlockEntityChunkCoord;
-class BlockEntityStorage : public VersionRangeContainer {
+class AMULET_CORE_EXPORT BlockEntityStorage : public VersionRangeContainer {
 private:
     std::uint16_t _x_size;
     std::uint16_t _z_size;
@@ -34,8 +34,8 @@ public:
     {
     }
 
-    AMULET_CORE_EXPORT void serialise(BaseBinaryWriter&) const;
-    AMULET_CORE_EXPORT static BlockEntityStorage deserialise(BinaryReader&);
+    void serialise(BaseBinaryWriter&) const;
+    static BlockEntityStorage deserialise(BinaryReader&);
 
     std::uint16_t get_x_size() const { return _x_size; }
     std::uint16_t get_z_size() const { return _z_size; }
@@ -103,7 +103,7 @@ public:
     }
 };
 
-class BlockEntityComponent {
+class AMULET_CORE_EXPORT BlockEntityComponent {
 private:
     std::optional<std::shared_ptr<BlockEntityStorage>> _value;
 
@@ -111,19 +111,19 @@ protected:
     // Null constructor
     BlockEntityComponent() = default;
     // Default constructor
-    AMULET_CORE_EXPORT void init(
+    void init(
         const VersionRange& version_range,
         std::uint16_t x_size,
         std::uint16_t z_size);
 
     // Serialise the component data
-    AMULET_CORE_EXPORT std::optional<std::string> serialise() const;
+    std::optional<std::string> serialise() const;
     // Deserialise the component
-    AMULET_CORE_EXPORT void deserialise(std::optional<std::string>);
+    void deserialise(std::optional<std::string>);
 
 public:
-    AMULET_CORE_EXPORT static const std::string ComponentID;
-    AMULET_CORE_EXPORT std::shared_ptr<BlockEntityStorage> get_block_entity_storage();
-    AMULET_CORE_EXPORT void set_block_entity_storage(std::shared_ptr<BlockEntityStorage> component);
+    static const std::string ComponentID;
+    std::shared_ptr<BlockEntityStorage> get_block_entity_storage();
+    void set_block_entity_storage(std::shared_ptr<BlockEntityStorage> component);
 };
 }

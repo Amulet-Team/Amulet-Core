@@ -15,7 +15,7 @@
 
 namespace Amulet {
 
-class Entity : public PlatformVersionContainer {
+class AMULET_CORE_EXPORT Entity : public PlatformVersionContainer {
 private:
     std::string _namespace;
     std::string _base_name;
@@ -91,10 +91,10 @@ public:
     {
     }
 
-    AMULET_CORE_EXPORT void serialise(BaseBinaryWriter&) const;
-    AMULET_CORE_EXPORT static Entity deserialise(BinaryReader&);
+    void serialise(BaseBinaryWriter&) const;
+    static Entity deserialise(BinaryReader&);
 
-    AMULET_CORE_EXPORT bool operator==(const Entity& other) const;
+    bool operator==(const Entity& other) const;
 };
 
 } // namespace Amulet

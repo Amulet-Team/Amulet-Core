@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 4.1)
 
 project(amulet_core LANGUAGES CXX)
 
@@ -25,6 +25,8 @@ endif()
 if (MSVC)
     add_definitions("/MP")
 endif()
+
+find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
 
 # Find libraries
 if (NOT TARGET pybind11::module)
@@ -54,6 +56,7 @@ list(REMOVE_ITEM HEADERS ${EXTENSION_HEADERS})
 
 # Add implementation
 add_library(amulet_core SHARED)
+set_target_properties(amulet_core PROPERTIES CXX_VISIBILITY_PRESET hidden)
 set_target_properties(amulet_core PROPERTIES FOLDER "CPP")
 target_compile_definitions(amulet_core PRIVATE ExportAmuletCore)
 target_link_libraries(amulet_core PUBLIC pybind11::module)
@@ -72,6 +75,7 @@ endforeach()
 
 # Add python extension
 pybind11_add_module(_amulet_core)
+set_target_properties(_amulet_core PROPERTIES CXX_VISIBILITY_PRESET hidden)
 set_target_properties(_amulet_core PROPERTIES FOLDER "Python")
 target_link_libraries(_amulet_core PRIVATE amulet_pybind11_extensions)
 target_link_libraries(_amulet_core PRIVATE amulet_core)

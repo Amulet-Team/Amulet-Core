@@ -14,7 +14,7 @@
 
 namespace Amulet {
 
-class Biome3DStorage {
+class AMULET_CORE_EXPORT Biome3DStorage {
 private:
     std::shared_ptr<BiomePalette> _palette;
     std::shared_ptr<SectionArrayMap> _sections;
@@ -60,11 +60,11 @@ public:
     SectionArrayMap& get_sections() { return *_sections; }
     std::shared_ptr<SectionArrayMap> get_sections_ptr() { return _sections; }
 
-    AMULET_CORE_EXPORT void serialise(BaseBinaryWriter&) const;
-    AMULET_CORE_EXPORT static Biome3DStorage deserialise(BinaryReader&);
+    void serialise(BaseBinaryWriter&) const;
+    static Biome3DStorage deserialise(BinaryReader&);
 };
 
-class Biome3DComponent {
+class AMULET_CORE_EXPORT Biome3DComponent {
 private:
     std::optional<std::shared_ptr<Biome3DStorage>> _value;
 
@@ -86,14 +86,14 @@ protected:
     }
 
     // Serialise the component data
-    AMULET_CORE_EXPORT std::optional<std::string> serialise() const;
+    std::optional<std::string> serialise() const;
     // Deserialise the component
-    AMULET_CORE_EXPORT void deserialise(std::optional<std::string>);
+    void deserialise(std::optional<std::string>);
 
 public:
-    AMULET_CORE_EXPORT static const std::string ComponentID;
-    AMULET_CORE_EXPORT std::shared_ptr<Biome3DStorage> get_biome_storage();
-    AMULET_CORE_EXPORT void set_biome_storage(std::shared_ptr<Biome3DStorage> component);
+    static const std::string ComponentID;
+    std::shared_ptr<Biome3DStorage> get_biome_storage();
+    void set_biome_storage(std::shared_ptr<Biome3DStorage> component);
 };
 
 } // namespace Amulet
