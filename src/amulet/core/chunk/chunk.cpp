@@ -33,6 +33,7 @@ namespace detail {
         }
         chunk_constructors.emplace(id, constructor);
     }
+
     void remove_null_chunk_constructor(const std::string& id)
     {
         std::lock_guard guard(get_chunk_constructors_mutex());
@@ -46,5 +47,8 @@ std::shared_ptr<Chunk> get_null_chunk(std::string chunk_id)
     std::shared_lock lock(detail::get_chunk_constructors_mutex());
     return detail::get_chunk_constructors().at(chunk_id)();
 }
+
+ChunkLoadError::~ChunkLoadError() noexcept {}
+ChunkDoesNotExist::~ChunkDoesNotExist() noexcept {}
 
 } // namespace Amulet

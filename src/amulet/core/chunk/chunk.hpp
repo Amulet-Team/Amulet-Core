@@ -105,22 +105,24 @@ public:
     }
 };
 
-class AMULET_CORE_EXPORT_EXCEPTION ChunkLoadError : public std::runtime_error {
+class AMULET_CORE_EXPORT ChunkLoadError : public std::runtime_error {
 public:
     using std::runtime_error::runtime_error;
     ChunkLoadError()
         : ChunkLoadError("ChunkLoadError")
     {
     }
+    ~ChunkLoadError() noexcept override;
 };
 
-class AMULET_CORE_EXPORT_EXCEPTION ChunkDoesNotExist : public ChunkLoadError {
+class AMULET_CORE_EXPORT ChunkDoesNotExist : public ChunkLoadError {
 public:
     using ChunkLoadError::ChunkLoadError;
     ChunkDoesNotExist()
         : ChunkDoesNotExist("ChunkDoesNotExist")
     {
     }
+    ~ChunkDoesNotExist() noexcept override;
 };
 
 } // namespace Amulet
