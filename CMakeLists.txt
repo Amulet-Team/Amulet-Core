@@ -26,6 +26,8 @@ if (MSVC)
     add_definitions("/MP")
 endif()
 
+find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+
 # Find libraries
 if (NOT TARGET pybind11::module)
     find_package(pybind11 CONFIG REQUIRED)
