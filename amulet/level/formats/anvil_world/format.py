@@ -246,11 +246,35 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
     def _get_dimenion_bounds(self, dimension_type_str: Dimension) -> SelectionGroup:
         if self.version >= 2709:  # This number might be smaller
             if self.version >= 4786:  # This number might be smaller
-                world_gen_settings = load_nbt(
-                    os.path.join(
-                        self.path, "data", "minecraft", "world_gen_settings.dat"
+                world_gen_settings_path = os.path.join(
+                    self.path, "data", "minecraft", "world_gen_settings.dat"
+                )
+                if not os.path.isfile(world_gen_settings_path):
+                    world_gen_settings_path = os.path.join(
+                        self.path,
+                        "dimensions",
+                        "minecraft",
+                        "overworld",
+                        "data",
+                        "minecraft",
+                        "world_gen_settings.dat",
                     )
-                ).compound.get_compound("data", CompoundTag())
+                if os.path.isfile(world_gen_settings_path):
+                    world_gen_settings = load_nbt(
+                        world_gen_settings_path
+                    ).compound.get_compound("data", CompoundTag())
+                else:
+                    world_gen_settings = CompoundTag(
+                        {
+                            "dimensions": CompoundTag(
+                                {
+                                    dimension_type_str: CompoundTag(
+                                        {"type": StringTag("minecraft:overworld")}
+                                    )
+                                }
+                            )
+                        }
+                    )
             else:
                 # If in a version that supports custom height data packs
                 world_gen_settings = self.root_tag.compound.get_compound(
