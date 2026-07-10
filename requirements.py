@@ -4,12 +4,12 @@ import get_compiler
 
 AMULET_COMPILER_TARGET_REQUIREMENT = "==2.0"
 
-PYBIND11_REQUIREMENT = "==3.0.1"
+PYBIND11_REQUIREMENT = "==3.0.4"
 AMULET_PYBIND11_EXTENSIONS_REQUIREMENT = "~=1.2.0.0a2"
 AMULET_IO_REQUIREMENT = "~=2.0.0.0a0"
-AMULET_UTILS_REQUIREMENT = "~=1.1.4.0a"
-AMULET_ZLIB_REQUIREMENT = "~=1.0.9.0a0"
-AMULET_NBT_REQUIREMENT = "~=5.0.4.0a0"
+AMULET_UTILS_REQUIREMENT = "~=1.1.5.0a"
+AMULET_ZLIB_REQUIREMENT = "~=1.0.11.0a0"
+AMULET_NBT_REQUIREMENT = "~=5.0.5.0a0"
 NUMPY_REQUIREMENT = "~=2.0"
 
 if os.environ.get("AMULET_PYBIND11_EXTENSIONS_REQUIREMENT", None):
@@ -45,9 +45,6 @@ def get_specifier_set(version_str: str) -> str:
         raise RuntimeError(f"Unsupported version format. {version_str}")
 
     return f"~={version.major}.{version.minor}.{version.micro}.0{''.join(map(str, version.pre or ()))}"
-
-
-AMULET_COMPILER_VERSION_REQUIREMENT = get_compiler.main()
 
 
 try:
@@ -90,7 +87,7 @@ else:
 
 def get_build_dependencies() -> list:
     return [
-        f"amulet-compiler-version{AMULET_COMPILER_VERSION_REQUIREMENT}",
+        f"amulet-compiler-version{get_compiler.main()}",
         f"pybind11{PYBIND11_REQUIREMENT}",
         f"amulet-pybind11-extensions{AMULET_PYBIND11_EXTENSIONS_REQUIREMENT}",
         f"amulet-io{AMULET_IO_REQUIREMENT}",
@@ -100,10 +97,10 @@ def get_build_dependencies() -> list:
     ] * (not os.environ.get("AMULET_SKIP_COMPILE", None))
 
 
-def get_runtime_dependencies() -> list[str]:
+def get_runtime_dependencies(sdist: bool = False) -> list[str]:
     return [
         f"amulet-compiler-target{AMULET_COMPILER_TARGET_REQUIREMENT}",
-        f"amulet-compiler-version{AMULET_COMPILER_VERSION_REQUIREMENT}",
+        f"amulet-compiler-version{get_compiler.main(sdist)}",
         f"pybind11{PYBIND11_REQUIREMENT}",
         f"amulet-pybind11-extensions{AMULET_PYBIND11_EXTENSIONS_REQUIREMENT}",
         f"amulet-io{AMULET_IO_REQUIREMENT}",

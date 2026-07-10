@@ -3,7 +3,10 @@ import subprocess
 from tempfile import TemporaryDirectory
 
 
-def main() -> str:
+def main(sdist: bool = False) -> str:
+    if sdist:
+        return "~=4.0"
+
     if subprocess.run(["cmake", "--version"]).returncode:
         raise RuntimeError("Could not find cmake")
 

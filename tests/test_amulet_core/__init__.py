@@ -23,3 +23,4 @@ def _init() -> None:
 
 
 _init()
+del _init

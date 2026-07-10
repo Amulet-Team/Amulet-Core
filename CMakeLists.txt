@@ -26,7 +26,7 @@ if (MSVC)
     add_definitions("/MP")
 endif()
 
-find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+find_package(Python3 COMPONENTS Interpreter Development.Module REQUIRED)
 
 # Find libraries
 if (NOT TARGET pybind11::module)
@@ -47,10 +47,10 @@ endif()
 
 # Find C++ files
 file(REAL_PATH src SOURCE_PATH)
-file(GLOB_RECURSE EXTENSION_SOURCES LIST_DIRECTORIES false ${SOURCE_PATH}/amulet/*.py.cpp)
-file(GLOB_RECURSE EXTENSION_HEADERS LIST_DIRECTORIES false ${SOURCE_PATH}/amulet/*.py.hpp)
-file(GLOB_RECURSE SOURCES LIST_DIRECTORIES false ${SOURCE_PATH}/amulet/*.cpp)
-file(GLOB_RECURSE HEADERS LIST_DIRECTORIES false ${SOURCE_PATH}/amulet/*.hpp)
+file(GLOB_RECURSE EXTENSION_SOURCES LIST_DIRECTORIES false ${SOURCE_PATH}/amulet/core/*.py.cpp)
+file(GLOB_RECURSE EXTENSION_HEADERS LIST_DIRECTORIES false ${SOURCE_PATH}/amulet/core/*.py.hpp)
+file(GLOB_RECURSE SOURCES LIST_DIRECTORIES false ${SOURCE_PATH}/amulet/core/*.cpp)
+file(GLOB_RECURSE HEADERS LIST_DIRECTORIES false ${SOURCE_PATH}/amulet/core/*.hpp)
 list(REMOVE_ITEM SOURCES ${EXTENSION_SOURCES})
 list(REMOVE_ITEM HEADERS ${EXTENSION_HEADERS})
 
@@ -75,6 +75,11 @@ endforeach()
 
 # Add python extension
 pybind11_add_module(_amulet_core)
+if(APPLE)
+    set_target_properties(_amulet_core PROPERTIES INSTALL_RPATH "@loader_path")
+elseif(UNIX)
+    set_target_properties(_amulet_core PROPERTIES INSTALL_RPATH "$ORIGIN")
+endif()
 set_target_properties(_amulet_core PROPERTIES CXX_VISIBILITY_PRESET hidden)
 set_target_properties(_amulet_core PROPERTIES FOLDER "Python")
 target_link_libraries(_amulet_core PRIVATE amulet_pybind11_extensions)
