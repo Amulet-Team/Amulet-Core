@@ -10,9 +10,11 @@ jobs:
       fail-fast: false
       matrix:
         cfg:
-          - { os: windows-2025, python-version: '3.14', architecture: x64 }
-          - { os: windows-11-arm, python-version: '3.14', architecture: arm64 }
-          - { os: macos-15, python-version: '3.14', architecture: arm64 }
+          - { os: windows-2025-vs2026, python-version: '3.14', architecture: x64, whl: 'cp314-win_amd64' }
+          - { os: windows-11-vs2026-arm, python-version: '3.14', architecture: arm64, whl: 'cp314-win_arm64' }
+          - { os: macos-15-intel, python-version: '3.14', architecture: x64, whl: 'cp314-macosx_x86_64' }
+          - { os: macos-15, python-version: '3.14', architecture: arm64, whl: 'cp314-macosx_arm64' }
+          - { os: ubuntu-24.04, python-version: '3.14', architecture: x64, whl: 'cp314-manylinux_x86_64' }
 
     runs-on: ${{ matrix.cfg.os }}
     defaults:
@@ -21,24 +23,30 @@ jobs:
 
     steps:
     - name: Clone
-      uses: actions/checkout@v6
-
-    - name: Setup cmake
-      uses: jwlawson/actions-setup-cmake@v2
+      uses: actions/checkout@v7
 
     - name: Set up Python
       uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.cfg.python-version }}
+        architecture: ${{ matrix.cfg.architecture }}
 
-    - name: Install dependencies
-      shell: bash
+    - name: Build sdist
       run: |
-        pip install build twine
+        pip install build
+        python -m build --sdist --outdir dist .
 
     - name: Build
+      env:
+        CIBW_TEST_COMMAND: ""
       run: |
-        python -m build .
+        pip install cibuildwheel~=4.1
+        cibuildwheel --only ${{ matrix.cfg.whl }} --output-dir dist .
+
+    - name: Install twine
+      shell: bash
+      run: |
+        pip install twine
 
     - name: Publish
       env:
