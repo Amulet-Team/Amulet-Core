@@ -457,19 +457,7 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
         self._levels.clear()
         self._bounds.clear()
 
-        # load all the levels
-        if self.version < 4786:  # This number might be smaller
-            self._register_dimension("", OVERWORLD)
-            self._register_dimension("DIM-1", THE_NETHER)
-            self._register_dimension("DIM1", THE_END)
-
-        for level_path in glob.glob(os.path.join(glob.escape(self.path), "DIM*")):
-            if os.path.isdir(level_path):
-                dir_name = os.path.basename(level_path)
-                if AnvilDimensionManager.level_regex.fullmatch(dir_name) is None:
-                    continue
-                self._register_dimension(dir_name)
-
+        # Find dimensions in /dimensions/namespace/base_name/**/
         for region_path in glob.glob(
             os.path.join(
                 glob.escape(self.path), "dimensions", "*", "*", "**", "region"
@@ -484,6 +472,28 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
 
             dimension_name = f"{dimension}:{'/'.join(base_name)}"
             self._register_dimension(rel_dim_path, dimension_name)
+
+        def register_dimension(
+            path: str, dimension_name: str, alt_dimension_name: str
+        ) -> None:
+            if dimension_name in self._dimension_name_map:
+                dimension_name = alt_dimension_name
+            self._register_dimension(path, dimension_name)
+
+        # load old style levels. This number might be smaller
+        if self._version < 4786 or os.path.isdir(os.path.join(self.path, "region")):
+            register_dimension("", OVERWORLD, "DIM0")
+        if self._version < 4786 or os.path.isdir(os.path.join(self.path, "DIM-1")):
+            register_dimension("DIM-1", THE_NETHER, "DIM-1")
+        if self._version < 4786 or os.path.isdir(os.path.join(self.path, "DIM1")):
+            register_dimension("DIM1", THE_END, "DIM1")
+
+        for level_path in glob.glob(os.path.join(glob.escape(self.path), "DIM*")):
+            if os.path.isdir(level_path):
+                dir_name = os.path.basename(level_path)
+                if AnvilDimensionManager.level_regex.fullmatch(dir_name) is None:
+                    continue
+                self._register_dimension(dir_name)
 
     def _open(self):
         """Open the database for reading and writing"""
