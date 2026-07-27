@@ -118,6 +118,7 @@ class Translator:
             # re-translate the blocks that require extra information
             block_mappings = {}
             for index in todo:
+                input_block = chunk.block_palette[index]
                 for cy in chunk.blocks.sub_chunks:
                     for x, y, z in zip(
                         *numpy.where(chunk.blocks.get_sub_chunk(cy) == index)
@@ -161,7 +162,6 @@ class Translator:
                                 local_chunk.block_entities.get((abs_x, abs_y, abs_z)),
                             )
 
-                        input_block = chunk.block_palette[chunk.blocks[x, y, z]]
                         (
                             output_block,
                             output_block_entity,
