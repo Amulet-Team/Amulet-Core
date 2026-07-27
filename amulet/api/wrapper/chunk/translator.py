@@ -84,6 +84,7 @@ class Translator:
                 ) = translate_block(input_block, None, (0, 0, 0))
                 if extra and get_chunk_callback:
                     todo.append(i)
+                    continue
                 elif output_block is not None:
                     palette_mappings[i] = finished.get_add_block(output_block)
                     if output_block_entity is not None:
