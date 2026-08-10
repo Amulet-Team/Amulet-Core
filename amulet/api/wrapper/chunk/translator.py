@@ -275,6 +275,25 @@ class Translator:
             final_entities = []
             final_extra = False
 
+            if get_block_callback is not None:
+                get_block_callback_original = get_block_callback
+
+                def get_block_callback(
+                    relative_coords: BlockCoordinates,
+                ) -> tuple[Block, Optional[BlockEntity]]:
+                    if relative_coords == (0, 0, 0):
+                        # If the translator is requesting extra information about the current block,
+                        # we should only return the block entity if it is the base block.
+                        block_ = input_object.block_tuple[depth]
+                        if depth == 0:
+                            block_entity = get_block_callback_original(relative_coords)[
+                                1
+                            ]
+                        else:
+                            block_entity = None
+                        return block_, block_entity
+                    return get_block_callback_original(relative_coords)
+
             for depth, block in enumerate(input_object.block_tuple):
                 (
                     output_object,
@@ -383,6 +402,25 @@ class Translator:
             final_block_entity = None
             final_entities = []
             final_extra = False
+
+            if get_block_callback is not None:
+                get_block_callback_original = get_block_callback
+
+                def get_block_callback(
+                    relative_coords: BlockCoordinates,
+                ) -> tuple[Block, Optional[BlockEntity]]:
+                    if relative_coords == (0, 0, 0):
+                        # If the translator is requesting extra information about the current block,
+                        # we should only return the block entity if it is the base block.
+                        block_ = input_object.block_tuple[depth]
+                        if depth == 0:
+                            block_entity = get_block_callback_original(relative_coords)[
+                                1
+                            ]
+                        else:
+                            block_entity = None
+                        return block_, block_entity
+                    return get_block_callback_original(relative_coords)
 
             for depth, block in enumerate(input_object.block_tuple):
                 (
