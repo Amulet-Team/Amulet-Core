@@ -38,6 +38,8 @@ jobs:
         architecture: ${{ matrix.cfg.architecture }}
 
     - name: Build and Test
+      env:
+        THREAD_SAFETY_ANALYSIS: ${{ runner.os == 'macOS' && 'ON' || 'OFF' }}
       run: |
         pip install cibuildwheel~=4.1
         cibuildwheel --only ${{ matrix.cfg.whl }} --output-dir dist .
@@ -45,4 +47,5 @@ jobs:
     - name: Upload artifacts
       uses: actions/upload-artifact@v7
       with:
+        name: ${{ matrix.cfg.whl }}
         path: dist/*
