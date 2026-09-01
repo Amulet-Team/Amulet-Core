@@ -352,7 +352,7 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
                     "Width": ShortTag(overflowed_shape[0]),
                     "Height": ShortTag(overflowed_shape[1]),
                     "Length": ShortTag(overflowed_shape[2]),
-                    "Offset": IntArrayTag(selection.min),
+                    "Offset": IntArrayTag([0, 0, 0]),
                 }
             )
 
