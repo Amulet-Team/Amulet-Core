@@ -34,6 +34,7 @@ if TYPE_CHECKING:
     from amulet.api.wrapper import Translator, Interface
 
 mcstructure_interface = MCStructureInterface()
+MaxFormatVersion = 2
 
 
 class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
@@ -60,6 +61,7 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
                 List[CompoundTag],
             ],
         ] = {}
+        self._format_version = MaxFormatVersion
 
     def _create(
         self,
@@ -67,6 +69,7 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
         bounds: Union[
             SelectionGroup, Dict[Dimension, Optional[SelectionGroup]], None
         ] = None,
+        format_version: int = MaxFormatVersion,
         **kwargs,
     ):
         if not overwrite and os.path.isfile(self.path):
@@ -75,12 +78,15 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
         self._set_selection(bounds)
         self._is_open = True
         self._has_lock = True
+        self._format_version = format_version
 
     def open_from(self, f: BinaryIO):
         mcstructure = load_nbt(
             f, little_endian=True, string_decoder=utf8_escape_decoder
         ).compound
-        if mcstructure.get_int("format_version").py_int == 1:
+        format_version = mcstructure.get_int("format_version").py_int
+        if 1 <= format_version <= 2:
+            self._format_version = format_version
             min_point = numpy.array(
                 tuple(c.py_int for c in mcstructure.get_list("structure_world_origin"))
             )
@@ -212,7 +218,7 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
         selection = self._bounds[self.dimensions[0]].selection_boxes[0]
         mcstructure = CompoundTag(
             {
-                "format_version": IntTag(1),
+                "format_version": IntTag(self._format_version),
                 "structure_world_origin": ListTag(
                     [
                         IntTag(selection.min_x),
