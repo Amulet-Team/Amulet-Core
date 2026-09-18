@@ -8,6 +8,7 @@ from amulet_nbt import (
     StringTag,
     ListTag,
     CompoundTag,
+    IntArrayTag,
     load as load_nbt,
     utf8_escape_decoder,
     utf8_escape_encoder,
@@ -35,6 +36,9 @@ if TYPE_CHECKING:
 
 mcstructure_interface = MCStructureInterface()
 MaxFormatVersion = 2
+
+# Version 1, block_indices is ListTag[ListTag[IntTag]]
+# Version 2 (introduced in 26.50), block_indices is ListTag[IntArrayTag]
 
 
 class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
@@ -103,7 +107,14 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
             structure = mcstructure.get_compound("structure")
             indices = structure.get_list("block_indices")
             blocks_array: numpy.ndarray = numpy.array(
-                [[b.py_int for b in layer] for layer in indices],
+                [
+                    (
+                        layer
+                        if isinstance(layer, IntArrayTag)
+                        else [b.py_int for b in layer]
+                    )
+                    for layer in indices
+                ],
                 dtype=numpy.int32,
             ).reshape((len(indices), *selection.shape))
 
@@ -292,12 +303,18 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
             block_palette_indices.append(indexed_block)
 
         block_indices = numpy.array(block_palette_indices, dtype=numpy.int32)[blocks].T
+        if self._format_version >= 2 and numpy.all(block_indices[1] == -1):
+            block_indices = block_indices[0:1]
 
         mcstructure["structure"] = CompoundTag(
             {
                 "block_indices": ListTag(
                     [  # a list of tag ints that index into the block_palette. One list per block layer
-                        ListTag([IntTag(block) for block in layer])
+                        (
+                            IntArrayTag(layer)
+                            if self._format_version >= 2
+                            else ListTag([IntTag(block) for block in layer])
+                        )
                         for layer in block_indices
                     ]
                 ),
