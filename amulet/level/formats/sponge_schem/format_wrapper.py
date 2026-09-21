@@ -414,10 +414,16 @@ class SpongeSchemFormatWrapper(StructureFormatWrapper[VersionNumberInt]):
                             raise RuntimeError
                         entities.append(entity)
 
+            # Blocks may appear multiple times in the palette. Remove duplicates.
             compact_palette, lut = brute_sort_objects_no_hash(
                 numpy.concatenate(palette)
             )
             blocks = numpy.transpose(lut[blocks], (1, 2, 0)).ravel()  # XYZ => YZX
+
+            # Remove unused blocks from the palette.
+            used_palette_indexes, blocks = numpy.unique(blocks, return_inverse=True)
+            compact_palette = compact_palette[used_palette_indexes]
+
             block_palette = []
             for index, block in enumerate(compact_palette):
                 block: Block
