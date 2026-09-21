@@ -285,8 +285,14 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
                 block_entities += block_entities_
                 entities += entities_
 
+        # Blocks may appear multiple times in the palette. Remove duplicates.
         compact_palette, lut = brute_sort_objects_no_hash(numpy.concatenate(palette))
         blocks = lut[blocks].ravel()
+
+        # Remove unused blocks from the palette.
+        used_palette_indexes, blocks = numpy.unique(blocks, return_inverse=True)
+        compact_palette = compact_palette[used_palette_indexes]
+
         block_palette = []
         block_palette_indices = []
         for block_list in compact_palette:
