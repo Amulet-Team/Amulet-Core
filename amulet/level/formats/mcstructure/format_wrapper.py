@@ -295,11 +295,12 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
                 if block_layer >= 2:
                     break
                 if block["name"] != StringTag("minecraft:structure_void"):
-                    if block in block_palette:
-                        indexed_block[block_layer] = block_palette.index(block)
-                    else:
-                        indexed_block[block_layer] = len(block_palette)
+                    try:
+                        index = block_palette.index(block)
+                    except ValueError:
+                        index = len(block_palette)
                         block_palette.append(block)
+                    indexed_block[block_layer] = index
             block_palette_indices.append(indexed_block)
 
         block_indices = numpy.array(block_palette_indices, dtype=numpy.int32)[blocks].T
