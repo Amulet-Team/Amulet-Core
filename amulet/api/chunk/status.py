@@ -20,21 +20,23 @@ class StatusFormats(Enum):
     Java_13 = 2  # as a string
     Java_14 = 3  # as a string
     Java_20 = 20  # as a string
+    Java_5013 = 26
 
 
 J13 = StatusFormats.Java_13
 J14 = StatusFormats.Java_14
 J20 = StatusFormats.Java_20
+J5013 = StatusFormats.Java_5013
 
 states = {
     "empty": [[J13, J14], -1],
-    "minecraft:empty": [[J20], -1],
+    "minecraft:empty": [[J20, J5013], -1],
     "structure_starts": [[J14], -0.9],
-    "minecraft:structure_starts": [[J20], -0.9],
+    "minecraft:structure_starts": [[J20, J5013], -0.9],
     "structure_references": [[J14], -0.8],
-    "minecraft:structure_references": [[J20], -0.8],
+    "minecraft:structure_references": [[J20, J5013], -0.8],
     "biomes": [[J14], -0.7],
-    "minecraft:biomes": [[J20], -0.7],
+    "minecraft:biomes": [[J20, J5013], -0.7],
     "noise": [[J14], -0.6],
     "minecraft:noise": [[J20], -0.6],
     "base": [[J13], -0.5],
@@ -43,26 +45,27 @@ states = {
     "carved": [[J13], -0.4],
     "carvers": [[J14], -0.4],
     "minecraft:carvers": [[J20], -0.4],
+    "minecraft:terrain": [[J5013], -0.4],
     "liquid_carved": [[J13], -0.3],
     "liquid_carvers": [[J14], -0.3],
     "decorated": [[J13], -0.2],
     "features": [[J14], -0.2],
-    "minecraft:features": [[J20], -0.2],
+    "minecraft:features": [[J20, J5013], -0.2],
     "lighted": [[J13], -0.1],
-    "minecraft:initialize_light": [[J20], -0.1],
+    "minecraft:initialize_light": [[J20, J5013], -0.1],
     "light": [[J14], -0.1],
-    "minecraft:light": [[J20], -0.1],
+    "minecraft:light": [[J20, J5013], -0.1],
     # 0.0	needs ticked
     # 1.0	needs population
     "mobs_spawned": [[J13], 1.1],
     "spawn": [[J14], 1.1],
-    "minecraft:spawn": [[J20], 1.1],
+    "minecraft:spawn": [[J20, J5013], 1.1],
     "finalized": [[J13], 1.5],
     "heightmaps": [[J14], 1.5],
     "fullchunk": [[J13], 1.9],
     "postprocessed": [[J13], 2.0],
     "full": [[J14], 2.0],
-    "minecraft:full": [[J20], 2.0],
+    "minecraft:full": [[J20, J5013], 2.0],
     # 2.0	done
 }
 
