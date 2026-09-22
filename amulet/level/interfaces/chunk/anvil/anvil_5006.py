@@ -11,7 +11,7 @@ from .anvil_3463 import (
 )
 
 
-class Anvil3463Interface(ParentInterface):
+class Anvil5006Interface(ParentInterface):
     @staticmethod
     def minor_is_valid(key: int):
         return 5006 <= key <= 5100
@@ -66,4 +66,4 @@ class Anvil3463Interface(ParentInterface):
         return ListTag(palette_list)
 
 
-export = Anvil3463Interface
+export = Anvil5006Interface
