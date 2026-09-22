@@ -14,7 +14,7 @@ from .anvil_3463 import (
 class Anvil5006Interface(ParentInterface):
     @staticmethod
     def minor_is_valid(key: int):
-        return 5006 <= key <= 5100
+        return 5006 <= key < 5013
 
     @staticmethod
     def _decode_block_palette(palette: ListTag) -> list:
