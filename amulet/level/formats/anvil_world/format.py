@@ -241,9 +241,9 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
                 layers=("region",) + ("entities",) * (self.version >= 2681),
             )
             self._dimension_name_map[dimension_name] = relative_dimension_path
-            self._bounds[dimension_name] = self._get_dimenion_bounds(dimension_name)
+            self._bounds[dimension_name] = self._get_dimension_bounds(dimension_name)
 
-    def _get_dimenion_bounds(self, dimension_type_str: Dimension) -> SelectionGroup:
+    def _get_dimension_bounds(self, dimension_type_str: Dimension) -> SelectionGroup:
         if self.version >= 2709:  # This number might be smaller
             if self.version >= 4786:  # This number might be smaller
                 world_gen_settings_path = os.path.join(
