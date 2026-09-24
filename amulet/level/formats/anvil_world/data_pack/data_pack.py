@@ -175,11 +175,13 @@ class DataPack:
                 except json.JSONDecodeError:
                     pass
                 else:
-                    if isinstance(meta_file, dict) and isinstance(
-                        meta_file.get("pack", {}).get("pack_format", None), int
-                    ):
-                        # TODO: check the actual value
-                        return True
+                    if isinstance(meta_file, dict):
+                        pack = meta_file.get("pack", {})
+                        if "pack_format" in pack or (
+                            "min_format" in pack and "max_format" in pack
+                        ):
+                            # TODO: check the actual value
+                            return True
         return False
 
     @property

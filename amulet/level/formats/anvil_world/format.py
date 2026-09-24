@@ -241,11 +241,13 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
                 layers=("region",) + ("entities",) * (self.version >= 2681),
             )
             self._dimension_name_map[dimension_name] = relative_dimension_path
-            self._bounds[dimension_name] = self._get_dimenion_bounds(dimension_name)
+            self._bounds[dimension_name] = self._get_dimension_bounds(dimension_name)
 
-    def _get_dimenion_bounds(self, dimension_type_str: Dimension) -> SelectionGroup:
+    def _get_dimension_bounds(self, dimension_type_str: Dimension) -> SelectionGroup:
         if self.version >= 2709:  # This number might be smaller
-            if self.version >= 4786:  # This number might be smaller
+            # If in a version that supports custom height data packs
+            if self.version >= 4771:
+                # generation settings stored in data
                 world_gen_settings_path = os.path.join(
                     self.path, "data", "minecraft", "world_gen_settings.dat"
                 )
@@ -276,7 +278,7 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
                         }
                     )
             else:
-                # If in a version that supports custom height data packs
+                # generation settings stored in level.dat
                 world_gen_settings = self.root_tag.compound.get_compound(
                     "Data", CompoundTag()
                 ).get_compound("WorldGenSettings", CompoundTag())
