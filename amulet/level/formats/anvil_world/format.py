@@ -245,6 +245,7 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
 
     def _get_dimension_bounds(self, dimension_type_str: Dimension) -> SelectionGroup:
         if self.version >= 2709:  # This number might be smaller
+            # If in a version that supports custom height data packs
             if self.version >= 4786:  # This number might be smaller
                 world_gen_settings_path = os.path.join(
                     self.path, "data", "minecraft", "world_gen_settings.dat"
@@ -276,7 +277,6 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
                         }
                     )
             else:
-                # If in a version that supports custom height data packs
                 world_gen_settings = self.root_tag.compound.get_compound(
                     "Data", CompoundTag()
                 ).get_compound("WorldGenSettings", CompoundTag())
