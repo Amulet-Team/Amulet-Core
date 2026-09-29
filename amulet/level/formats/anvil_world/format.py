@@ -459,20 +459,35 @@ class AnvilFormat(WorldFormatWrapper[VersionNumberInt]):
         self._levels.clear()
         self._bounds.clear()
 
+        if 4786 <= self._version:
+            # The region directory may not exist if no chunks have been saved.
+            self._register_dimension(
+                os.path.join("dimensions", "minecraft", "overworld"), OVERWORLD
+            )
+            self._register_dimension(
+                os.path.join("dimensions", "minecraft", "the_end"), THE_END
+            )
+            self._register_dimension(
+                os.path.join("dimensions", "minecraft", "the_nether"), THE_NETHER
+            )
+
         # Find dimensions in /dimensions/namespace/base_name/**/
         for region_path in glob.glob(
             os.path.join(
                 glob.escape(self.path), "dimensions", "*", "*", "**", "region"
             ),
             recursive=True,
+        ) + glob.glob(
+            os.path.join(glob.escape(self.path), "dimensions", "*", "*", "**", "data"),
+            recursive=True,
         ):
             if not os.path.isdir(region_path):
                 continue
             dimension_path = os.path.dirname(region_path)
             rel_dim_path = os.path.relpath(dimension_path, self.path)
-            _, dimension, *base_name = rel_dim_path.split(os.sep)
+            _, namespace, *base_name = rel_dim_path.split(os.sep)
 
-            dimension_name = f"{dimension}:{'/'.join(base_name)}"
+            dimension_name = f"{namespace}:{'/'.join(base_name)}"
             self._register_dimension(rel_dim_path, dimension_name)
 
         def register_dimension(
