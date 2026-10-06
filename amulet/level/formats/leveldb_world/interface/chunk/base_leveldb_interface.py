@@ -246,21 +246,20 @@ class BaseLevelDBInterface(Interface):
         max_world_version: VersionIdentifierTuple,
         bounds: Tuple[int, int],
     ) -> Dict[bytes, Optional[bytes]]:
-        chunk_data = chunk.misc.get("bedrock_chunk_data", {})
-        if isinstance(chunk_data, ChunkData):
-            pass
-        elif isinstance(chunk_data, dict):
+        # This can either be a ChunkData (which inherits dict) or a plain dict
+        chunk_data_or_dict = chunk.misc.get("bedrock_chunk_data", {})
+        if isinstance(chunk_data_or_dict, ChunkData):
+            chunk_data = chunk_data_or_dict
+        elif isinstance(chunk_data_or_dict, dict):
             chunk_data = ChunkData(
                 {
                     k: v
-                    for k, v in chunk_data.items()
+                    for k, v in chunk_data_or_dict.items()
                     if isinstance(k, bytes) and isinstance(v, bytes)
                 }
             )
         else:
             chunk_data = ChunkData()
-
-        chunk_data: ChunkData
 
         # chunk version
         if self.chunk_version is not None:
