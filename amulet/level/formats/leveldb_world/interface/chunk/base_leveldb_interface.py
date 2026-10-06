@@ -338,6 +338,33 @@ class BaseLevelDBInterface(Interface):
                 except:
                     pass
 
+        # Init BlendingData. Without this, the game assumes a blending height of -64 leading to artifacts.
+        game_version = max_world_version[1]
+        if game_version >= (1, 26) and game_version[0] == 1:
+            # Convert 1.26+ -> 26
+            game_version = game_version[1:]
+
+        if game_version >= (1, 18, 30):
+            if game_version >= (26, 40):
+                no_blending = b"\x00\x0a"
+            elif game_version >= (26, 30):
+                no_blending = b"\x00\x09"
+            elif game_version >= (1, 21, 100):
+                no_blending = b"\x00\x08"
+            elif game_version >= (1, 21, 60):
+                no_blending = b"\x00\x07"
+            elif game_version >= (1, 21, 50):
+                no_blending = b"\x00\x06"
+            elif game_version >= (1, 20, 30):
+                no_blending = b"\x00\x05"
+            elif game_version >= (1, 20):
+                no_blending = b"\x00\x04"
+            elif game_version >= (1, 19):
+                no_blending = b"\x00\x03"
+            else:
+                no_blending = b"\x00\x00"
+            chunk_data.setdefault(b"@", no_blending)
+
         return chunk_data
 
     def _load_subchunks(
