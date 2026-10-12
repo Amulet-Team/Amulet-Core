@@ -3,11 +3,13 @@ name: Unittests
 on:
   push:
     branches:
-      - master
-      - main
       - '[0-9]+.[0-9]+'
       - '[0-9]+.[0-9]+.[0-9]+'
   pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   unittests:
@@ -39,7 +41,7 @@ jobs:
 
     - name: Build and Test
       env:
-        THREAD_SAFETY_ANALYSIS: ${{ runner.os == 'macOS' && 'ON' || 'OFF' }}
+        THREAD_SAFETY_ANALYSIS: ${{ runner.os == 'macOS' && runner.arch == 'ARM64' && 'ON' || 'OFF' }}
       run: |
         pip install cibuildwheel~=4.1
         cibuildwheel --only ${{ matrix.cfg.whl }} --output-dir dist .
