@@ -21,7 +21,7 @@ namespace detail {
         std::unordered_map<std::string, detail::ChunkContructor> chunk_constructors ASTD_GUARDED_BY(mutex);
 
     public:
-        void add_null_chunk_constructor(const std::string& id, ChunkContructor constructor) ASTD_EXCLUDES(mutex)
+        void add_null_chunk_constructor(const std::string& id, ChunkContructor constructor) ASTD_EXCLUDES_ALL(mutex)
         {
             astd::lock_guard guard(mutex);
             if (chunk_constructors.contains(id)) {
@@ -30,13 +30,13 @@ namespace detail {
             chunk_constructors.emplace(id, constructor);
         }
 
-        void remove_null_chunk_constructor(const std::string& id) ASTD_EXCLUDES(mutex)
+        void remove_null_chunk_constructor(const std::string& id) ASTD_EXCLUDES_ALL(mutex)
         {
             astd::lock_guard guard(mutex);
             chunk_constructors.erase(id);
         }
 
-        std::shared_ptr<Chunk> get_null_chunk(std::string chunk_id) ASTD_EXCLUDES(mutex)
+        std::shared_ptr<Chunk> get_null_chunk(std::string chunk_id) ASTD_EXCLUDES_ALL(mutex)
         {
             astd::shared_lock lock(mutex);
             return chunk_constructors.at(chunk_id)();
