@@ -63,7 +63,7 @@ namespace detail {
 
 std::shared_ptr<Chunk> get_null_chunk(std::string chunk_id)
 {
-    detail::get_null_constructor_storage().get_null_chunk(chunk_id);
+    return detail::get_null_constructor_storage().get_null_chunk(chunk_id);
 }
 
 ChunkLoadError::~ChunkLoadError() noexcept { }
