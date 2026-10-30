@@ -1,13 +1,17 @@
 import os
 from typing import Optional, Tuple, Iterable, TYPE_CHECKING, BinaryIO, Dict, List, Union
+from zlib import Z_BEST_COMPRESSION
+
 import numpy
 import copy
+import zlib
 
 from amulet_nbt import (
     IntTag,
     StringTag,
     ListTag,
     CompoundTag,
+    ByteArrayTag,
     IntArrayTag,
     load as load_nbt,
     utf8_escape_decoder,
@@ -35,10 +39,11 @@ if TYPE_CHECKING:
     from amulet.api.wrapper import Translator, Interface
 
 mcstructure_interface = MCStructureInterface()
-MaxFormatVersion = 2
+MaxFormatVersion = (2, 1)
 
 # Version 1, block_indices is ListTag[ListTag[IntTag]]
-# Version 2 (introduced in 26.50), block_indices is ListTag[IntArrayTag]
+# Version 2.0 (introduced in 26.50), block_indices is ListTag[IntArrayTag]
+# Version 2.1 (introduced in 26.60), adds "compression" IntTag. If compression is 1, "structure" is a zlib compressed ByteArrayTag otherwise the same as 2.0
 
 
 class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
@@ -65,7 +70,7 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
                 List[CompoundTag],
             ],
         ] = {}
-        self._format_version = MaxFormatVersion
+        self._format_version: tuple[int, int] = MaxFormatVersion
 
     def _create(
         self,
@@ -73,7 +78,7 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
         bounds: Union[
             SelectionGroup, Dict[Dimension, Optional[SelectionGroup]], None
         ] = None,
-        format_version: int = MaxFormatVersion,
+        format_version: int | tuple[int, int] = MaxFormatVersion,
         **kwargs,
     ):
         if not overwrite and os.path.isfile(self.path):
@@ -82,6 +87,8 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
         self._set_selection(bounds)
         self._is_open = True
         self._has_lock = True
+        if isinstance(format_version, int):
+            format_version = (format_version, 0)
         self._format_version = format_version
 
     def open_from(self, f: BinaryIO):
@@ -90,7 +97,8 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
         ).compound
         format_version = mcstructure.get_int("format_version").py_int
         if 1 <= format_version <= 2:
-            self._format_version = format_version
+            compression = mcstructure.get_int("compression", IntTag(0)).py_int
+            self._format_version = (format_version, compression)
             min_point = numpy.array(
                 tuple(c.py_int for c in mcstructure.get_list("structure_world_origin"))
             )
@@ -104,7 +112,19 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
             )
             self._platform = translator_version.platform
             self._version = translator_version.version_number
-            structure = mcstructure.get_compound("structure")
+            structure = mcstructure.get("structure")
+            if isinstance(structure, ByteArrayTag):
+                structure_decompressed = zlib.decompress(memoryview(structure.np_array))
+                structure = load_nbt(
+                    structure_decompressed,
+                    compressed=False,
+                    little_endian=True,
+                    string_decoder=utf8_escape_decoder,
+                ).compound
+            elif not isinstance(structure, CompoundTag):
+                raise RuntimeError(
+                    'mcstructure["structure"] is not a CompoundTag or ByteArrayTag'
+                )
             indices = structure.get_list("block_indices")
             blocks_array: numpy.ndarray = numpy.array(
                 [
@@ -229,7 +249,7 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
         selection = self._bounds[self.dimensions[0]].selection_boxes[0]
         mcstructure = CompoundTag(
             {
-                "format_version": IntTag(self._format_version),
+                "format_version": IntTag(self._format_version[0]),
                 "structure_world_origin": ListTag(
                     [
                         IntTag(selection.min_x),
@@ -246,6 +266,9 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
                 ),
             }
         )
+
+        if self._format_version[0] >= 2 and self._format_version[1]:
+            mcstructure["compression"] = IntTag(1)
 
         entities = []
         block_entities = []
@@ -310,16 +333,16 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
             block_palette_indices.append(indexed_block)
 
         block_indices = numpy.array(block_palette_indices, dtype=numpy.int32)[blocks].T
-        if self._format_version >= 2 and numpy.all(block_indices[1] == -1):
+        if self._format_version[0] >= 2 and numpy.all(block_indices[1] == -1):
             block_indices = block_indices[0:1]
 
-        mcstructure["structure"] = CompoundTag(
+        structure = CompoundTag(
             {
                 "block_indices": ListTag(
                     [  # a list of tag ints that index into the block_palette. One list per block layer
                         (
                             IntArrayTag(layer)
-                            if self._format_version >= 2
+                            if self._format_version[0] >= 2
                             else ListTag([IntTag(block) for block in layer])
                         )
                         for layer in block_indices
@@ -360,6 +383,21 @@ class MCStructureFormatWrapper(StructureFormatWrapper[VersionNumberTuple]):
                 ),
             }
         )
+        if self._format_version[0] >= 2 and self._format_version[1]:
+            structure = ByteArrayTag(
+                numpy.frombuffer(
+                    zlib.compress(
+                        structure.to_nbt(
+                            compressed=False,
+                            little_endian=True,
+                            string_encoder=utf8_escape_encoder,
+                        ),
+                        level=Z_BEST_COMPRESSION,
+                    ),
+                    dtype=numpy.int8,
+                )
+            )
+        mcstructure["structure"] = structure
         mcstructure.save_to(
             f, compressed=False, little_endian=True, string_encoder=utf8_escape_encoder
         )
