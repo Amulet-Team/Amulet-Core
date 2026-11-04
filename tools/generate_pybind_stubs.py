@@ -20,26 +20,6 @@ def fix_value(value: str) -> str:
     return value
 
 
-UnionPattern = re.compile(
-    r"^(?P<variable>[a-zA-Z_][a-zA-Z0-9_]*): (types\.UnionType|typing\._UnionGenericAlias)\s*#\s*value = (?P<value>.*)$",
-    flags=re.MULTILINE,
-)
-
-
-def union_sub_func(match: re.Match[str]) -> str:
-    return f'{match.group("variable")}: typing.TypeAlias = {fix_value(match.group("value"))}'
-
-
-ClassVarUnionPattern = re.compile(
-    r"(?P<variable>[a-zA-Z_][a-zA-Z0-9_]*): typing\.ClassVar\[types\.UnionType]\s*#\s*value = (?P<value>.*)$",
-    flags=re.MULTILINE,
-)
-
-
-def class_var_union_sub_func(match: re.Match) -> str:
-    return f'{match.group("variable")}: typing.TypeAlias = {fix_value(match.group("value"))}'
-
-
 VersionPattern = re.compile(r"(?P<var>[a-zA-Z0-9_].*): str = '.*?'")
 
 
@@ -90,15 +70,6 @@ def eq_sub_func(match: re.Match[str]) -> str:
                 f"{match.group('indent')}def __eq__(self, other: typing.Any) -> bool | types.NotImplementedType: ...",
             ]
         )
-
-
-GenericAliasPattern = re.compile(
-    r"(?P<variable>[a-zA-Z0-9]+): types.GenericAlias\s*# value = (?P<value>.*)"
-)
-
-
-def generic_alias_sub_func(match: re.Match) -> str:
-    return f'{match.group("variable")}: typing.TypeAlias = {fix_value(match.group("value"))}'
 
 
 def get_module_path(name: str) -> str:
@@ -216,11 +187,8 @@ def main() -> None:
     for stub_path in stub_paths:
         with open(stub_path, encoding="utf-8") as f:
             pyi = f.read()
-        pyi = UnionPattern.sub(union_sub_func, pyi)
-        pyi = ClassVarUnionPattern.sub(class_var_union_sub_func, pyi)
         pyi = VersionPattern.sub(str_sub_func, pyi)
         pyi = CompilerConfigPattern.sub(compiler_config_sub_func, pyi)
-        pyi = GenericAliasPattern.sub(generic_alias_sub_func, pyi)
         pyi = pyi.replace(
             "__hash__: typing.ClassVar[None] = None",
             "__hash__: typing.ClassVar[None] = None  # type: ignore",

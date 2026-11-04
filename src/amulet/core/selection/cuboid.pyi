@@ -15,12 +15,12 @@ class SelectionCuboid(amulet.core.selection.shape.SelectionShape):
     @typing.overload
     def __init__(
         self,
-        min_x: typing.SupportsFloat,
-        min_y: typing.SupportsFloat,
-        min_z: typing.SupportsFloat,
-        size_x: typing.SupportsFloat,
-        size_y: typing.SupportsFloat,
-        size_z: typing.SupportsFloat,
+        min_x: typing.SupportsFloat | typing.SupportsIndex,
+        min_y: typing.SupportsFloat | typing.SupportsIndex,
+        min_z: typing.SupportsFloat | typing.SupportsIndex,
+        size_x: typing.SupportsFloat | typing.SupportsIndex,
+        size_y: typing.SupportsFloat | typing.SupportsIndex,
+        size_z: typing.SupportsFloat | typing.SupportsIndex,
     ) -> None: ...
     @typing.overload
     def __init__(self, matrix: amulet.utils.matrix.Matrix4x4) -> None: ...
@@ -35,9 +35,9 @@ class SelectionCuboid(amulet.core.selection.shape.SelectionShape):
 
     def translate(
         self,
-        dx: typing.SupportsFloat,
-        dy: typing.SupportsFloat,
-        dz: typing.SupportsFloat,
+        dx: typing.SupportsFloat | typing.SupportsIndex,
+        dy: typing.SupportsFloat | typing.SupportsIndex,
+        dz: typing.SupportsFloat | typing.SupportsIndex,
     ) -> SelectionCuboid:
         """
         Create a new :class:`SelectionCuboid` based on this one with the coordinates moved by the given offset.

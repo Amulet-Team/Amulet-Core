@@ -16,13 +16,22 @@ class IndexArray3D:
 
     @typing.overload
     def __init__(
-        self, shape: tuple[typing.SupportsInt, typing.SupportsInt, typing.SupportsInt]
+        self,
+        shape: tuple[
+            typing.SupportsInt | typing.SupportsIndex,
+            typing.SupportsInt | typing.SupportsIndex,
+            typing.SupportsInt | typing.SupportsIndex,
+        ],
     ) -> None: ...
     @typing.overload
     def __init__(
         self,
-        shape: tuple[typing.SupportsInt, typing.SupportsInt, typing.SupportsInt],
-        value: typing.SupportsInt,
+        shape: tuple[
+            typing.SupportsInt | typing.SupportsIndex,
+            typing.SupportsInt | typing.SupportsIndex,
+            typing.SupportsInt | typing.SupportsIndex,
+        ],
+        value: typing.SupportsInt | typing.SupportsIndex,
     ) -> None: ...
     @typing.overload
     def __init__(self, other: IndexArray3D) -> None: ...
@@ -38,58 +47,77 @@ class SectionArrayMap:
     A container of sub-chunk arrays.
     """
 
-    def __contains__(self, arg0: typing.SupportsInt) -> bool: ...
-    def __delitem__(self, arg0: typing.SupportsInt) -> None: ...
+    def __contains__(self, arg0: typing.SupportsInt | typing.SupportsIndex) -> bool: ...
+    def __delitem__(self, arg0: typing.SupportsInt | typing.SupportsIndex) -> None: ...
     def __eq__(self, other: typing.Any) -> bool | types.NotImplementedType: ...
     def __getitem__(
-        self, arg0: typing.SupportsInt
+        self, arg0: typing.SupportsInt | typing.SupportsIndex
     ) -> numpy.typing.NDArray[numpy.uint32]: ...
     def __hash__(self) -> int: ...
     def __init__(
         self,
-        array_shape: tuple[typing.SupportsInt, typing.SupportsInt, typing.SupportsInt],
-        default_array: typing.SupportsInt | IndexArray3D | collections.abc.Buffer,
+        array_shape: tuple[
+            typing.SupportsInt | typing.SupportsIndex,
+            typing.SupportsInt | typing.SupportsIndex,
+            typing.SupportsInt | typing.SupportsIndex,
+        ],
+        default_array: (
+            typing.SupportsInt
+            | typing.SupportsIndex
+            | IndexArray3D
+            | collections.abc.Buffer
+        ),
     ) -> None: ...
     def __iter__(self) -> collections.abc.Iterator[int]: ...
     def __len__(self) -> int: ...
     def __setitem__(
-        self, arg0: typing.SupportsInt, arg1: IndexArray3D | collections.abc.Buffer
+        self,
+        arg0: typing.SupportsInt | typing.SupportsIndex,
+        arg1: IndexArray3D | collections.abc.Buffer,
     ) -> None: ...
     @typing.overload
     def get(
-        self, key: typing.SupportsInt
+        self, key: typing.SupportsInt | typing.SupportsIndex
     ) -> numpy.typing.NDArray[numpy.uint32] | None: ...
     @typing.overload
     def get(
-        self, key: typing.SupportsInt, default: numpy.typing.NDArray[numpy.uint32]
+        self,
+        key: typing.SupportsInt | typing.SupportsIndex,
+        default: numpy.typing.NDArray[numpy.uint32],
     ) -> numpy.typing.NDArray[numpy.uint32]: ...
     @typing.overload
     def get[T](
-        self, key: typing.SupportsInt, default: T
+        self, key: typing.SupportsInt | typing.SupportsIndex, default: T
     ) -> numpy.typing.NDArray[numpy.uint32] | T: ...
     def items(
         self,
     ) -> collections.abc.ItemsView[int, numpy.typing.NDArray[numpy.uint32]]: ...
     def keys(self) -> collections.abc.KeysView[int]: ...
     @typing.overload
-    def pop(self, key: typing.SupportsInt) -> numpy.typing.NDArray[numpy.uint32]: ...
+    def pop(
+        self, key: typing.SupportsInt | typing.SupportsIndex
+    ) -> numpy.typing.NDArray[numpy.uint32]: ...
     @typing.overload
     def pop(
-        self, key: typing.SupportsInt, default: numpy.typing.NDArray[numpy.uint32]
+        self,
+        key: typing.SupportsInt | typing.SupportsIndex,
+        default: numpy.typing.NDArray[numpy.uint32],
     ) -> numpy.typing.NDArray[numpy.uint32]: ...
     @typing.overload
     def pop[T](
-        self, key: typing.SupportsInt, default: T
+        self, key: typing.SupportsInt | typing.SupportsIndex, default: T
     ) -> numpy.typing.NDArray[numpy.uint32] | T: ...
     def popitem(self) -> tuple[int, numpy.typing.NDArray[numpy.uint32]]: ...
-    def populate(self, arg0: typing.SupportsInt) -> None: ...
+    def populate(self, arg0: typing.SupportsInt | typing.SupportsIndex) -> None: ...
     @typing.overload
     def setdefault(
-        self, key: typing.SupportsInt
+        self, key: typing.SupportsInt | typing.SupportsIndex
     ) -> numpy.typing.NDArray[numpy.uint32]: ...
     @typing.overload
     def setdefault(
-        self, key: typing.SupportsInt, default: numpy.typing.NDArray[numpy.uint32]
+        self,
+        key: typing.SupportsInt | typing.SupportsIndex,
+        default: numpy.typing.NDArray[numpy.uint32],
     ) -> numpy.typing.NDArray[numpy.uint32]: ...
     def update(
         self,
@@ -108,5 +136,11 @@ class SectionArrayMap:
     def default_array(self) -> int | numpy.ndarray: ...
     @default_array.setter
     def default_array(
-        self, arg1: typing.SupportsInt | IndexArray3D | collections.abc.Buffer
+        self,
+        arg1: (
+            typing.SupportsInt
+            | typing.SupportsIndex
+            | IndexArray3D
+            | collections.abc.Buffer
+        ),
     ) -> None: ...

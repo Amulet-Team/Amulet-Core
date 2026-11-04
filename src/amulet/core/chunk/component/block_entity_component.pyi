@@ -9,51 +9,79 @@ import amulet.core.version
 
 __all__: list[str] = ["BlockEntityComponent", "BlockEntityStorage"]
 
-class BlockEntityComponent:
-    ComponentID: typing.ClassVar[str] = "Amulet::BlockEntityComponent"
-    block_entity_storage: BlockEntityStorage
-
 class BlockEntityStorage:
     def __contains__(
-        self, arg0: tuple[typing.SupportsInt, typing.SupportsInt, typing.SupportsInt]
+        self,
+        arg0: tuple[
+            typing.SupportsInt | typing.SupportsIndex,
+            typing.SupportsInt | typing.SupportsIndex,
+            typing.SupportsInt | typing.SupportsIndex,
+        ],
     ) -> bool: ...
     def __delitem__(
-        self, key: tuple[typing.SupportsInt, typing.SupportsInt, typing.SupportsInt]
+        self,
+        key: tuple[
+            typing.SupportsInt | typing.SupportsIndex,
+            typing.SupportsInt | typing.SupportsIndex,
+            typing.SupportsInt | typing.SupportsIndex,
+        ],
     ) -> None: ...
     def __eq__(self, other: typing.Any) -> bool | types.NotImplementedType: ...
     def __getitem__(
-        self, arg0: tuple[typing.SupportsInt, typing.SupportsInt, typing.SupportsInt]
+        self,
+        arg0: tuple[
+            typing.SupportsInt | typing.SupportsIndex,
+            typing.SupportsInt | typing.SupportsIndex,
+            typing.SupportsInt | typing.SupportsIndex,
+        ],
     ) -> amulet.core.block_entity.BlockEntity: ...
     def __hash__(self) -> int: ...
     def __init__(
         self,
         version_range: amulet.core.version.VersionRange,
-        x_size: typing.SupportsInt,
-        z_size: typing.SupportsInt,
+        x_size: typing.SupportsInt | typing.SupportsIndex,
+        z_size: typing.SupportsInt | typing.SupportsIndex,
     ) -> None: ...
     def __iter__(self) -> collections.abc.Iterator[tuple[int, int, int]]: ...
     def __len__(self) -> int: ...
     def __repr__(self) -> str: ...
     def __setitem__(
         self,
-        key: tuple[typing.SupportsInt, typing.SupportsInt, typing.SupportsInt],
+        key: tuple[
+            typing.SupportsInt | typing.SupportsIndex,
+            typing.SupportsInt | typing.SupportsIndex,
+            typing.SupportsInt | typing.SupportsIndex,
+        ],
         value: amulet.core.block_entity.BlockEntity,
     ) -> None: ...
     def clear(self) -> None: ...
     @typing.overload
     def get(
-        self, key: tuple[typing.SupportsInt, typing.SupportsInt, typing.SupportsInt]
+        self,
+        key: tuple[
+            typing.SupportsInt | typing.SupportsIndex,
+            typing.SupportsInt | typing.SupportsIndex,
+            typing.SupportsInt | typing.SupportsIndex,
+        ],
     ) -> amulet.core.block_entity.BlockEntity | None: ...
     @typing.overload
     def get(
         self,
-        key: tuple[typing.SupportsInt, typing.SupportsInt, typing.SupportsInt],
+        key: tuple[
+            typing.SupportsInt | typing.SupportsIndex,
+            typing.SupportsInt | typing.SupportsIndex,
+            typing.SupportsInt | typing.SupportsIndex,
+        ],
         default: amulet.core.block_entity.BlockEntity,
     ) -> amulet.core.block_entity.BlockEntity: ...
     @typing.overload
     def get[T](
         self,
-        key: tuple[typing.SupportsInt, typing.SupportsInt, typing.SupportsInt],
+        key: tuple[
+            typing.SupportsInt | typing.SupportsIndex,
+            typing.SupportsInt | typing.SupportsIndex,
+            typing.SupportsInt | typing.SupportsIndex,
+        ],
         default: T,
     ) -> amulet.core.block_entity.BlockEntity | T: ...
     def items(
@@ -64,18 +92,31 @@ class BlockEntityStorage:
     def keys(self) -> collections.abc.KeysView[tuple[int, int, int]]: ...
     @typing.overload
     def pop(
-        self, key: tuple[typing.SupportsInt, typing.SupportsInt, typing.SupportsInt]
+        self,
+        key: tuple[
+            typing.SupportsInt | typing.SupportsIndex,
+            typing.SupportsInt | typing.SupportsIndex,
+            typing.SupportsInt | typing.SupportsIndex,
+        ],
     ) -> amulet.core.block_entity.BlockEntity: ...
     @typing.overload
     def pop(
         self,
-        key: tuple[typing.SupportsInt, typing.SupportsInt, typing.SupportsInt],
+        key: tuple[
+            typing.SupportsInt | typing.SupportsIndex,
+            typing.SupportsInt | typing.SupportsIndex,
+            typing.SupportsInt | typing.SupportsIndex,
+        ],
         default: amulet.core.block_entity.BlockEntity,
     ) -> amulet.core.block_entity.BlockEntity: ...
     @typing.overload
     def pop[T](
         self,
-        key: tuple[typing.SupportsInt, typing.SupportsInt, typing.SupportsInt],
+        key: tuple[
+            typing.SupportsInt | typing.SupportsIndex,
+            typing.SupportsInt | typing.SupportsIndex,
+            typing.SupportsInt | typing.SupportsIndex,
+        ],
         default: T,
     ) -> amulet.core.block_entity.BlockEntity | T: ...
     def popitem(
@@ -83,12 +124,21 @@ class BlockEntityStorage:
     ) -> tuple[tuple[int, int, int], amulet.core.block_entity.BlockEntity]: ...
     @typing.overload
     def setdefault(
-        self, key: tuple[typing.SupportsInt, typing.SupportsInt, typing.SupportsInt]
+        self,
+        key: tuple[
+            typing.SupportsInt | typing.SupportsIndex,
+            typing.SupportsInt | typing.SupportsIndex,
+            typing.SupportsInt | typing.SupportsIndex,
+        ],
     ) -> amulet.core.block_entity.BlockEntity: ...
     @typing.overload
     def setdefault(
         self,
-        key: tuple[typing.SupportsInt, typing.SupportsInt, typing.SupportsInt],
+        key: tuple[
+            typing.SupportsInt | typing.SupportsIndex,
+            typing.SupportsInt | typing.SupportsIndex,
+            typing.SupportsInt | typing.SupportsIndex,
+        ],
         default: amulet.core.block_entity.BlockEntity,
     ) -> amulet.core.block_entity.BlockEntity: ...
     def update(
@@ -110,3 +160,7 @@ class BlockEntityStorage:
     def x_size(self) -> int: ...
     @property
     def z_size(self) -> int: ...
+
+class BlockEntityComponent:
+    ComponentID: typing.ClassVar[str] = "Amulet::BlockEntityComponent"
+    block_entity_storage: BlockEntityStorage

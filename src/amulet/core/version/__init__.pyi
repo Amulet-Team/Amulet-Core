@@ -13,26 +13,6 @@ __all__: list[str] = [
     "VersionRangeContainer",
 ]
 
-class PlatformVersionContainer:
-    """
-    A class storing platform identifier and version number.
-    Thread safe.
-    """
-
-    def __init__(self, platform: str, version: VersionNumber) -> None: ...
-    def __repr__(self) -> str: ...
-    @property
-    def platform(self) -> str:
-        """
-        Get the platform identifier.
-        """
-
-    @property
-    def version(self) -> VersionNumber:
-        """
-        Get the version number.
-        """
-
 class VersionNumber:
     """
     This class is designed to store semantic versions and data versions and allow comparisons between them.
@@ -49,7 +29,7 @@ class VersionNumber:
     >>> v3 = VersionNumber(3578)
     """
 
-    def __contains__(self, arg0: typing.SupportsInt) -> bool: ...
+    def __contains__(self, arg0: typing.SupportsInt | typing.SupportsIndex) -> bool: ...
     @typing.overload
     def __eq__(self, other: VersionNumber) -> bool: ...
     @typing.overload
@@ -69,7 +49,7 @@ class VersionNumber:
     def __repr__(self) -> str: ...
     def __reversed__(self) -> collections.abc.Iterator[int]: ...
     def __str__(self) -> str: ...
-    def count(self, value: typing.SupportsInt) -> int: ...
+    def count(self, value: typing.SupportsInt | typing.SupportsIndex) -> int: ...
     def cropped_version(self) -> list[int]:
         """
         The version number with trailing zeros cut off.
@@ -77,13 +57,35 @@ class VersionNumber:
 
     def index(
         self,
-        value: typing.SupportsInt,
-        start: typing.SupportsInt = 0,
-        stop: typing.SupportsInt = 18446744073709551615,
+        value: typing.SupportsInt | typing.SupportsIndex,
+        start: typing.SupportsInt | typing.SupportsIndex = 0,
+        stop: typing.SupportsInt | typing.SupportsIndex = 18446744073709551615,
     ) -> int: ...
-    def padded_version(self, len: typing.SupportsInt) -> list[int]:
+    def padded_version(
+        self, len: typing.SupportsInt | typing.SupportsIndex
+    ) -> list[int]:
         """
         Get the version number cropped or padded with zeros to the given length.
+        """
+
+class PlatformVersionContainer:
+    """
+    A class storing platform identifier and version number.
+    Thread safe.
+    """
+
+    def __init__(self, platform: str, version: VersionNumber) -> None: ...
+    def __repr__(self) -> str: ...
+    @property
+    def platform(self) -> str:
+        """
+        Get the platform identifier.
+        """
+
+    @property
+    def version(self) -> VersionNumber:
+        """
+        Get the version number.
         """
 
 class VersionRange:
