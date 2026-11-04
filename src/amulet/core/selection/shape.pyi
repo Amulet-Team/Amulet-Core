@@ -42,9 +42,9 @@ class SelectionShape:
 
     def translate(
         self,
-        dx: typing.SupportsFloat,
-        dy: typing.SupportsFloat,
-        dz: typing.SupportsFloat,
+        dx: typing.SupportsFloat | typing.SupportsIndex,
+        dy: typing.SupportsFloat | typing.SupportsIndex,
+        dz: typing.SupportsFloat | typing.SupportsIndex,
     ) -> SelectionShape:
         """
         Translate the shape by the given amount

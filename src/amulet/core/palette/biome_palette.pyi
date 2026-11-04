@@ -10,11 +10,13 @@ __all__: list[str] = ["BiomePalette"]
 
 class BiomePalette(amulet.core.version.VersionRangeContainer):
     @typing.overload
-    def __contains__(self, arg0: typing.SupportsInt) -> bool: ...
+    def __contains__(self, arg0: typing.SupportsInt | typing.SupportsIndex) -> bool: ...
     @typing.overload
     def __contains__(self, arg0: amulet.core.biome.Biome) -> bool: ...
     @typing.overload
-    def __getitem__(self, arg0: typing.SupportsInt) -> amulet.core.biome.Biome: ...
+    def __getitem__(
+        self, arg0: typing.SupportsInt | typing.SupportsIndex
+    ) -> amulet.core.biome.Biome: ...
     @typing.overload
     def __getitem__(self, item: slice) -> list[amulet.core.biome.Biome]: ...
     def __init__(self, arg0: amulet.core.version.VersionRange) -> None: ...
@@ -35,10 +37,12 @@ class BiomePalette(amulet.core.version.VersionRangeContainer):
     def index(
         self,
         value: amulet.core.biome.Biome,
-        start: typing.SupportsInt = 0,
-        stop: typing.SupportsInt = 9223372036854775807,
+        start: typing.SupportsInt | typing.SupportsIndex = 0,
+        stop: typing.SupportsInt | typing.SupportsIndex = 9223372036854775807,
     ) -> int: ...
-    def index_to_biome(self, arg0: typing.SupportsInt) -> amulet.core.biome.Biome:
+    def index_to_biome(
+        self, arg0: typing.SupportsInt | typing.SupportsIndex
+    ) -> amulet.core.biome.Biome:
         """
         Get the biome at the specified palette index.
 

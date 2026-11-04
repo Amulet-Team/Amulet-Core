@@ -76,7 +76,10 @@ class SelectionBoxGroup:
     def __repr__(self) -> str: ...
     def __str__(self) -> str: ...
     def contains_block(
-        self, x: typing.SupportsInt, y: typing.SupportsInt, z: typing.SupportsInt
+        self,
+        x: typing.SupportsInt | typing.SupportsIndex,
+        y: typing.SupportsInt | typing.SupportsIndex,
+        z: typing.SupportsInt | typing.SupportsIndex,
     ) -> bool:
         """
         Is the block contained within the selection.
@@ -92,7 +95,10 @@ class SelectionBoxGroup:
         """
 
     def contains_point(
-        self, x: typing.SupportsFloat, y: typing.SupportsFloat, z: typing.SupportsFloat
+        self,
+        x: typing.SupportsFloat | typing.SupportsIndex,
+        y: typing.SupportsFloat | typing.SupportsIndex,
+        z: typing.SupportsFloat | typing.SupportsIndex,
     ) -> bool:
         """
         Is the point contained within the selection.
@@ -124,7 +130,10 @@ class SelectionBoxGroup:
         """
 
     def translate(
-        self, dx: typing.SupportsInt, dy: typing.SupportsInt, dz: typing.SupportsInt
+        self,
+        dx: typing.SupportsInt | typing.SupportsIndex,
+        dy: typing.SupportsInt | typing.SupportsIndex,
+        dz: typing.SupportsInt | typing.SupportsIndex,
     ) -> SelectionBoxGroup:
         """
         Create a new :class:`SelectionBoxGroup` based on this one with the coordinates moved by the given offset.

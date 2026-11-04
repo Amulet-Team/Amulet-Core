@@ -9,15 +9,15 @@ import amulet.core.version
 
 __all__: list[str] = ["BlockComponent", "BlockStorage"]
 
-class BlockComponent:
-    ComponentID: typing.ClassVar[str] = "Amulet::BlockComponent"
-    block_storage: BlockStorage
-
 class BlockStorage:
     def __init__(
         self,
         version_range: amulet.core.version.VersionRange,
-        array_shape: tuple[typing.SupportsInt, typing.SupportsInt, typing.SupportsInt],
+        array_shape: tuple[
+            typing.SupportsInt | typing.SupportsIndex,
+            typing.SupportsInt | typing.SupportsIndex,
+            typing.SupportsInt | typing.SupportsIndex,
+        ],
         default_block: amulet.core.block.BlockStack,
     ) -> None: ...
     @property
@@ -26,3 +26,7 @@ class BlockStorage:
     def sections(
         self,
     ) -> amulet.core.chunk.component.section_array_map.SectionArrayMap: ...
+
+class BlockComponent:
+    ComponentID: typing.ClassVar[str] = "Amulet::BlockComponent"
+    block_storage: BlockStorage

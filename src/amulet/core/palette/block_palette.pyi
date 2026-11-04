@@ -10,11 +10,13 @@ __all__: list[str] = ["BlockPalette"]
 
 class BlockPalette(amulet.core.version.VersionRangeContainer):
     @typing.overload
-    def __contains__(self, arg0: typing.SupportsInt) -> bool: ...
+    def __contains__(self, arg0: typing.SupportsInt | typing.SupportsIndex) -> bool: ...
     @typing.overload
     def __contains__(self, arg0: amulet.core.block.BlockStack) -> bool: ...
     @typing.overload
-    def __getitem__(self, arg0: typing.SupportsInt) -> amulet.core.block.BlockStack: ...
+    def __getitem__(
+        self, arg0: typing.SupportsInt | typing.SupportsIndex
+    ) -> amulet.core.block.BlockStack: ...
     @typing.overload
     def __getitem__(self, item: slice) -> list[amulet.core.block.BlockStack]: ...
     def __init__(self, arg0: amulet.core.version.VersionRange) -> None: ...
@@ -37,11 +39,11 @@ class BlockPalette(amulet.core.version.VersionRangeContainer):
     def index(
         self,
         value: amulet.core.block.BlockStack,
-        start: typing.SupportsInt = 0,
-        stop: typing.SupportsInt = 9223372036854775807,
+        start: typing.SupportsInt | typing.SupportsIndex = 0,
+        stop: typing.SupportsInt | typing.SupportsIndex = 9223372036854775807,
     ) -> int: ...
     def index_to_block_stack(
-        self, arg0: typing.SupportsInt
+        self, arg0: typing.SupportsInt | typing.SupportsIndex
     ) -> amulet.core.block.BlockStack:
         """
         Get the block stack at the specified palette index.

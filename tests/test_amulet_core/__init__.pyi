@@ -27,7 +27,4 @@ __all__: list[str] = [
     "test_selection",
     "test_version_",
 ]
-
-def _init() -> None: ...
-
 compiler_config: dict

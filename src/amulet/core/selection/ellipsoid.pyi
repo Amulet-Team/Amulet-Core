@@ -15,10 +15,10 @@ class SelectionEllipsoid(amulet.core.selection.shape.SelectionShape):
     @typing.overload
     def __init__(
         self,
-        x: typing.SupportsFloat,
-        y: typing.SupportsFloat,
-        z: typing.SupportsFloat,
-        radius: typing.SupportsFloat,
+        x: typing.SupportsFloat | typing.SupportsIndex,
+        y: typing.SupportsFloat | typing.SupportsIndex,
+        z: typing.SupportsFloat | typing.SupportsIndex,
+        radius: typing.SupportsFloat | typing.SupportsIndex,
     ) -> None: ...
     @typing.overload
     def __init__(self, matrix: amulet.utils.matrix.Matrix4x4) -> None: ...
@@ -33,9 +33,9 @@ class SelectionEllipsoid(amulet.core.selection.shape.SelectionShape):
 
     def translate(
         self,
-        dx: typing.SupportsFloat,
-        dy: typing.SupportsFloat,
-        dz: typing.SupportsFloat,
+        dx: typing.SupportsFloat | typing.SupportsIndex,
+        dy: typing.SupportsFloat | typing.SupportsIndex,
+        dz: typing.SupportsFloat | typing.SupportsIndex,
     ) -> SelectionEllipsoid:
         """
         Create a new :class:`SelectionEllipsoid` based on this one with the coordinates moved by the given offset.
