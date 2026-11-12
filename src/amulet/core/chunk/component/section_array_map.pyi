@@ -137,7 +137,7 @@ class SectionArrayMap:
     @default_array.setter
     def default_array(
         self,
-        arg1: (
+        arg0: (
             typing.SupportsInt
             | typing.SupportsIndex
             | IndexArray3D

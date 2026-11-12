@@ -42,7 +42,7 @@ class Entity(amulet.core.version.PlatformVersionContainer):
         """
 
     @base_name.setter
-    def base_name(self, arg1: str) -> None: ...
+    def base_name(self, arg0: str) -> None: ...
     @property
     def namespace(self) -> str:
         """
@@ -55,7 +55,7 @@ class Entity(amulet.core.version.PlatformVersionContainer):
         """
 
     @namespace.setter
-    def namespace(self, arg1: str) -> None: ...
+    def namespace(self, arg0: str) -> None: ...
     @property
     def namespaced_name(self) -> str:
         """
@@ -78,7 +78,7 @@ class Entity(amulet.core.version.PlatformVersionContainer):
         """
 
     @nbt.setter
-    def nbt(self, arg1: amulet.nbt.NamedTag) -> None: ...
+    def nbt(self, arg0: amulet.nbt.NamedTag) -> None: ...
     @property
     def x(self) -> float:
         """
@@ -86,7 +86,7 @@ class Entity(amulet.core.version.PlatformVersionContainer):
         """
 
     @x.setter
-    def x(self, arg1: typing.SupportsFloat | typing.SupportsIndex) -> None: ...
+    def x(self, arg0: typing.SupportsFloat | typing.SupportsIndex) -> None: ...
     @property
     def y(self) -> float:
         """
@@ -94,7 +94,7 @@ class Entity(amulet.core.version.PlatformVersionContainer):
         """
 
     @y.setter
-    def y(self, arg1: typing.SupportsFloat | typing.SupportsIndex) -> None: ...
+    def y(self, arg0: typing.SupportsFloat | typing.SupportsIndex) -> None: ...
     @property
     def z(self) -> float:
         """
@@ -102,4 +102,4 @@ class Entity(amulet.core.version.PlatformVersionContainer):
         """
 
     @z.setter
-    def z(self, arg1: typing.SupportsFloat | typing.SupportsIndex) -> None: ...
+    def z(self, arg0: typing.SupportsFloat | typing.SupportsIndex) -> None: ...

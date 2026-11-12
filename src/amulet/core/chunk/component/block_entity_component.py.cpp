@@ -97,8 +97,14 @@ py::module init_block_entity_component(py::module m_parent)
         &Amulet::BlockEntityComponent::ComponentID);
     BlockEntityComponent.def_property(
         "block_entity_storage",
-        &Amulet::BlockEntityComponent::get_block_entity_storage,
-        &Amulet::BlockEntityComponent::set_block_entity_storage);
+        py::cpp_function(
+            &Amulet::BlockEntityComponent::get_block_entity_storage,
+            py::returns_non_null(),
+            py::is_method(BlockEntityComponent)),
+        py::cpp_function(
+            &Amulet::BlockEntityComponent::set_block_entity_storage,
+            py::is_method(BlockEntityComponent),
+            py::arg("block_entity_storage").none(false)));
 
     return m;
 }

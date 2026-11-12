@@ -28,14 +28,18 @@ py::module init_block_component(py::module m_parent)
         py::arg("default_block"));
     BlockStorage.def_property_readonly(
         "palette",
-        [](Amulet::BlockStorage& self) {
-            return self.get_palette_ptr();
-        });
+        py::cpp_function(
+            [](Amulet::BlockStorage& self) {
+                return self.get_palette_ptr();
+            },
+            py::returns_non_null()));
     BlockStorage.def_property_readonly(
         "sections",
-        [](Amulet::BlockStorage& self) {
-            return self.get_sections_ptr();
-        });
+        py::cpp_function(
+            [](Amulet::BlockStorage& self) {
+                return self.get_sections_ptr();
+            },
+            py::returns_non_null()));
 
     py::classh<Amulet::BlockComponent>
         BlockComponent(m, "BlockComponent");
@@ -44,10 +48,16 @@ py::module init_block_component(py::module m_parent)
         &Amulet::BlockComponent::ComponentID);
     BlockComponent.def_property(
         "block_storage",
-        [](Amulet::BlockComponent& self) {
-            return self.get_block_storage_ptr();
-        },
-        &Amulet::BlockComponent::set_block_storage);
+        py::cpp_function(
+            [](Amulet::BlockComponent& self) {
+                return self.get_block_storage_ptr();
+            },
+            py::returns_non_null(),
+            py::is_method(BlockComponent)),
+        py::cpp_function(
+            &Amulet::BlockComponent::set_block_storage,
+            py::is_method(BlockComponent),
+            py::arg("block_storage").none(false)));
 
     return m;
 }

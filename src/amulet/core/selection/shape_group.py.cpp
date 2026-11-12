@@ -122,7 +122,8 @@ void init_selection_shape_group(py::module m, py::classh<Amulet::SelectionShapeG
         [](const Amulet::SelectionShapeGroup& self, Py_ssize_t index) {
             return self.get_shapes()[sanitise_index(self.count(), index)];
         },
-        py::arg("index"));
+        py::arg("index"),
+        py::returns_non_null());
     SelectionShapeGroup.def(
         "__bool__",
         &Amulet::SelectionShapeGroup::operator bool,

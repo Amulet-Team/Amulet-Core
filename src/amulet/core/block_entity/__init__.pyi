@@ -39,7 +39,7 @@ class BlockEntity(amulet.core.version.PlatformVersionContainer):
         """
 
     @base_name.setter
-    def base_name(self, arg1: str) -> None: ...
+    def base_name(self, arg0: str) -> None: ...
     @property
     def namespace(self) -> str:
         """
@@ -52,7 +52,7 @@ class BlockEntity(amulet.core.version.PlatformVersionContainer):
         """
 
     @namespace.setter
-    def namespace(self, arg1: str) -> None: ...
+    def namespace(self, arg0: str) -> None: ...
     @property
     def namespaced_name(self) -> str:
         """
@@ -75,4 +75,4 @@ class BlockEntity(amulet.core.version.PlatformVersionContainer):
         """
 
     @nbt.setter
-    def nbt(self, arg1: amulet.nbt.NamedTag) -> None: ...
+    def nbt(self, arg0: amulet.nbt.NamedTag) -> None: ...

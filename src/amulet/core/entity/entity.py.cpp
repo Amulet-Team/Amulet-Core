@@ -40,7 +40,7 @@ void init_entity(py::module m_parent)
         py::arg("x"),
         py::arg("y"),
         py::arg("z"),
-        py::arg("nbt"));
+        py::arg("nbt").none(false));
     Entity.def_property_readonly(
         "namespaced_name",
         [](const Amulet::Entity& self) {
@@ -92,7 +92,7 @@ void init_entity(py::module m_parent)
         py::doc("The z coordinate of the entity."));
     Entity.def_property(
         "nbt",
-        &Amulet::Entity::get_nbt,
+        py::cpp_function(&Amulet::Entity::get_nbt, py::returns_non_null(), py::is_method(Entity)),
         [](Amulet::Entity& self, pyext::PyObjectCpp<Amulet::NBT::NamedTag> tag) {
             std::shared_ptr<Amulet::NBT::NamedTag> tag_ptr;
             try {

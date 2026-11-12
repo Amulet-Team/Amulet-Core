@@ -20,7 +20,9 @@ def fix_value(value: str) -> str:
     return value
 
 
-VersionPattern = re.compile(r"(?P<var>[a-zA-Z0-9_].*): str = '.*?'")
+VersionPattern = re.compile(
+    r"^(?P<var>\s*[a-zA-Z0-9_]*): str = '.*?'", flags=re.MULTILINE
+)
 
 
 def str_sub_func(match: re.Match) -> str:

@@ -83,7 +83,8 @@ void init_chunk(py::module m_parent)
     m.def(
         "get_null_chunk",
         &Amulet::get_null_chunk,
-        py::doc("This is a private function"));
+        py::doc("This is a private function"),
+        py::returns_non_null());
 
     auto ChunkLoadError = py::register_exception<Amulet::ChunkLoadError>(m, "ChunkLoadError", PyExc_RuntimeError);
     ChunkLoadError.doc() = "An error thrown if a chunk failed to load for some reason.\n"

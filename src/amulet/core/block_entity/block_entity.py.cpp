@@ -35,7 +35,7 @@ void init_block_entity(py::module m_parent)
         py::arg("version"),
         py::arg("namespace"),
         py::arg("base_name"),
-        py::arg("nbt"));
+        py::arg("nbt").none(false));
     BlockEntity.def_property_readonly(
         "namespaced_name",
         [](const Amulet::BlockEntity& self) {
@@ -72,7 +72,7 @@ void init_block_entity(py::module m_parent)
             ":return: The base name of the block entity"));
     BlockEntity.def_property(
         "nbt",
-        &Amulet::BlockEntity::get_nbt,
+        py::cpp_function(&Amulet::BlockEntity::get_nbt, py::returns_non_null(), py::is_method(BlockEntity)),
         [](Amulet::BlockEntity& self, pyext::PyObjectCpp<Amulet::NBT::NamedTag> tag) {
             std::shared_ptr<Amulet::NBT::NamedTag> tag_ptr;
             try {

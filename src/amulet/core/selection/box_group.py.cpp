@@ -66,7 +66,8 @@ void init_selection_box_group(py::classh<Amulet::SelectionBoxGroup> SelectionBox
             [](const Amulet::SelectionBoxGroup& self) {
                 return py::make_iterator(self.get_boxes().begin(), self.get_boxes().end());
             },
-            py::keep_alive<0, 1>()),
+            py::keep_alive<0, 1>(),
+            py::is_method(SelectionBoxGroup)),
         py::doc("An iterator of the :class:`SelectionBox` instances stored for this group."));
 
     // Bounds

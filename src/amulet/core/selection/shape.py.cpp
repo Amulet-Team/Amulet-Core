@@ -28,6 +28,7 @@ py::object init_selection_shape(py::module m_parent)
         static_cast<std::unique_ptr<Amulet::SelectionShape> (*)(std::string_view)>(
             &Amulet::SelectionShape::deserialise),
         py::arg("s"),
+        py::returns_non_null(),
         py::doc("Deserialise the serialised data back to an object."));
 
     SelectionShape.def(
@@ -41,12 +42,14 @@ py::object init_selection_shape(py::module m_parent)
         py::arg("dx"),
         py::arg("dy"),
         py::arg("dz"),
+        py::returns_non_null(),
         py::doc("Translate the shape by the given amount"));
 
     SelectionShape.def(
         "transform",
         &Amulet::SelectionShape::transform,
         py::arg("matrix"),
+        py::returns_non_null(),
         py::doc("Translate the shape by the given matrix"));
 
     SelectionShape.def(
