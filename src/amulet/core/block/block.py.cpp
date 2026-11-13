@@ -6,6 +6,7 @@
 #include <memory>
 #include <span>
 
+#include <amulet/pybind11_extensions/builtins.hpp>
 #include <amulet/pybind11_extensions/py_module.hpp>
 #include <amulet/pybind11_extensions/types.hpp>
 
@@ -19,7 +20,6 @@ namespace pyext = Amulet::pybind11_extensions;
 void init_block(py::module m_parent)
 {
     auto m = pyext::def_subpackage(m_parent, "block");
-    py::options options;
 
     py::object PySorted = py::module::import("builtins").attr("sorted");
 
@@ -238,18 +238,16 @@ void init_block(py::module m_parent)
         "\n"
         "Get the blocks as a list\n"
         ">>> blocks = list(waterlogged_stone)");
-    options.disable_function_signatures();
     BlockStack.def(
         py::init(
-            [](const Amulet::Block& block, py::args py_extra_blocks) {
+            [](const Amulet::Block& block, Amulet::pybind11_extensions::Args<Amulet::Block, "extra_blocks"> py_extra_blocks) {
                 std::vector<Amulet::Block> blocks;
                 blocks.push_back(block);
                 auto extra_blocks = py_extra_blocks.cast<std::vector<Amulet::Block>>();
                 blocks.insert(blocks.end(), extra_blocks.begin(), extra_blocks.end());
                 return Amulet::BlockStack(std::move(blocks));
             }),
-        py::doc("__init__(self, block: amulet.core.block.Block, *extra_blocks: amulet.core.block.Block) -> None"));
-    options.enable_function_signatures();
+        py::arg("block"));
 
     BlockStack.def(
         "__repr__",

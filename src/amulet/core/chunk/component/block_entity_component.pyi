@@ -145,10 +145,22 @@ class BlockEntityStorage:
         self,
         other: (
             collections.abc.Mapping[
-                tuple[int, int, int], amulet.core.block_entity.BlockEntity
+                tuple[
+                    typing.SupportsInt | typing.SupportsIndex,
+                    typing.SupportsInt | typing.SupportsIndex,
+                    typing.SupportsInt | typing.SupportsIndex,
+                ],
+                amulet.core.block_entity.BlockEntity,
             ]
             | collections.abc.Iterable[
-                tuple[tuple[int, int, int], amulet.core.block_entity.BlockEntity]
+                tuple[
+                    tuple[
+                        typing.SupportsInt | typing.SupportsIndex,
+                        typing.SupportsInt | typing.SupportsIndex,
+                        typing.SupportsInt | typing.SupportsIndex,
+                    ],
+                    amulet.core.block_entity.BlockEntity,
+                ]
             ]
         ) = (),
         **kwargs: amulet.core.block_entity.BlockEntity,

@@ -15,7 +15,6 @@ namespace pyext = Amulet::pybind11_extensions;
 void init_version(py::module m_parent)
 {
     auto m = pyext::def_subpackage(m_parent, "version");
-    py::options options;
 
     m.attr("PlatformType") = py::module::import("builtins").attr("str");
 
@@ -32,23 +31,17 @@ void init_version(py::module m_parent)
         "\n"
         "This class should also be used to store single number data versions.\n"
         ">>> v3 = VersionNumber(3578)");
-    options.disable_function_signatures();
     VersionNumber.def(
         py::init(
-            [](py::args v) {
+            [](py::Args<std::int64_t> v) {
                 return Amulet::VersionNumber(v.cast<std::vector<std::int64_t>>());
-            }),
-        py::doc("__init__(self: amulet.core.version.VersionNumber, *args: typing.SupportsInt) -> None"));
+            }));
 
     // Start collections.abc.Sequence
     VersionNumber.def(
         "__getitem__",
         &Amulet::VersionNumber::operator[],
-        py::doc(
-            "__getitem__(*args, **kwargs)\n"
-            "Overloaded function.\n"
-            "1. __getitem__(self: amulet.core.version.VersionNumber, item: typing.SupportsInt) -> int\n"
-            "2. __getitem__(self: amulet.core.version.VersionNumber, item: slice) -> list[int]"));
+        py::arg("item"));
     VersionNumber.def(
         "__getitem__",
         [](const Amulet::VersionNumber& self, const py::slice& slice) -> std::vector<std::int64_t> {
@@ -62,8 +55,8 @@ void init_version(py::module m_parent)
                 start += step;
             }
             return out;
-        });
-    options.enable_function_signatures();
+        },
+        py::arg("item"));
 
     VersionNumber.def(
         "__repr__",

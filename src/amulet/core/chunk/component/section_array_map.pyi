@@ -122,8 +122,16 @@ class SectionArrayMap:
     def update(
         self,
         other: (
-            collections.abc.Mapping[int, numpy.typing.NDArray[numpy.uint32]]
-            | collections.abc.Iterable[tuple[int, numpy.typing.NDArray[numpy.uint32]]]
+            collections.abc.Mapping[
+                typing.SupportsInt | typing.SupportsIndex,
+                numpy.typing.NDArray[numpy.uint32],
+            ]
+            | collections.abc.Iterable[
+                tuple[
+                    typing.SupportsInt | typing.SupportsIndex,
+                    numpy.typing.NDArray[numpy.uint32],
+                ]
+            ]
         ) = (),
         **kwargs: numpy.typing.NDArray[numpy.uint32],
     ) -> None: ...
